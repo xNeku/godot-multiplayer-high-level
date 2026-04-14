@@ -1,0 +1,123 @@
+[gd_scene load_steps=4 format=3 uid="uid://b1f217vubxffw"]
+
+[ext_resource type="Script" uid="uid://bmxqdw0blxmia" path="res://high_level_example/scripts/menu.gd" id="1_leprn"]
+[ext_resource type="Texture2D" uid="uid://bp8pdw0prviff" path="res://high_level_example/assets/TileSet/origbig.png" id="2_na366"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rp73m"]
+
+[node name="Menu" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 140.0
+offset_top = 66.0
+offset_right = 140.0
+offset_bottom = 66.0
+scale = Vector2(0.15158302, 0.13575149)
+script = ExtResource("1_leprn")
+
+[node name="PanelPrincipal" type="Panel" parent="."]
+modulate = Color(0.50329494, 0.6151131, 0.8859464, 1)
+self_modulate = Color(0.34384155, 0.9484506, 0.78228104, 1)
+top_level = true
+material = SubResource("CanvasItemMaterial_rp73m")
+layout_mode = 0
+offset_left = 117.99994
+offset_top = 55.0
+offset_right = 417.99994
+offset_bottom = 254.99997
+scale = Vector2(1.3711023, 1.251167)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelPrincipal"]
+layout_mode = 0
+offset_left = 53.235367
+offset_top = 30.806984
+offset_right = 250.23537
+offset_bottom = 158.80698
+
+[node name="Title" type="Label" parent="PanelPrincipal/VBoxContainer"]
+layout_mode = 2
+text = "PERO TIOOOOO  PROJECT"
+
+[node name="IpInput" type="LineEdit" parent="PanelPrincipal/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "\"Escribe IP del Host\""
+
+[node name="HostButton" type="Button" parent="PanelPrincipal/VBoxContainer"]
+layout_mode = 2
+text = "Crear Partida
+"
+
+[node name="JoinButton" type="Button" parent="PanelPrincipal/VBoxContainer"]
+layout_mode = 2
+text = "Unirse a IP
+"
+
+[node name="LobbyPanel" type="Panel" parent="."]
+z_index = 1
+layout_mode = 0
+offset_left = 765.0
+offset_top = 369.0
+offset_right = 805.0
+offset_bottom = 409.0
+scale = Vector2(6.713441, 8.806495)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LobbyPanel"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="LobbyPanel/VBoxContainer"]
+layout_mode = 2
+text = "\"Esperando jugadores...\"
+"
+
+[node name="PlayerList" type="ItemList" parent="LobbyPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.057, 0.4290832, 1)
+theme_override_colors/font_hovered_color = Color(0, 1, 0.5500002, 1)
+theme_override_colors/font_selected_color = Color(1, 0.04000002, 0.04000002, 1)
+max_text_lines = 2
+auto_width = true
+auto_height = true
+
+[node name="StartButton" type="Button" parent="LobbyPanel/VBoxContainer"]
+layout_mode = 2
+text = "Start
+"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="LobbyPanel"]
+layout_mode = 0
+offset_left = -123.77713
+offset_top = -45.24679
+offset_right = 273.22287
+offset_bottom = -5.246792
+
+[node name="BtnAsalto" type="Button" parent="LobbyPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Asalto"
+
+[node name="BtnPipero" type="Button" parent="LobbyPanel/HBoxContainer"]
+layout_mode = 2
+text = "Pipero
+"
+
+[node name="BtnSniper" type="Button" parent="LobbyPanel/HBoxContainer"]
+layout_mode = 2
+text = "Sniper
+"
+
+[node name="ClassLabel" type="Label" parent="LobbyPanel/HBoxContainer"]
+layout_mode = 2
+text = "Clase actual: Asalto"
+
+[node name="BtnNinja" type="Button" parent="LobbyPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Ninja
+"
+
+[node name="Origbig" type="Sprite2D" parent="."]
+position = Vector2(1163, 851.99994)
+scale = Vector2(1.8031923, 2.0297847)
+texture = ExtResource("2_na366")

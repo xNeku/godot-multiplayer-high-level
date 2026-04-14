@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ClassData" load_steps=3 format=3 uid="uid://dbcg3x1qhfdc8"]
+
+[ext_resource type="Script" uid="uid://ddmvhmccve66f" path="res://high_level_example/scripts/ClassData.gd" id="1_32gv6"]
+[ext_resource type="Resource" uid="uid://pichp47orwdo" path="res://high_level_example/Weapons/Escopeta.tres" id="1_kded8"]
+
+[resource]
+script = ExtResource("1_32gv6")
+role_name = "Asalto"
+primary_weapon = ExtResource("1_kded8")
+flashlight_scale = Vector2(100, 0.5)
+metadata/_custom_type_script = "uid://ddmvhmccve66f"

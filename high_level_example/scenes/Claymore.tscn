@@ -1,0 +1,42 @@
+[gd_scene load_steps=6 format=3 uid="uid://ch6oowh2u6cep"]
+
+[ext_resource type="Script" uid="uid://36q0ddt6jail" path="res://high_level_example/scripts/claymore.gd" id="1_742tf"]
+[ext_resource type="Texture2D" uid="uid://cxygregiikami" path="res://high_level_example/assets/weapons/claymore.png" id="1_j5kwr"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_742tf"]
+size = Vector2(10, 10)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_5sxkf"]
+radius = 8.330934
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_5sxkf"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
+[node name="Claymore" type="RigidBody2D"]
+collision_layer = 4
+freeze = true
+script = ExtResource("1_742tf")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_j5kwr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-1, 2)
+scale = Vector2(1.0164884, 1.0170541)
+shape = SubResource("RectangleShape2D_742tf")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(-1, 2)
+scale = Vector2(1.091626, 0.8358511)
+shape = SubResource("CircleShape2D_5sxkf")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_5sxkf")

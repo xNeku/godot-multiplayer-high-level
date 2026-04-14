@@ -1,0 +1,103 @@
+extends Control
+
+@onready var main_panel = $PanelPrincipal
+@onready var lobby_panel = $LobbyPanel
+@onready var ip_input = $PanelPrincipal/VBoxContainer/IpInput
+@onready var player_list = $LobbyPanel/VBoxContainer/PlayerList
+@onready var start_button = $LobbyPanel/VBoxContainer/StartButton
+
+func _ready():
+	# Estado inicial
+	main_panel.visible = true
+	lobby_panel.visible = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	# Conectar botones
+	$PanelPrincipal/VBoxContainer/HostButton.pressed.connect(_on_host_pressed)
+	$PanelPrincipal/VBoxContainer/JoinButton.pressed.connect(_on_join_pressed)
+	start_button.pressed.connect(_on_start_pressed)
+
+	# --- CONEXIONES DE RED ---
+	# 1. Si el Handler nos dice "Ya estás dentro", mostramos el lobby
+	HighLevelNetworkHandler.connected_to_server.connect(_on_connection_success)
+	
+	# 2. Si entra alguien nuevo (o si yo entro y veo a otros)
+	multiplayer.peer_connected.connect(_on_player_connected)
+	multiplayer.peer_disconnected.connect(_on_player_disconnected)
+	
+	# 3. IMPORTANTE: Si se pierde la conexión con el server
+	multiplayer.server_disconnected.connect(_on_server_disconnected)
+	# CONECTAR LOS BOTONES DE CLASE
+	# Asegúrate de que las rutas a los botones son correctas en tu escena
+	$LobbyPanel/HBoxContainer/BtnAsalto.pressed.connect(func(): select_class("res://high_level_example/Classes/ClaseAsalto.tres", "Asalto"))
+	$LobbyPanel/HBoxContainer/BtnPipero.pressed.connect(func(): select_class("res://high_level_example/Classes/ClaseRusher.tres", "Rusher"))
+	$LobbyPanel/HBoxContainer/BtnSniper.pressed.connect(func(): select_class("res://high_level_example/Classes/ClaseSniper.tres", "Sniper"))
+	$LobbyPanel/HBoxContainer/BtnNinja.pressed.connect(func(): select_class("res://high_level_example/Classes/ClaseNinja.tres", "Ninja"))
+
+
+# --- BOTONES ---
+func _on_host_pressed():
+	print("DEBUG: Botón Host presionado")
+	HighLevelNetworkHandler.start_host()
+	start_button.visible = true 
+
+# --- NUEVA FUNCIÓN PARA ELEGIR CLASE ---
+func select_class(path: String, nombre_visual: String):
+	# 1. Guardamos la ruta en el GameManager
+	GameManager.selected_class_path = path
+	
+	# 2. Feedback visual
+	$LobbyPanel/HBoxContainer/ClassLabel.text = "Clase actual: " + nombre_visual
+	print("Clase seleccionada: ", nombre_visual)
+	
+func _on_join_pressed():
+	print("DEBUG: Botón Join presionado")
+	var ip = ip_input.text
+	HighLevelNetworkHandler.start_client(ip)
+	start_button.visible = false
+
+func _on_start_pressed():
+	# Iniciar juego para todos
+	rpc("start_game_rpc")
+
+# --- LOGICA LOBBY ---
+func _on_connection_success():
+	print("DEBUG: ¡Conexión establecida! Entrando al Lobby...")
+	main_panel.visible = false
+	lobby_panel.visible = true
+	update_player_list()
+
+func _on_player_connected(_id):
+	print("DEBUG: Un jugador se ha conectado: ", _id)
+	update_player_list()
+
+func _on_player_disconnected(_id):
+	print("DEBUG: Un jugador se ha desconectado: ", _id)
+	update_player_list()
+
+func _on_server_disconnected():
+	print("DEBUG: Desconectado del servidor. Volviendo al menú.")
+	main_panel.visible = true
+	lobby_panel.visible = false
+	player_list.clear()
+
+func update_player_list():
+	print("--- ACTUALIZANDO LISTA DE JUGADORES ---")
+	player_list.clear()
+	
+	# 1. Añadirme a mí mismo
+	var my_id = multiplayer.get_unique_id()
+	print("  > Añadiéndome a mí: ", my_id)
+	player_list.add_item("Yo (" + str(my_id) + ")")
+	
+	# 2. Añadir a los demás peers conectados
+	var peers = multiplayer.get_peers()
+	print("  > Otros peers encontrados: ", peers)
+	
+	for peer_id in peers:
+		player_list.add_item("Jugador " + str(peer_id))
+
+# --- CAMBIO DE ESCENA ---
+@rpc("call_local", "reliable")
+func start_game_rpc():
+	print("DEBUG: Iniciando partida, cambiando escena...")
+	get_tree().change_scene_to_file("res://high_level_example/scenes/high_level_example.tscn")

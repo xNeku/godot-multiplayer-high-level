@@ -1,0 +1,9 @@
+.DS_Store
+
+# Godot 4 cache/import artifacts
+.godot/
+.import/
+
+# Export outputs and local editor files
+export.cfg
+export_presets.cfg

@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3 uid="uid://b20qpy5kkk3t"]
+
+[ext_resource type="Script" uid="uid://bpkwp2glvb4eh" path="res://high_level_example/scripts/game_over_ui.gd" id="1_0il0c"]
+
+[node name="GameOverUi" type="CanvasLayer"]
+script = ExtResource("1_0il0c")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(9.040898, 5.642151)
+
+[node name="WinnerLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 49.441986
+offset_top = 5.6715965
+offset_right = 116.441986
+offset_bottom = 54.671597
+scale = Vector2(0.2106577, 0.3538154)
+text = "Ganador
+"
+
+[node name="ScoreLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 47.561646
+offset_top = 44.132107
+offset_right = 87.561646
+offset_bottom = 67.13211
+scale = Vector2(0.637436, 0.80410767)

@@ -1,0 +1,56 @@
+[gd_scene load_steps=8 format=3 uid="uid://bqc70bgjnwbvm"]
+
+[ext_resource type="Script" uid="uid://dild437hbecnt" path="res://high_level_example/scripts/smoke_bomb.gd" id="1_pcgdo"]
+[ext_resource type="Texture2D" uid="uid://ymfhn2734qkd" path="res://high_level_example/assets/weapons/smokegrenade.png" id="2_r46on"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_r46on"]
+bounce = 0.3
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_heu8c"]
+radius = 7.3621216
+height = 14.724243
+
+[sub_resource type="Gradient" id="Gradient_heu8c"]
+offsets = PackedFloat32Array(0, 0.5948276, 1)
+colors = PackedColorArray(0.3779187, 0.3779189, 0.37791884, 1, 0.64, 0.64, 0.64, 0.3647059, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_dnsyx"]
+gradient = SubResource("Gradient_heu8c")
+fill = 1
+fill_from = Vector2(0.51111114, 0.5)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_jliry"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
+[node name="SmokeBomb" type="RigidBody2D"]
+collision_layer = 4
+physics_material_override = SubResource("PhysicsMaterial_r46on")
+script = ExtResource("1_pcgdo")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("2_r46on")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-1, -1)
+rotation = 0.679783
+scale = Vector2(0.38849103, 1.0221031)
+shape = SubResource("CapsuleShape2D_heu8c")
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+z_index = 10
+emitting = false
+amount = 64
+texture = SubResource("GradientTexture2D_dnsyx")
+lifetime = 3.0
+gravity = Vector2(0, -10)
+scale_amount_max = 3.0
+color = Color(0.46, 0.46, 0.46, 0.78431374)
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_jliry")

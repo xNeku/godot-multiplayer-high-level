@@ -26,13 +26,7 @@ func _ready():
 	
 	# 3. IMPORTANTE: Si se pierde la conexión con el server
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
-	# CONECTAR LOS BOTONES DE CLASE
-	# Asegúrate de que las rutas a los botones son correctas en tu escena
-	$LobbyPanel/HBoxContainer/BtnAsalto.pressed.connect(func(): select_class("res://high_level_example/Classes/ClaseAsalto.tres", "Asalto"))
-	$LobbyPanel/HBoxContainer/BtnPipero.pressed.connect(func(): select_class("res://high_level_example/Classes/ClaseRusher.tres", "Rusher"))
-	$LobbyPanel/HBoxContainer/BtnSniper.pressed.connect(func(): select_class("res://high_level_example/Classes/ClaseSniper.tres", "Sniper"))
-	$LobbyPanel/HBoxContainer/BtnNinja.pressed.connect(func(): select_class("res://high_level_example/Classes/ClaseNinja.tres", "Ninja"))
-
+	# (Selección de clases aparcada: los botones siguen en Menu.tscn, ocultos)
 
 # --- BOTONES ---
 func _on_host_pressed():
@@ -40,15 +34,6 @@ func _on_host_pressed():
 	HighLevelNetworkHandler.start_host()
 	start_button.visible = true 
 
-# --- NUEVA FUNCIÓN PARA ELEGIR CLASE ---
-func select_class(path: String, nombre_visual: String):
-	# 1. Guardamos la ruta en el GameManager
-	GameManager.selected_class_path = path
-	
-	# 2. Feedback visual
-	$LobbyPanel/HBoxContainer/ClassLabel.text = "Clase actual: " + nombre_visual
-	print("Clase seleccionada: ", nombre_visual)
-	
 func _on_join_pressed():
 	print("DEBUG: Botón Join presionado")
 	var ip = ip_input.text

@@ -86,6 +86,7 @@ text = "Start
 "
 
 [node name="HBoxContainer" type="HBoxContainer" parent="LobbyPanel"]
+visible = false
 layout_mode = 0
 offset_left = -123.77713
 offset_top = -45.24679

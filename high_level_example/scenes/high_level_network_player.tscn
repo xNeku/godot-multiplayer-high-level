@@ -1,9 +1,10 @@
-[gd_scene load_steps=27 format=3 uid="uid://dqp3koxevnhjm"]
+[gd_scene load_steps=28 format=3 uid="uid://dqp3koxevnhjm"]
 
 [ext_resource type="Script" uid="uid://c8phw0k238svi" path="res://high_level_example/scripts/high_level_network_player.gd" id="1_rqqdk"]
 [ext_resource type="Texture2D" uid="uid://cctok8qeg753f" path="res://high_level_example/assets/players/4.png" id="2_rqqdk"]
 [ext_resource type="Texture2D" uid="uid://dxsyu5kk6asb1" path="res://high_level_example/assets/lights/2d_lights_and_shadows_neutral_point_light.webp" id="3_kjl8a"]
 [ext_resource type="Texture2D" uid="uid://bx5m8rcopb2iq" path="res://high_level_example/assets/weapons/ELR_Corsshairs.png" id="5_su01t"]
+[ext_resource type="Resource" uid="uid://w5fenq3fvdoa" path="res://high_level_example/Weapons/Pistola.tres" id="6_pistola"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_74wbi"]
 properties/0/path = NodePath(".:position")
@@ -11,16 +12,16 @@ properties/0/spawn = true
 properties/0/replication_mode = 1
 properties/1/path = NodePath("AnimatedSprite2D:animation")
 properties/1/spawn = true
-properties/1/replication_mode = 1
+properties/1/replication_mode = 2
 properties/2/path = NodePath("AnimatedSprite2D:flip_h")
 properties/2/spawn = true
-properties/2/replication_mode = 1
+properties/2/replication_mode = 2
 properties/3/path = NodePath("HandPivot:rotation")
 properties/3/spawn = true
 properties/3/replication_mode = 1
 properties/4/path = NodePath("HandPivot:scale")
 properties/4/spawn = true
-properties/4/replication_mode = 1
+properties/4/replication_mode = 2
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kjl8a"]
 atlas = ExtResource("2_rqqdk")
@@ -186,6 +187,7 @@ height = 66.0
 scale = Vector2(0.45090756, 0.32577884)
 collision_layer = 2
 script = ExtResource("1_rqqdk")
+default_weapon = ExtResource("6_pistola")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_74wbi")

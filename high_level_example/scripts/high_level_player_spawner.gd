@@ -4,7 +4,7 @@ extends MultiplayerSpawner
 
 func _ready() -> void:
 	multiplayer.peer_connected.connect(spawn_player)
-	#multiplayer.peer_disconnected.connect(remove_player) # (Opcional: crear esta func)
+	multiplayer.peer_disconnected.connect(remove_player)
 	
 	# Si soy el servidor, tengo que spawnear a los que YA están conectados (del Lobby)
 	if multiplayer.is_server():
@@ -25,6 +25,14 @@ func spawn_player(id: int) -> void:
 	player.name = str(id)
 
 	get_node(spawn_path).call_deferred("add_child", player)
+
+
+func remove_player(id: int) -> void:
+	if !multiplayer.is_server(): return
+	# Quitar al jugador del que se fue (el spawner lo borra también en los clientes)
+	var player := get_node(spawn_path).get_node_or_null(str(id))
+	if player:
+		player.queue_free()
 
 
 # In this function, which is connected to the "host_started" signal in the high_level_network_handler

@@ -1,25 +1,25 @@
 extends Node
+# Autoload. Los puntos los calcula el servidor y se envían a todos los peers.
 
-var scores = {}
 signal score_updated(id_jugador, puntos_nuevos)
 
-# --- NUEVA SEÑAL DE FIN DE JUEGO ---
-signal game_over(winner_id)
-
-func add_point(player_id) -> int: # Ahora devuelve un int (puntos)
-	var id = str(player_id)
-	if not scores.has(id):
-		scores[id] = 0
-	
-	scores[id] += 1
-	score_updated.emit(id, scores[id])
-	
-	return scores[id] # Devolvemos el valor para comprobarlo
+var scores: Dictionary = {}
 
 
-# --- NUEVO: CLASE SELECCIONADA ---
-# Guardaremos la RUTA del archivo .tres (es lo más fácil para sincronizar)
-# Pon aquí la ruta de tu clase por defecto (ej: Asalto)
-var selected_class_path: String = "res://high_level_example/Classes/ClasePipero.tres" 
+# Solo se llama en el servidor. Devuelve los puntos del jugador.
+func add_point(player_id) -> int:
+	var id := str(player_id)
+	var points: int = scores.get(id, 0) + 1
+	_sync_score.rpc(id, points)
+	return points
 
-# ... (resto de funciones add_point, etc) ...
+
+@rpc("authority", "call_local", "reliable")
+func _sync_score(id: String, points: int) -> void:
+	scores[id] = points
+	score_updated.emit(id, points)
+
+
+# Se llama en todos los peers al empezar partida
+func reset_scores() -> void:
+	scores.clear()

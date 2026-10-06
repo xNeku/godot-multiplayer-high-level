@@ -84,5 +84,5 @@ func update_player_list():
 # --- CAMBIO DE ESCENA ---
 @rpc("call_local", "reliable")
 func start_game_rpc():
-	print("DEBUG: Iniciando partida, cambiando escena...")
+	GameManager.reset_scores()
 	get_tree().change_scene_to_file("res://high_level_example/scenes/high_level_example.tscn")

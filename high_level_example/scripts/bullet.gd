@@ -1,83 +1,77 @@
 extends Area2D
+# Proyectil. SOLO el servidor lo mueve y detecta impactos (raycast, sin túnel).
+# Los clientes lo ven por el MultiplayerSynchronizer (posición y rotación).
 
-# Configuración (se llena desde el Player al disparar)
-var speed = 2000.0
-var direction = Vector2.RIGHT
-var damage = 1
-var bounces = 0
-var shooter_id = 0
-var return_ammo_on_kill = false # Nuevo para Ninja
+# Se rellenan desde el jugador al disparar
+var speed: float = 2000.0
+var direction: Vector2 = Vector2.RIGHT
+var bounces: int = 0
+var shooter_id: int = 0
+var return_ammo_on_kill: bool = false
 
-# Protección para no matarse a sí mismo instantáneamente
-var spawn_protection_time = 0.1 
+# Ajustables desde el inspector de cada escena de bala
+@export var lifetime: float = 10.0
+# Grados/segundo que gira el Sprite2D (Tomahawk). 0 = no gira.
+@export var spin_speed: float = 0.0
+# Protección para no matarse al disparar
+@export var spawn_protection_time: float = 0.1
 
-func _ready():
-	var notifier = VisibleOnScreenNotifier2D.new()
-	notifier.screen_exited.connect(queue_free)
-	add_child(notifier)
-	
-	# Autodestrucción por seguridad tras 10 segs
-	get_tree().create_timer(10.0).timeout.connect(queue_free)
+var _age: float = 0.0
+var _sprite: Node2D
 
-func _physics_process(delta):
-	# ROTACIÓN VISUAL: Si es un Tomahawk, que gire
-	# (Asumimos que si devuelve munición es un hacha o similar)
-	if return_ammo_on_kill:
-		# Si tienes un nodo Sprite2D hijo, gíralo
-		if has_node("Sprite2D"):
-			$Sprite2D.rotate(25.0 * delta)
 
-	# LÓGICA DE MOVIMIENTO (Solo Servidor)
-	if !multiplayer.is_server(): return
-	
-	spawn_protection_time -= delta
+func _ready() -> void:
+	_sprite = get_node_or_null("Sprite2D")
+	set_physics_process(multiplayer.is_server())
+	set_process(spin_speed != 0.0 and _sprite != null)
 
-	# Movimiento por Raycast (Anti-Tunneling)
-	var motion = direction * speed * delta
-	var current_pos = global_position
-	var target_pos = current_pos + motion
-	
-	var space_state = get_world_2d().direct_space_state
-	var query = PhysicsRayQueryParameters2D.create(current_pos, target_pos)
-	query.collision_mask = 1 + 2 # Capa 1 (Suelo) + Capa 2 (Jugadores)
-	
-	if spawn_protection_time > 0:
-		query.exclude = [self] 
 
-	var result = space_state.intersect_ray(query)
-	
-	if result:
-		# IMPACTO
-		global_position = result.position
-		var collider = result.collider
-		
-		# A. Ignorar al tirador al nacer
-		if collider.name == str(shooter_id) and spawn_protection_time > 0:
-			global_position = target_pos
-			return
+func _process(delta: float) -> void:
+	# Solo estética, corre en todos los peers
+	_sprite.rotation += deg_to_rad(spin_speed) * delta
 
-		# B. IMPACTO CON JUGADOR
-		if collider is CharacterBody2D:
-			print("¡Impacto en ", collider.name, "!")
-			if collider.has_method("hit"):
-				# Pasamos el shooter_id y si devuelve munición
-				collider.hit(shooter_id, return_ammo_on_kill)
-			queue_free()
-			return
-			
-		# C. IMPACTO CON PARED (Rebote)
-		else:
-			if bounces > 0:
-				handle_bounce(result.normal)
-			else:
-				queue_free()
-	else:
-		# Sin impacto, mover normal
+
+func _physics_process(delta: float) -> void:
+	_age += delta
+	if _age >= lifetime:
+		queue_free()
+		return
+
+	var space_state := get_world_2d().direct_space_state
+	var current_pos := global_position
+	var target_pos := current_pos + direction * speed * delta
+
+	var query := PhysicsRayQueryParameters2D.create(current_pos, target_pos)
+	query.collision_mask = 1 + 2 # Suelo + Jugadores
+
+	# Durante la protección el rayo ignora al tirador
+	var in_protection: bool = _age < spawn_protection_time
+	if in_protection:
+		var shooter_node := get_parent().get_node_or_null(str(shooter_id)) as CollisionObject2D
+		if shooter_node:
+			query.exclude = [shooter_node.get_rid()]
+
+	var result := space_state.intersect_ray(query)
+	if result.is_empty():
 		global_position = target_pos
+		return
 
-func handle_bounce(normal: Vector2):
+	global_position = result.position
+	var collider = result.collider
+
+	if collider is CharacterBody2D:
+		if collider.has_method("hit"):
+			collider.hit(shooter_id, return_ammo_on_kill)
+		queue_free()
+	elif bounces > 0:
+		_bounce(result.normal)
+	else:
+		queue_free()
+
+
+func _bounce(normal: Vector2) -> void:
 	direction = direction.bounce(normal)
 	rotation = direction.angle()
 	bounces -= 1
-	# Empujar un poquito fuera de la pared para no atascarse
+	# Sacarla un poco de la pared para que no se quede pegada
 	global_position += normal * 2.0

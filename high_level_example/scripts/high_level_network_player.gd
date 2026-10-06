@@ -14,6 +14,12 @@ const LASER_RANGE: float = 2000.0
 @export var acceleration: float = 1800.0
 @export var gravity: float = 2000.0
 
+@export_group("Puntería (sin ratón, estilo Duck Game)")
+# El personaje dispara hacia donde mira. En el aire, el arma apunta hacia arriba.
+@export var aim_up_in_air: bool = true
+# 90 = vertical. Menos grados = diagonal (45 deja disparar en el aire hacia delante-arriba).
+@export_range(0.0, 90.0) var air_aim_angle_deg: float = 90.0
+
 @export_group("Arma")
 # Arma con la que se empieza y con la que se reaparece.
 @export var default_weapon: WeaponData
@@ -33,6 +39,8 @@ var current_weapon_data: WeaponData
 var current_ammo: int = 0
 var next_shot_bounces: bool = false
 var is_aiming_laser: bool = false
+var facing: int = 1 # 1 = derecha, -1 = izquierda
+var aim_angle: float = 0.0 # radianes, ángulo global del disparo
 
 # Cooldowns por marca de tiempo (más barato que crear un timer por disparo)
 var _next_shot_msec: int = 0
@@ -55,7 +63,7 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	var is_mine: bool = is_multiplayer_authority()
-	crosshair.visible = is_mine
+	crosshair.visible = false # sin ratón no hay mira
 	camera.enabled = is_mine
 	if flashlight:
 		flashlight.enabled = is_mine
@@ -103,16 +111,18 @@ func _physics_process(delta: float) -> void:
 
 
 func update_aiming() -> void:
-	var mouse_pos: Vector2 = get_global_mouse_position()
-	crosshair.global_position = mouse_pos
-	hand_pivot.look_at(mouse_pos)
+	var direction: float = Input.get_axis("ui_left", "ui_right")
+	if direction != 0.0:
+		facing = 1 if direction > 0.0 else -1
 
-	if mouse_pos.x < global_position.x:
-		animated_sprite.flip_h = true
-		hand_pivot.scale.y = -1
-	else:
-		animated_sprite.flip_h = false
-		hand_pivot.scale.y = 1
+	var up: float = 0.0
+	if aim_up_in_air and not is_on_floor():
+		up = deg_to_rad(air_aim_angle_deg)
+	aim_angle = Vector2(facing * cos(up), -sin(up)).angle()
+
+	hand_pivot.global_rotation = aim_angle
+	animated_sprite.flip_h = facing < 0
+	hand_pivot.scale.y = -1 if facing < 0 else 1
 
 
 func update_animation() -> void:
@@ -146,8 +156,7 @@ func use_ability() -> void:
 
 	match ability_type:
 		"DASH":
-			var dash_dir: Vector2 = (get_global_mouse_position() - global_position).normalized()
-			velocity = dash_dir * dash_speed
+			velocity = Vector2.RIGHT.rotated(aim_angle) * dash_speed
 		"RICOCHET":
 			# El siguiente disparo rebota una vez más y se enseña el láser
 			next_shot_bounces = true
@@ -178,11 +187,11 @@ func shoot() -> void:
 		laser_sight.visible = false
 		laser_sight.clear_points()
 
-	# Ojo: el ángulo va en global. hand_pivot.rotation es local y este nodo
+	# El ángulo va en global (aim_angle). hand_pivot.rotation es local y este nodo
 	# tiene escala no uniforme, así que con él las balas se desviaban.
 	request_shoot.rpc_id(1,
 		muzzle.global_position,
-		hand_pivot.global_rotation,
+		aim_angle,
 		current_weapon_data.bullet_speed,
 		current_weapon_data.spread,
 		current_weapon_data.bullet_count,
@@ -195,7 +204,7 @@ func update_laser_trajectory() -> void:
 	laser_sight.clear_points()
 
 	var start: Vector2 = muzzle.global_position
-	var direction: Vector2 = Vector2.RIGHT.rotated(hand_pivot.global_rotation)
+	var direction: Vector2 = Vector2.RIGHT.rotated(aim_angle)
 	laser_sight.add_point(laser_sight.to_local(start))
 
 	var space := get_world_2d().direct_space_state
@@ -308,7 +317,7 @@ func throw_object() -> void:
 		return
 	_next_throw_msec = now + int(throwable_cooldown * 1000.0)
 
-	var throw_dir: Vector2 = (get_global_mouse_position() - global_position).normalized()
+	var throw_dir: Vector2 = Vector2.RIGHT.rotated(aim_angle)
 	throw_dir.y -= 0.2 # arco ligero
 
 	# Se manda la RUTA de la escena; el servidor la instancia

@@ -15,10 +15,13 @@ const LASER_RANGE: float = 2000.0
 @export var gravity: float = 2000.0
 
 @export_group("Puntería (sin ratón, estilo Duck Game)")
-# El personaje dispara hacia donde mira. En el aire, el arma apunta hacia arriba.
-@export var aim_up_in_air: bool = true
-# 90 = vertical. Menos grados = diagonal (45 deja disparar en el aire hacia delante-arriba).
-@export_range(0.0, 90.0) var air_aim_angle_deg: float = 90.0
+# Se dispara recto hacia donde se mira. El arma sube hacia arriba mientras
+# se mantiene el botón de salto o si se está pegado a una pared mirándola.
+# Si disparas mientras sube o baja, sale en el ángulo en que esté (diagonales).
+@export var aim_up_at_wall: bool = true
+@export_range(0.0, 90.0) var aim_up_max_deg: float = 90.0
+# Velocidad a la que sube/baja el arma. Menos = diagonales más fáciles de clavar.
+@export var aim_rotation_speed_deg: float = 360.0
 
 @export_group("Arma")
 # Arma con la que se empieza y con la que se reaparece.
@@ -41,6 +44,7 @@ var next_shot_bounces: bool = false
 var is_aiming_laser: bool = false
 var facing: int = 1 # 1 = derecha, -1 = izquierda
 var aim_angle: float = 0.0 # radianes, ángulo global del disparo
+var _aim_up: float = 0.0 # cuánto ha subido el arma (0 = recto)
 
 # Cooldowns por marca de tiempo (más barato que crear un timer por disparo)
 var _next_shot_msec: int = 0
@@ -99,7 +103,7 @@ func _physics_process(delta: float) -> void:
 	if is_aiming_laser:
 		update_laser_trajectory()
 
-	update_aiming()
+	update_aiming(delta)
 	update_animation()
 
 	if Input.is_action_pressed("shoot"):
@@ -110,15 +114,20 @@ func _physics_process(delta: float) -> void:
 		throw_object()
 
 
-func update_aiming() -> void:
+func update_aiming(delta: float) -> void:
 	var direction: float = Input.get_axis("ui_left", "ui_right")
 	if direction != 0.0:
 		facing = 1 if direction > 0.0 else -1
 
-	var up: float = 0.0
-	if aim_up_in_air and not is_on_floor():
-		up = deg_to_rad(air_aim_angle_deg)
-	aim_angle = Vector2(facing * cos(up), -sin(up)).angle()
+	# ¿Hay que apuntar arriba? Botón de salto mantenido, o pegado a una pared mirándola
+	var want_up: bool = Input.is_action_pressed("ui_up")
+	if aim_up_at_wall and is_on_wall() and get_wall_normal().x * facing < 0.0:
+		want_up = true
+
+	var target: float = deg_to_rad(aim_up_max_deg) if want_up else 0.0
+	_aim_up = move_toward(_aim_up, target, deg_to_rad(aim_rotation_speed_deg) * delta)
+
+	aim_angle = Vector2(facing * cos(_aim_up), -sin(_aim_up)).angle()
 
 	hand_pivot.global_rotation = aim_angle
 	animated_sprite.flip_h = facing < 0
@@ -285,6 +294,7 @@ func respawn_rpc() -> void:
 
 	if is_multiplayer_authority():
 		is_aiming_laser = false
+		_aim_up = 0.0
 		laser_sight.visible = false
 		global_position = Vector2(randf_range(100, 1100), randf_range(100, 500))
 		velocity = Vector2.ZERO

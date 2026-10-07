@@ -51,10 +51,9 @@ var _next_shot_msec: int = 0
 var _next_ability_msec: int = 0
 var _next_throw_msec: int = 0
 
-@onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var visual: Node2D = $Cuerpo
 @onready var hand_pivot: Node2D = $HandPivot
 @onready var muzzle: Marker2D = $HandPivot/Muzzle
-@onready var crosshair: Sprite2D = $Crosshair
 @onready var flashlight: PointLight2D = $HandPivot/PointLight2D
 @onready var camera: Camera2D = $Camera2D
 @onready var weapon_sprite: Sprite2D = $HandPivot/Sprite2D
@@ -67,7 +66,6 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	var is_mine: bool = is_multiplayer_authority()
-	crosshair.visible = false # sin ratón no hay mira
 	camera.enabled = is_mine
 	if flashlight:
 		flashlight.enabled = is_mine
@@ -105,7 +103,6 @@ func _physics_process(delta: float) -> void:
 		update_laser_trajectory()
 
 	update_aiming(delta)
-	update_animation()
 
 	if Input.is_action_pressed("shoot"):
 		shoot()
@@ -131,20 +128,8 @@ func update_aiming(delta: float) -> void:
 	aim_angle = Vector2(facing * cos(_aim_up), -sin(_aim_up)).angle()
 
 	hand_pivot.global_rotation = aim_angle
-	animated_sprite.flip_h = facing < 0
+	visual.set_facing(facing)
 	hand_pivot.scale.y = -1 if facing < 0 else 1
-
-
-func update_animation() -> void:
-	var anim: StringName = &"idle"
-	if not is_on_floor():
-		anim = &"jump"
-	elif absf(velocity.x) > 10.0:
-		anim = &"run" if Input.is_action_pressed("ui_run") else &"walk"
-
-	# Solo cambiamos si es distinta, para no re-lanzar play() cada frame
-	if animated_sprite.animation != anim:
-		animated_sprite.play(anim)
 
 
 func equip_weapon(new_weapon: WeaponData) -> void:

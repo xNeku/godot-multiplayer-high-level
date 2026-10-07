@@ -6,8 +6,10 @@ class_name ThrownProjectile
 #   TOMAHAWK: mata al tocar a alguien, rebota max_bounces veces y se queda en el suelo
 #             como objeto recogible (si mata, cae donde murió el otro).
 #   SEMTEX: se pega a la primera superficie o jugador y explota al acabar la mecha.
+#   SMOKE: rebota como la granada y suelta humo al acabar la mecha.
+#   TRANSLOCATOR: rebota y al acabar la mecha teletransporta a quien lo lanzó hasta donde está.
 
-enum Mode { GRENADE, TOMAHAWK, SEMTEX }
+enum Mode { GRENADE, TOMAHAWK, SEMTEX, SMOKE, TRANSLOCATOR }
 enum State { FLYING, RESTING, STUCK, GONE }
 
 const PLATFORM_LAYER: int = 4
@@ -58,7 +60,7 @@ func launch(vel: Vector2, shooter: int, grav: float) -> void:
 	velocity = vel
 	shooter_id = shooter
 	gravity = grav
-	if mode == Mode.GRENADE and fuse_time > 0.0:
+	if mode in [Mode.GRENADE, Mode.SMOKE, Mode.TRANSLOCATOR] and fuse_time > 0.0:
 		_fuse_left = fuse_time
 
 
@@ -71,7 +73,7 @@ func _physics_process(delta: float) -> void:
 	if _fuse_left > 0.0:
 		_fuse_left -= delta
 		if _fuse_left <= 0.0 and _state != State.GONE:
-			_explode()
+			_fuse_end()
 			return
 
 	match _state:
@@ -179,6 +181,25 @@ func _stick(body: Node2D) -> void:
 		_fuse_left = fuse_time
 
 
+func _fuse_end() -> void:
+	match mode:
+		Mode.SMOKE:
+			_state = State.GONE
+			_smoke_fx.rpc()
+			await get_tree().create_timer(6.0).timeout
+			queue_free()
+		Mode.TRANSLOCATOR:
+			_state = State.GONE
+			var player := get_parent().get_node_or_null(str(shooter_id))
+			if player:
+				player.teleport_to.rpc(global_position)
+			_teleport_fx.rpc()
+			await get_tree().create_timer(0.5).timeout
+			queue_free()
+		_:
+			_explode()
+
+
 func _explode() -> void:
 	_state = State.GONE
 	var space := get_world_2d().direct_space_state
@@ -213,6 +234,27 @@ func _explode_fx() -> void:
 	tw.tween_property(fx_light, "energy", 0.0, 0.35)
 	tw.tween_callback(func(): fx_light.enabled = false)
 	fx_sound.play()
+
+
+@rpc("authority", "call_local", "reliable")
+func _smoke_fx() -> void:
+	_state = State.GONE
+	sprite.visible = false
+	var smoke := get_node_or_null("Humo") as CPUParticles2D
+	if smoke:
+		smoke.emitting = true
+
+
+@rpc("authority", "call_local", "reliable")
+func _teleport_fx() -> void:
+	_state = State.GONE
+	sprite.visible = false
+	fx_light.color = Color(0.9, 0.2, 0.7)
+	fx_light.enabled = true
+	fx_light.energy = 2.5
+	var tw := create_tween()
+	tw.tween_property(fx_light, "energy", 0.0, 0.4)
+	tw.tween_callback(func(): fx_light.enabled = false)
 
 
 # --- Interfaz de objeto recogible (solo el Tomahawk en reposo) ---

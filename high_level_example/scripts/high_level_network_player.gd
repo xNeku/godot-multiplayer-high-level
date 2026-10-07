@@ -475,6 +475,10 @@ func _update_throw(delta: float) -> void:
 		if _charging:
 			_cancel_charge()
 		return
+	if current_item.place_only:
+		if Input.is_action_just_pressed("throw"):
+			request_throw.rpc_id(1, current_item.resource_path, global_position, Vector2.ZERO)
+		return
 	if Input.is_action_just_pressed("throw"):
 		_charging = true
 		_charge_time = 0.0
@@ -546,6 +550,9 @@ func request_throw(item_path: String, origin: Vector2, vel: Vector2) -> void:
 	if current_item == null or current_item.resource_path != item_path or current_item.scene == null:
 		return
 	var item := current_item
+	if item.place_only:
+		_place_item(item)
+		return
 	if vel.length() > item.max_speed * 1.05:
 		vel = vel.normalized() * item.max_speed
 
@@ -570,6 +577,32 @@ func request_throw(item_path: String, origin: Vector2, vel: Vector2) -> void:
 		projectile.angular_velocity = randf_range(-10, 10)
 
 	equip_item_rpc.rpc("")
+
+
+# Solo servidor: coloca el objeto en el suelo delante del jugador (Claymore)
+func _place_item(item: ItemData) -> void:
+	var space := get_world_2d().direct_space_state
+	var from: Vector2 = global_position + Vector2(facing * 16.0, -6.0)
+	var q := PhysicsRayQueryParameters2D.create(from, from + Vector2(0, 40), 1 + 8)
+	var r := space.intersect_ray(q)
+	var pos: Vector2 = (r.position + Vector2(0, -8)) if not r.is_empty() else global_position
+	var placed = item.scene.instantiate()
+	get_parent().add_child(placed, true)
+	placed.global_position = pos
+	if "shooter_id" in placed:
+		placed.shooter_id = name.to_int()
+	equip_item_rpc.rpc("")
+
+
+# El servidor mueve a este jugador (Translocator). Lo aplica el dueño, que es quien manda su posición.
+@rpc("any_peer", "call_local", "reliable")
+func teleport_to(pos: Vector2) -> void:
+	var sender: int = multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	if is_multiplayer_authority():
+		global_position = pos
+		velocity = Vector2.ZERO
 
 
 @rpc("any_peer", "call_local", "reliable")

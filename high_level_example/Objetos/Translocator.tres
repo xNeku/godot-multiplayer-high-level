@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://high_level_example/scripts/ItemData.gd" id="1_id"]
 [ext_resource type="Texture2D" path="res://high_level_example/assets/weapons/translocator.png" id="2_tex"]
-[ext_resource type="PackedScene" path="res://high_level_example/scenes/Translocator.tscn" id="3_scene"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/TransLanzado.tscn" id="3_scene"]
 
 [resource]
 script = ExtResource("1_id")
@@ -10,4 +10,3 @@ item_name = "Translocator"
 texture = ExtResource("2_tex")
 sprite_scale = 1.0
 scene = ExtResource("3_scene")
-gravity = 980.0

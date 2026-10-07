@@ -17,6 +17,10 @@ var _age: float = 0.0
 
 func _ready() -> void:
 	set_physics_process(multiplayer.is_server())
+	# El tirador (si no es el servidor) ya ve un trazador local al instante:
+	# oculta la bala real para no verla duplicada y con retraso.
+	if not multiplayer.is_server() and shooter_id == multiplayer.get_unique_id():
+		visible = false
 
 
 func _physics_process(delta: float) -> void:

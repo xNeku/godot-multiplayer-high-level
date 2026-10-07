@@ -10,7 +10,7 @@
 [ext_resource type="Resource" uid="uid://w5fenq3fvdoa" path="res://high_level_example/Weapons/Pistola.tres" id="9_pistola"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_player"]
-properties/0/path = NodePath(".:position")
+properties/0/path = NodePath(".:net_position")
 properties/0/spawn = true
 properties/0/replication_mode = 1
 properties/1/path = NodePath("Cuerpo:scale")

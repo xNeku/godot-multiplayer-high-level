@@ -16,6 +16,13 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 # Segundos que dura la caída a través de una plataforma
 @export var drop_through_time: float = 0.25
 
+@export_group("Red")
+# Suavizado de los jugadores de los demás: más alto = más pegado a la posición
+# recibida, más bajo = más suave pero con algo de retraso visual.
+@export var remote_smoothing: float = 30.0
+# Si la copia remota se desvía más que esto (teletransporte, respawn), salta directa.
+@export var remote_snap_distance: float = 120.0
+
 @export_group("Puntería (sin ratón, estilo Duck Game)")
 # Se dispara recto hacia donde se mira. El arma sube hacia arriba mientras
 # se mantiene el botón de salto o si se está pegado a una pared mirándola.
@@ -66,7 +73,13 @@ var _drop_until_msec: int = 0
 @onready var shot_audio: AudioStreamPlayer2D = $HandPivot/Muzzle/SonidoDisparo
 @onready var throw_arc: Line2D = $ArcoLanzamiento
 
+const TRACER_SCENE: PackedScene = preload("res://high_level_example/scenes/Trazador.tscn")
 const DROPPED_WEAPON_SCENE: PackedScene = preload("res://high_level_example/scenes/ArmaSuelta.tscn")
+
+
+# Posición que se replica (global). El dueño la escribe cada frame de física;
+# las copias remotas se deslizan hacia ella en _process.
+var net_position: Vector2 = Vector2.ZERO
 
 
 func _enter_tree() -> void:
@@ -84,6 +97,7 @@ func _ready() -> void:
 
 	if is_mine:
 		global_position = GameManager.get_spawn_position()
+		net_position = global_position
 		camera.make_current()
 	else:
 		# Los jugadores de los demás no corren física ni input aquí.
@@ -91,6 +105,18 @@ func _ready() -> void:
 
 	if default_weapon:
 		equip_weapon(default_weapon, -1)
+
+
+func _process(delta: float) -> void:
+	# Copias remotas: sin física, solo se acercan a la posición recibida.
+	if is_multiplayer_authority():
+		return
+	if net_position == Vector2.ZERO:
+		return
+	if global_position.distance_to(net_position) > remote_snap_distance:
+		global_position = net_position
+	else:
+		global_position = global_position.lerp(net_position, 1.0 - exp(-remote_smoothing * delta))
 
 
 func _physics_process(delta: float) -> void:
@@ -119,6 +145,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 
 	move_and_slide()
+	net_position = global_position
 
 	update_aiming(delta)
 
@@ -210,6 +237,11 @@ func shoot() -> void:
 		current_weapon_data.bullet_count
 	)
 
+	# Efectos inmediatos en el tirador (sin esperar al servidor)
+	_play_shot_fx(not current_weapon_data.silenced)
+	if not multiplayer.is_server() and current_weapon_data.projectile_gravity <= 0.0:
+		_spawn_local_tracers()
+
 	# El disparo sale con el ángulo actual; el retroceso afecta al siguiente
 	if current_weapon_data.recoil_per_shot_deg > 0.0:
 		_recoil = minf(_recoil + deg_to_rad(current_weapon_data.recoil_per_shot_deg), deg_to_rad(current_weapon_data.recoil_max_deg))
@@ -233,6 +265,8 @@ func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count:
 
 	for _i in count:
 		var bullet = current_weapon_data.bullet_scene.instantiate()
+		# Antes de añadirla: así viaja en el spawn y el cliente tirador la oculta
+		if "shooter_id" in bullet: bullet.shooter_id = shooter
 		get_parent().add_child(bullet, true)
 		bullet.global_position = pos
 
@@ -250,6 +284,13 @@ func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count:
 # Cada peer usa el arma que tiene equipada este jugador.
 @rpc("any_peer", "call_local", "unreliable")
 func _shot_fx(with_flash: bool) -> void:
+	# El tirador ya lo reprodujo al disparar
+	if is_multiplayer_authority():
+		return
+	_play_shot_fx(with_flash)
+
+
+func _play_shot_fx(with_flash: bool) -> void:
 	var wd := current_weapon_data
 	if wd and wd.shot_sound:
 		shot_audio.stream = wd.shot_sound
@@ -259,6 +300,21 @@ func _shot_fx(with_flash: bool) -> void:
 		muzzle_flash.enabled = true
 		await get_tree().create_timer(0.06).timeout
 		muzzle_flash.enabled = false
+
+
+# Balas "de mentira" solo visuales para el tirador cliente; la real llega con retraso
+# y la tiene oculta (bullet.gd).
+func _spawn_local_tracers() -> void:
+	var wd := current_weapon_data
+	for _i in wd.bullet_count:
+		var t = TRACER_SCENE.instantiate()
+		get_tree().current_scene.add_child(t)
+		var ang: float = aim_angle + deg_to_rad(randf_range(-wd.spread, wd.spread))
+		t.global_position = muzzle.global_position
+		t.direction = Vector2.RIGHT.rotated(ang)
+		t.speed = wd.bullet_speed
+		t.shooter_node = self
+		t.rotation = ang
 
 
 # --- RECOGER Y SOLTAR ARMAS ---

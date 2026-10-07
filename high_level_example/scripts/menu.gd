@@ -5,6 +5,10 @@ extends Control
 @onready var ip_input = $PanelPrincipal/VBoxContainer/IpInput
 @onready var player_list = $LobbyPanel/VBoxContainer/PlayerList
 @onready var start_button = $LobbyPanel/VBoxContainer/StartButton
+@onready var map_selector: OptionButton = $LobbyPanel/VBoxContainer/MapSelector
+
+# Mismo orden que los elementos del MapSelector (se editan en Menu.tscn)
+@export var maps: Array[PackedScene]
 
 func _ready():
 	# Estado inicial
@@ -32,17 +36,19 @@ func _ready():
 func _on_host_pressed():
 	print("DEBUG: Botón Host presionado")
 	HighLevelNetworkHandler.start_host()
-	start_button.visible = true 
+	start_button.visible = true
+	map_selector.visible = true
 
 func _on_join_pressed():
 	print("DEBUG: Botón Join presionado")
 	var ip = ip_input.text
 	HighLevelNetworkHandler.start_client(ip)
 	start_button.visible = false
+	map_selector.visible = false
 
 func _on_start_pressed():
 	# Iniciar juego para todos
-	rpc("start_game_rpc")
+	rpc("start_game_rpc", map_selector.selected)
 
 # --- LOGICA LOBBY ---
 func _on_connection_success():
@@ -83,6 +89,8 @@ func update_player_list():
 
 # --- CAMBIO DE ESCENA ---
 @rpc("call_local", "reliable")
-func start_game_rpc():
+func start_game_rpc(map_index: int):
 	GameManager.reset_scores()
+	if map_index >= 0 and map_index < maps.size():
+		GameManager.selected_map_path = maps[map_index].resource_path
 	get_tree().change_scene_to_file("res://high_level_example/scenes/high_level_example.tscn")

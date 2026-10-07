@@ -1,7 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://b1f217vubxffw"]
+[gd_scene load_steps=6 format=3 uid="uid://b1f217vubxffw"]
 
 [ext_resource type="Script" uid="uid://bmxqdw0blxmia" path="res://high_level_example/scripts/menu.gd" id="1_leprn"]
 [ext_resource type="Texture2D" uid="uid://bp8pdw0prviff" path="res://high_level_example/assets/TileSet/origbig.png" id="2_na366"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaNeku.tscn" id="3_mapa1"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaEdificio.tscn" id="4_mapa2"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rp73m"]
 
@@ -14,6 +16,7 @@ offset_right = 140.0
 offset_bottom = 66.0
 scale = Vector2(0.15158302, 0.13575149)
 script = ExtResource("1_leprn")
+maps = Array[PackedScene]([ExtResource("3_mapa1"), ExtResource("4_mapa2")])
 
 [node name="PanelPrincipal" type="Panel" parent="."]
 modulate = Color(0.50329494, 0.6151131, 0.8859464, 1)
@@ -79,6 +82,15 @@ theme_override_colors/font_selected_color = Color(1, 0.04000002, 0.04000002, 1)
 max_text_lines = 2
 auto_width = true
 auto_height = true
+
+[node name="MapSelector" type="OptionButton" parent="LobbyPanel/VBoxContainer"]
+layout_mode = 2
+selected = 0
+item_count = 2
+popup/item_0/text = "Mapa de Neku"
+popup/item_0/id = 0
+popup/item_1/text = "Edificio"
+popup/item_1/id = 1
 
 [node name="StartButton" type="Button" parent="LobbyPanel/VBoxContainer"]
 layout_mode = 2

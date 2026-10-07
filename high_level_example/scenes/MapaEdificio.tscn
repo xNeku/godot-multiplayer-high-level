@@ -1,0 +1,671 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Texture2D" path="res://high_level_example/assets/lights/2d_lights_and_shadows_neutral_point_light.webp" id="1_luz"]
+[ext_resource type="Script" path="res://high_level_example/scripts/light_flicker.gd" id="2_flicker"]
+
+[sub_resource type="RectangleShape2D" id="Rect_20x480"]
+size = Vector2(20, 480)
+
+[sub_resource type="OccluderPolygon2D" id="Occ_20x480"]
+polygon = PackedVector2Array(-10.0, -240.0, 10.0, -240.0, 10.0, 240.0, -10.0, 240.0)
+
+[sub_resource type="RectangleShape2D" id="Rect_1240x30"]
+size = Vector2(1240, 30)
+
+[sub_resource type="OccluderPolygon2D" id="Occ_1240x30"]
+polygon = PackedVector2Array(-620.0, -15.0, 620.0, -15.0, 620.0, 15.0, -620.0, 15.0)
+
+[sub_resource type="RectangleShape2D" id="Rect_1240x20"]
+size = Vector2(1240, 20)
+
+[sub_resource type="OccluderPolygon2D" id="Occ_1240x20"]
+polygon = PackedVector2Array(-620.0, -10.0, 620.0, -10.0, 620.0, 10.0, -620.0, 10.0)
+
+[sub_resource type="RectangleShape2D" id="Rect_130x20"]
+size = Vector2(130, 20)
+
+[sub_resource type="OccluderPolygon2D" id="Occ_130x20"]
+polygon = PackedVector2Array(-65.0, -10.0, 65.0, -10.0, 65.0, 10.0, -65.0, 10.0)
+
+[sub_resource type="RectangleShape2D" id="Rect_870x20"]
+size = Vector2(870, 20)
+
+[sub_resource type="OccluderPolygon2D" id="Occ_870x20"]
+polygon = PackedVector2Array(-435.0, -10.0, 435.0, -10.0, 435.0, 10.0, -435.0, 10.0)
+
+[sub_resource type="RectangleShape2D" id="Rect_16x65"]
+size = Vector2(16, 65)
+
+[sub_resource type="OccluderPolygon2D" id="Occ_16x65"]
+polygon = PackedVector2Array(-8.0, -32.5, 8.0, -32.5, 8.0, 32.5, -8.0, 32.5)
+
+[sub_resource type="RectangleShape2D" id="Rect_16x55"]
+size = Vector2(16, 55)
+
+[sub_resource type="OccluderPolygon2D" id="Occ_16x55"]
+polygon = PackedVector2Array(-8.0, -27.5, 8.0, -27.5, 8.0, 27.5, -8.0, 27.5)
+
+[sub_resource type="RectangleShape2D" id="Rect_30x30"]
+size = Vector2(30, 30)
+
+[sub_resource type="OccluderPolygon2D" id="Occ_30x30"]
+polygon = PackedVector2Array(-15.0, -15.0, 15.0, -15.0, 15.0, 15.0, -15.0, 15.0)
+
+[node name="MapaEdificio" type="Node2D"]
+
+[node name="Interior" type="ColorRect" parent="."]
+z_index = -5
+offset_left = 0.0
+offset_top = 160.0
+offset_right = 1200.0
+offset_bottom = 590.0
+color = Color(0.13, 0.12, 0.19, 1)
+
+[node name="Estructura" type="Node2D" parent="."]
+
+[node name="ParedIzquierda" type="StaticBody2D" parent="Estructura"]
+position = Vector2(-10.0, 380.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/ParedIzquierda"]
+offset_left = -10.0
+offset_top = -240.0
+offset_right = 10.0
+offset_bottom = 240.0
+color = Color(0.26, 0.23, 0.3, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/ParedIzquierda"]
+shape = SubResource("Rect_20x480")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/ParedIzquierda"]
+occluder = SubResource("Occ_20x480")
+
+[node name="ParedDerecha" type="StaticBody2D" parent="Estructura"]
+position = Vector2(1210.0, 380.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/ParedDerecha"]
+offset_left = -10.0
+offset_top = -240.0
+offset_right = 10.0
+offset_bottom = 240.0
+color = Color(0.26, 0.23, 0.3, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/ParedDerecha"]
+shape = SubResource("Rect_20x480")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/ParedDerecha"]
+occluder = SubResource("Occ_20x480")
+
+[node name="Suelo" type="StaticBody2D" parent="Estructura"]
+position = Vector2(600.0, 605.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Suelo"]
+offset_left = -620.0
+offset_top = -15.0
+offset_right = 620.0
+offset_bottom = 15.0
+color = Color(0.2, 0.18, 0.24, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Suelo"]
+shape = SubResource("Rect_1240x30")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Suelo"]
+occluder = SubResource("Occ_1240x30")
+
+[node name="Techo" type="StaticBody2D" parent="Estructura"]
+position = Vector2(600.0, 150.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Techo"]
+offset_left = -620.0
+offset_top = -10.0
+offset_right = 620.0
+offset_bottom = 10.0
+color = Color(0.2, 0.18, 0.24, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Techo"]
+shape = SubResource("Rect_1240x20")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Techo"]
+occluder = SubResource("Occ_1240x20")
+
+[node name="Planta1_Izq" type="StaticBody2D" parent="Estructura"]
+position = Vector2(65.0, 450.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Planta1_Izq"]
+offset_left = -65.0
+offset_top = -10.0
+offset_right = 65.0
+offset_bottom = 10.0
+color = Color(0.2, 0.18, 0.24, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Planta1_Izq"]
+shape = SubResource("Rect_130x20")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Planta1_Izq"]
+occluder = SubResource("Occ_130x20")
+
+[node name="Planta1_Der" type="StaticBody2D" parent="Estructura"]
+position = Vector2(765.0, 450.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Planta1_Der"]
+offset_left = -435.0
+offset_top = -10.0
+offset_right = 435.0
+offset_bottom = 10.0
+color = Color(0.2, 0.18, 0.24, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Planta1_Der"]
+shape = SubResource("Rect_870x20")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Planta1_Der"]
+occluder = SubResource("Occ_870x20")
+
+[node name="Planta2_Izq" type="StaticBody2D" parent="Estructura"]
+position = Vector2(435.0, 300.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Planta2_Izq"]
+offset_left = -435.0
+offset_top = -10.0
+offset_right = 435.0
+offset_bottom = 10.0
+color = Color(0.2, 0.18, 0.24, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Planta2_Izq"]
+shape = SubResource("Rect_870x20")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Planta2_Izq"]
+occluder = SubResource("Occ_870x20")
+
+[node name="Planta2_Der" type="StaticBody2D" parent="Estructura"]
+position = Vector2(1135.0, 300.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Planta2_Der"]
+offset_left = -65.0
+offset_top = -10.0
+offset_right = 65.0
+offset_bottom = 10.0
+color = Color(0.2, 0.18, 0.24, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Planta2_Der"]
+shape = SubResource("Rect_130x20")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Planta2_Der"]
+occluder = SubResource("Occ_130x20")
+
+[node name="Pared_P0_A" type="StaticBody2D" parent="Estructura"]
+position = Vector2(420.0, 492.5)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Pared_P0_A"]
+offset_left = -8.0
+offset_top = -32.5
+offset_right = 8.0
+offset_bottom = 32.5
+color = Color(0.26, 0.23, 0.3, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Pared_P0_A"]
+shape = SubResource("Rect_16x65")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Pared_P0_A"]
+occluder = SubResource("Occ_16x65")
+
+[node name="Pared_P0_B" type="StaticBody2D" parent="Estructura"]
+position = Vector2(860.0, 492.5)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Pared_P0_B"]
+offset_left = -8.0
+offset_top = -32.5
+offset_right = 8.0
+offset_bottom = 32.5
+color = Color(0.26, 0.23, 0.3, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Pared_P0_B"]
+shape = SubResource("Rect_16x65")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Pared_P0_B"]
+occluder = SubResource("Occ_16x65")
+
+[node name="Pared_P1_A" type="StaticBody2D" parent="Estructura"]
+position = Vector2(520.0, 342.5)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Pared_P1_A"]
+offset_left = -8.0
+offset_top = -32.5
+offset_right = 8.0
+offset_bottom = 32.5
+color = Color(0.26, 0.23, 0.3, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Pared_P1_A"]
+shape = SubResource("Rect_16x65")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Pared_P1_A"]
+occluder = SubResource("Occ_16x65")
+
+[node name="Pared_P1_B" type="StaticBody2D" parent="Estructura"]
+position = Vector2(740.0, 342.5)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Pared_P1_B"]
+offset_left = -8.0
+offset_top = -32.5
+offset_right = 8.0
+offset_bottom = 32.5
+color = Color(0.26, 0.23, 0.3, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Pared_P1_B"]
+shape = SubResource("Rect_16x65")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Pared_P1_B"]
+occluder = SubResource("Occ_16x65")
+
+[node name="Pared_P2_A" type="StaticBody2D" parent="Estructura"]
+position = Vector2(300.0, 192.5)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Pared_P2_A"]
+offset_left = -8.0
+offset_top = -32.5
+offset_right = 8.0
+offset_bottom = 32.5
+color = Color(0.26, 0.23, 0.3, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Pared_P2_A"]
+shape = SubResource("Rect_16x65")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Pared_P2_A"]
+occluder = SubResource("Occ_16x65")
+
+[node name="Pared_P2_B" type="StaticBody2D" parent="Estructura"]
+position = Vector2(640.0, 192.5)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Pared_P2_B"]
+offset_left = -8.0
+offset_top = -32.5
+offset_right = 8.0
+offset_bottom = 32.5
+color = Color(0.26, 0.23, 0.3, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Pared_P2_B"]
+shape = SubResource("Rect_16x65")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Pared_P2_B"]
+occluder = SubResource("Occ_16x65")
+
+[node name="Cobertura_P0" type="StaticBody2D" parent="Estructura"]
+position = Vector2(620.0, 562.5)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Cobertura_P0"]
+offset_left = -8.0
+offset_top = -27.5
+offset_right = 8.0
+offset_bottom = 27.5
+color = Color(0.3, 0.26, 0.2, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Cobertura_P0"]
+shape = SubResource("Rect_16x55")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Cobertura_P0"]
+occluder = SubResource("Occ_16x55")
+
+[node name="Cobertura_P1" type="StaticBody2D" parent="Estructura"]
+position = Vector2(568.0, 412.5)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Cobertura_P1"]
+offset_left = -8.0
+offset_top = -27.5
+offset_right = 8.0
+offset_bottom = 27.5
+color = Color(0.3, 0.26, 0.2, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Cobertura_P1"]
+shape = SubResource("Rect_16x55")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Cobertura_P1"]
+occluder = SubResource("Occ_16x55")
+
+[node name="Cobertura_P2" type="StaticBody2D" parent="Estructura"]
+position = Vector2(138.0, 262.5)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Cobertura_P2"]
+offset_left = -8.0
+offset_top = -27.5
+offset_right = 8.0
+offset_bottom = 27.5
+color = Color(0.3, 0.26, 0.2, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Cobertura_P2"]
+shape = SubResource("Rect_16x55")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Cobertura_P2"]
+occluder = SubResource("Occ_16x55")
+
+[node name="Caja_P0" type="StaticBody2D" parent="Estructura"]
+position = Vector2(775.0, 575.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Caja_P0"]
+offset_left = -15.0
+offset_top = -15.0
+offset_right = 15.0
+offset_bottom = 15.0
+color = Color(0.42, 0.3, 0.17, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Caja_P0"]
+shape = SubResource("Rect_30x30")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Caja_P0"]
+occluder = SubResource("Occ_30x30")
+
+[node name="Caja_P1_A" type="StaticBody2D" parent="Estructura"]
+position = Vector2(435.0, 425.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Caja_P1_A"]
+offset_left = -15.0
+offset_top = -15.0
+offset_right = 15.0
+offset_bottom = 15.0
+color = Color(0.42, 0.3, 0.17, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Caja_P1_A"]
+shape = SubResource("Rect_30x30")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Caja_P1_A"]
+occluder = SubResource("Occ_30x30")
+
+[node name="Caja_P1_B" type="StaticBody2D" parent="Estructura"]
+position = Vector2(665.0, 425.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Caja_P1_B"]
+offset_left = -15.0
+offset_top = -15.0
+offset_right = 15.0
+offset_bottom = 15.0
+color = Color(0.42, 0.3, 0.17, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Caja_P1_B"]
+shape = SubResource("Rect_30x30")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Caja_P1_B"]
+occluder = SubResource("Occ_30x30")
+
+[node name="Caja_P2_A" type="StaticBody2D" parent="Estructura"]
+position = Vector2(465.0, 275.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Caja_P2_A"]
+offset_left = -15.0
+offset_top = -15.0
+offset_right = 15.0
+offset_bottom = 15.0
+color = Color(0.42, 0.3, 0.17, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Caja_P2_A"]
+shape = SubResource("Rect_30x30")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Caja_P2_A"]
+occluder = SubResource("Occ_30x30")
+
+[node name="Caja_P2_B" type="StaticBody2D" parent="Estructura"]
+position = Vector2(775.0, 275.0)
+
+[node name="ColorRect" type="ColorRect" parent="Estructura/Caja_P2_B"]
+offset_left = -15.0
+offset_top = -15.0
+offset_right = 15.0
+offset_bottom = 15.0
+color = Color(0.42, 0.3, 0.17, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estructura/Caja_P2_B"]
+shape = SubResource("Rect_30x30")
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Estructura/Caja_P2_B"]
+occluder = SubResource("Occ_30x30")
+
+[node name="Escalera_A" type="StaticBody2D" parent="Estructura"]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Estructura/Escalera_A"]
+polygon = PackedVector2Array(150, 590, 330, 440, 330, 454, 162, 606)
+
+[node name="Visual" type="Polygon2D" parent="Estructura/Escalera_A"]
+color = Color(0.26, 0.23, 0.3, 1)
+polygon = PackedVector2Array(150.0, 581.7, 170.0, 581.7, 170.0, 565.0, 190.0, 565.0, 190.0, 548.3, 210.0, 548.3, 210.0, 531.7, 230.0, 531.7, 230.0, 515.0, 250.0, 515.0, 250.0, 498.3, 270.0, 498.3, 270.0, 481.7, 290.0, 481.7, 290.0, 465.0, 310.0, 465.0, 310.0, 448.3, 330.0, 448.3, 330.0, 454.0, 150.0, 604.0)
+
+[node name="Escalera_B" type="StaticBody2D" parent="Estructura"]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Estructura/Escalera_B"]
+polygon = PackedVector2Array(1050, 440, 870, 290, 870, 304, 1038, 456)
+
+[node name="Visual" type="Polygon2D" parent="Estructura/Escalera_B"]
+color = Color(0.26, 0.23, 0.3, 1)
+polygon = PackedVector2Array(1050.0, 431.7, 1030.0, 431.7, 1030.0, 415.0, 1010.0, 415.0, 1010.0, 398.3, 990.0, 398.3, 990.0, 381.7, 970.0, 381.7, 970.0, 365.0, 950.0, 365.0, 950.0, 348.3, 930.0, 348.3, 930.0, 331.7, 910.0, 331.7, 910.0, 315.0, 890.0, 315.0, 890.0, 298.3, 870.0, 298.3, 870.0, 304.0, 1050.0, 454.0)
+
+[node name="Puertas" type="Node2D" parent="."]
+
+[node name="Puerta_P0_A" type="ColorRect" parent="Puertas"]
+z_index = -1
+offset_left = 412
+offset_top = 525
+offset_right = 428
+offset_bottom = 590
+color = Color(0.4, 0.26, 0.12, 0.45)
+
+[node name="Puerta_P0_B" type="ColorRect" parent="Puertas"]
+z_index = -1
+offset_left = 852
+offset_top = 525
+offset_right = 868
+offset_bottom = 590
+color = Color(0.4, 0.26, 0.12, 0.45)
+
+[node name="Puerta_P1_A" type="ColorRect" parent="Puertas"]
+z_index = -1
+offset_left = 512
+offset_top = 375
+offset_right = 528
+offset_bottom = 440
+color = Color(0.4, 0.26, 0.12, 0.45)
+
+[node name="Puerta_P1_B" type="ColorRect" parent="Puertas"]
+z_index = -1
+offset_left = 732
+offset_top = 375
+offset_right = 748
+offset_bottom = 440
+color = Color(0.4, 0.26, 0.12, 0.45)
+
+[node name="Puerta_P2_A" type="ColorRect" parent="Puertas"]
+z_index = -1
+offset_left = 292
+offset_top = 225
+offset_right = 308
+offset_bottom = 290
+color = Color(0.4, 0.26, 0.12, 0.45)
+
+[node name="Puerta_P2_B" type="ColorRect" parent="Puertas"]
+z_index = -1
+offset_left = 632
+offset_top = 225
+offset_right = 648
+offset_bottom = 290
+color = Color(0.4, 0.26, 0.12, 0.45)
+
+[node name="Bombillas" type="Node2D" parent="."]
+
+[node name="Bombilla1" type="Node2D" parent="Bombillas"]
+position = Vector2(560, 460)
+
+[node name="Cable" type="ColorRect" parent="Bombillas/Bombilla1"]
+offset_left = -1.0
+offset_right = 1.0
+offset_bottom = 14.0
+color = Color(0.05, 0.05, 0.05, 1)
+
+[node name="Foco" type="ColorRect" parent="Bombillas/Bombilla1"]
+z_index = 2
+offset_left = -4.0
+offset_top = 12.0
+offset_right = 4.0
+offset_bottom = 20.0
+color = Color(1, 0.9, 0.6, 1)
+
+[node name="Luz" type="PointLight2D" parent="Bombillas/Bombilla1"]
+position = Vector2(0, 17)
+color = Color(1, 0.82, 0.5, 1)
+energy = 1.2
+shadow_enabled = true
+texture = ExtResource("1_luz")
+texture_scale = 1.6
+script = ExtResource("2_flicker")
+
+[node name="Bombilla2" type="Node2D" parent="Bombillas"]
+position = Vector2(1050, 460)
+
+[node name="Cable" type="ColorRect" parent="Bombillas/Bombilla2"]
+offset_left = -1.0
+offset_right = 1.0
+offset_bottom = 14.0
+color = Color(0.05, 0.05, 0.05, 1)
+
+[node name="Foco" type="ColorRect" parent="Bombillas/Bombilla2"]
+z_index = 2
+offset_left = -4.0
+offset_top = 12.0
+offset_right = 4.0
+offset_bottom = 20.0
+color = Color(1, 0.9, 0.6, 1)
+
+[node name="Luz" type="PointLight2D" parent="Bombillas/Bombilla2"]
+position = Vector2(0, 17)
+color = Color(1, 0.82, 0.5, 1)
+energy = 1.2
+shadow_enabled = true
+texture = ExtResource("1_luz")
+texture_scale = 1.6
+script = ExtResource("2_flicker")
+
+[node name="Bombilla3" type="Node2D" parent="Bombillas"]
+position = Vector2(200, 310)
+
+[node name="Cable" type="ColorRect" parent="Bombillas/Bombilla3"]
+offset_left = -1.0
+offset_right = 1.0
+offset_bottom = 14.0
+color = Color(0.05, 0.05, 0.05, 1)
+
+[node name="Foco" type="ColorRect" parent="Bombillas/Bombilla3"]
+z_index = 2
+offset_left = -4.0
+offset_top = 12.0
+offset_right = 4.0
+offset_bottom = 20.0
+color = Color(1, 0.9, 0.6, 1)
+
+[node name="Luz" type="PointLight2D" parent="Bombillas/Bombilla3"]
+position = Vector2(0, 17)
+color = Color(1, 0.82, 0.5, 1)
+energy = 1.2
+shadow_enabled = true
+texture = ExtResource("1_luz")
+texture_scale = 1.6
+script = ExtResource("2_flicker")
+
+[node name="Bombilla4" type="Node2D" parent="Bombillas"]
+position = Vector2(700, 310)
+
+[node name="Cable" type="ColorRect" parent="Bombillas/Bombilla4"]
+offset_left = -1.0
+offset_right = 1.0
+offset_bottom = 14.0
+color = Color(0.05, 0.05, 0.05, 1)
+
+[node name="Foco" type="ColorRect" parent="Bombillas/Bombilla4"]
+z_index = 2
+offset_left = -4.0
+offset_top = 12.0
+offset_right = 4.0
+offset_bottom = 20.0
+color = Color(1, 0.9, 0.6, 1)
+
+[node name="Luz" type="PointLight2D" parent="Bombillas/Bombilla4"]
+position = Vector2(0, 17)
+color = Color(1, 0.82, 0.5, 1)
+energy = 1.2
+shadow_enabled = true
+texture = ExtResource("1_luz")
+texture_scale = 1.6
+script = ExtResource("2_flicker")
+
+[node name="Bombilla5" type="Node2D" parent="Bombillas"]
+position = Vector2(220, 160)
+
+[node name="Cable" type="ColorRect" parent="Bombillas/Bombilla5"]
+offset_left = -1.0
+offset_right = 1.0
+offset_bottom = 14.0
+color = Color(0.05, 0.05, 0.05, 1)
+
+[node name="Foco" type="ColorRect" parent="Bombillas/Bombilla5"]
+z_index = 2
+offset_left = -4.0
+offset_top = 12.0
+offset_right = 4.0
+offset_bottom = 20.0
+color = Color(1, 0.9, 0.6, 1)
+
+[node name="Luz" type="PointLight2D" parent="Bombillas/Bombilla5"]
+position = Vector2(0, 17)
+color = Color(1, 0.82, 0.5, 1)
+energy = 1.2
+shadow_enabled = true
+texture = ExtResource("1_luz")
+texture_scale = 1.6
+script = ExtResource("2_flicker")
+
+[node name="Bombilla6" type="Node2D" parent="Bombillas"]
+position = Vector2(800, 160)
+
+[node name="Cable" type="ColorRect" parent="Bombillas/Bombilla6"]
+offset_left = -1.0
+offset_right = 1.0
+offset_bottom = 14.0
+color = Color(0.05, 0.05, 0.05, 1)
+
+[node name="Foco" type="ColorRect" parent="Bombillas/Bombilla6"]
+z_index = 2
+offset_left = -4.0
+offset_top = 12.0
+offset_right = 4.0
+offset_bottom = 20.0
+color = Color(1, 0.9, 0.6, 1)
+
+[node name="Luz" type="PointLight2D" parent="Bombillas/Bombilla6"]
+position = Vector2(0, 17)
+color = Color(1, 0.82, 0.5, 1)
+energy = 1.2
+shadow_enabled = true
+texture = ExtResource("1_luz")
+texture_scale = 1.6
+script = ExtResource("2_flicker")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Spawn1" type="Marker2D" parent="SpawnPoints" groups=["spawn_points"]]
+position = Vector2(80, 570)
+
+[node name="Spawn2" type="Marker2D" parent="SpawnPoints" groups=["spawn_points"]]
+position = Vector2(560, 570)
+
+[node name="Spawn3" type="Marker2D" parent="SpawnPoints" groups=["spawn_points"]]
+position = Vector2(1100, 570)
+
+[node name="Spawn4" type="Marker2D" parent="SpawnPoints" groups=["spawn_points"]]
+position = Vector2(60, 420)
+
+[node name="Spawn5" type="Marker2D" parent="SpawnPoints" groups=["spawn_points"]]
+position = Vector2(620, 420)
+
+[node name="Spawn6" type="Marker2D" parent="SpawnPoints" groups=["spawn_points"]]
+position = Vector2(1150, 420)
+
+[node name="Spawn7" type="Marker2D" parent="SpawnPoints" groups=["spawn_points"]]
+position = Vector2(80, 270)
+
+[node name="Spawn8" type="Marker2D" parent="SpawnPoints" groups=["spawn_points"]]
+position = Vector2(540, 270)
+
+[node name="Spawn9" type="Marker2D" parent="SpawnPoints" groups=["spawn_points"]]
+position = Vector2(1150, 270)

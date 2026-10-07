@@ -74,6 +74,7 @@ func _ready() -> void:
 	laser_sight.visible = false
 
 	if is_mine:
+		global_position = GameManager.get_spawn_position()
 		camera.make_current()
 	else:
 		# Los jugadores de los demás no corren física ni input aquí.
@@ -296,7 +297,7 @@ func respawn_rpc() -> void:
 		is_aiming_laser = false
 		_aim_up = 0.0
 		laser_sight.visible = false
-		global_position = Vector2(randf_range(100, 1100), randf_range(100, 500))
+		global_position = GameManager.get_spawn_position()
 		velocity = Vector2.ZERO
 
 

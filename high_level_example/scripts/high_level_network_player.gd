@@ -13,6 +13,15 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export var friction: float = 1500.0
 @export var acceleration: float = 1800.0
 @export var gravity: float = 2000.0
+# Margen para saltar justo después de salir de un borde
+@export var coyote_time: float = 0.1
+# Si pulsas salto un poco antes de tocar suelo, salta al aterrizar
+@export var jump_buffer_time: float = 0.12
+# Al soltar el salto con el personaje subiendo, la velocidad vertical se multiplica
+# por esto (menor = salto más corto al toque)
+@export_range(0.0, 1.0) var jump_cut: float = 0.45
+# Gravedad extra al caer (salto menos flotante)
+@export var fall_gravity_mult: float = 1.3
 # Segundos que dura la caída a través de una plataforma
 @export var drop_through_time: float = 0.25
 
@@ -82,6 +91,33 @@ const DROPPED_WEAPON_SCENE: PackedScene = preload("res://high_level_example/scen
 var net_position: Vector2 = Vector2.ZERO
 
 
+var _coyote_left: float = 0.0
+var _jump_buffer_left: float = 0.0
+var _was_on_floor: bool = false
+var _prev_fall_speed: float = 0.0
+
+
+# Polvo al aterrizar (solo visual, local; los demás no lo ven por ahora)
+func _land_fx(speed: float) -> void:
+	var p := CPUParticles2D.new()
+	p.one_shot = true
+	p.emitting = true
+	p.amount = clampi(int(speed / 60.0), 4, 14)
+	p.lifetime = 0.35
+	p.explosiveness = 1.0
+	p.direction = Vector2.UP
+	p.spread = 80.0
+	p.initial_velocity_min = 30.0
+	p.initial_velocity_max = 90.0
+	p.gravity = Vector2(0, 200)
+	p.scale_amount_min = 1.5
+	p.scale_amount_max = 3.0
+	p.color = Color(0.75, 0.72, 0.65, 0.8)
+	get_parent().add_child(p)
+	p.global_position = global_position + Vector2(0, 14)
+	get_tree().create_timer(0.8).timeout.connect(p.queue_free)
+
+
 func _enter_tree() -> void:
 	set_multiplayer_authority(name.to_int())
 
@@ -121,21 +157,38 @@ func _process(delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	# Solo llega aquí el jugador local (en _ready se apaga para los demás).
-	if not is_on_floor():
-		velocity.y += gravity * delta
+	var on_floor: bool = is_on_floor()
+	if on_floor:
+		_coyote_left = coyote_time
+		if not _was_on_floor and _prev_fall_speed > 200.0:
+			_land_fx(_prev_fall_speed)
+	else:
+		_coyote_left = maxf(0.0, _coyote_left - delta)
+		velocity.y += gravity * (fall_gravity_mult if velocity.y > 0.0 else 1.0) * delta
+	_was_on_floor = on_floor
 
 	# Plataformas atravesables: se recuperan al acabar el tiempo de caída
 	if _drop_until_msec > 0 and Time.get_ticks_msec() >= _drop_until_msec:
 		set_collision_mask_value(PLATFORM_LAYER, true)
 		_drop_until_msec = 0
 
-	if Input.is_action_just_pressed("ui_up") and is_on_floor():
+	if Input.is_action_just_pressed("ui_up"):
+		_jump_buffer_left = jump_buffer_time
+	else:
+		_jump_buffer_left = maxf(0.0, _jump_buffer_left - delta)
+
+	if _jump_buffer_left > 0.0 and on_floor and Input.is_action_pressed("ui_down") and _is_on_platform():
 		# Abajo + salto sobre una plataforma = bajar a través de ella
-		if Input.is_action_pressed("ui_down") and _is_on_platform():
-			set_collision_mask_value(PLATFORM_LAYER, false)
-			_drop_until_msec = Time.get_ticks_msec() + int(drop_through_time * 1000.0)
-		else:
-			velocity.y = jump_velocity
+		set_collision_mask_value(PLATFORM_LAYER, false)
+		_drop_until_msec = Time.get_ticks_msec() + int(drop_through_time * 1000.0)
+		_jump_buffer_left = 0.0
+	elif _jump_buffer_left > 0.0 and _coyote_left > 0.0:
+		velocity.y = jump_velocity
+		_jump_buffer_left = 0.0
+		_coyote_left = 0.0
+	# Soltar el salto en la subida lo acorta
+	if Input.is_action_just_released("ui_up") and velocity.y < 0.0:
+		velocity.y *= jump_cut
 
 	var speed: float = run_speed if Input.is_action_pressed("ui_run") else walk_speed
 	var direction: float = Input.get_axis("ui_left", "ui_right")
@@ -144,6 +197,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 
+	_prev_fall_speed = velocity.y
 	move_and_slide()
 	net_position = global_position
 

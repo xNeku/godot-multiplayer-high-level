@@ -27,6 +27,9 @@ enum FireMode {
 @export var bullet_count: int = 1
 # Rebotes base del arma
 @export var bounces: int = 0
+# Mayor que 0 = el proyectil cae con esta gravedad y se muestra el arco al apuntar (Bazooka).
+# La escena de bala tiene que ser un proyectil con trayectoria (ThrownProjectile).
+@export var projectile_gravity: float = 0.0
 
 @export_group("Retroceso")
 # Cada disparo sube el cañón estos grados, hasta recoil_max_deg.

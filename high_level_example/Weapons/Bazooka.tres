@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://high_level_example/scripts/WeaponData.gd" id="1_wd"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/weapons/bazooka.png" id="2_tex"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/Cohete.tscn" id="3_bul"]
+[ext_resource type="AudioStream" path="res://high_level_example/assets/sounds/disparo_sniper.wav" id="4_snd"]
+
+[resource]
+script = ExtResource("1_wd")
+role_name = "Bazooka"
+texture = ExtResource("2_tex")
+bullet_scene = ExtResource("3_bul")
+shot_sound = ExtResource("4_snd")
+fire_mode = 1
+fire_rate = 1.0
+max_ammo = 1
+bullet_speed = 900.0
+projectile_gravity = 500.0
+hearing_range = 2000.0

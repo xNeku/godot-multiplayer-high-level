@@ -32,7 +32,7 @@ offset_bottom = 36.0
 
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
-_spawnable_scenes = PackedStringArray("uid://dqp3koxevnhjm", "uid://ldk5hvdqjjr", "uid://ch6oowh2u6cep", "res://high_level_example/scenes/HumoLanzado.tscn", "res://high_level_example/scenes/TransLanzado.tscn", "res://high_level_example/scenes/ArmaSuelta.tscn", "res://high_level_example/scenes/Granada.tscn", "res://high_level_example/scenes/Semtex.tscn", "res://high_level_example/scenes/TomahawkObjeto.tscn")
+_spawnable_scenes = PackedStringArray("uid://dqp3koxevnhjm", "uid://ldk5hvdqjjr", "uid://ch6oowh2u6cep", "res://high_level_example/scenes/HumoLanzado.tscn", "res://high_level_example/scenes/TransLanzado.tscn", "res://high_level_example/scenes/ArmaSuelta.tscn", "res://high_level_example/scenes/Granada.tscn", "res://high_level_example/scenes/Semtex.tscn", "res://high_level_example/scenes/TomahawkObjeto.tscn", "res://high_level_example/scenes/BettyLanzada.tscn", "res://high_level_example/scenes/PemLanzado.tscn", "res://high_level_example/scenes/Cohete.tscn", "res://high_level_example/scenes/HiloDecapitador.tscn")
 spawn_path = NodePath("../PlayerSpawnContainer")
 script = ExtResource("1_xa5q7")
 network_player = ExtResource("2_cqmdx")

@@ -46,6 +46,7 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 var current_weapon_data: WeaponData
 var current_item: ItemData
 var _charging: bool = false
+var _emp_until_msec: int = 0
 var _charge_time: float = 0.0
 # Balas que quedan. -1 = infinitas (arma inicial). Sin recarga: a 0 el arma queda vacía.
 var current_ammo: int = 0
@@ -84,6 +85,7 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
+	add_to_group("emp_affected")
 	var is_mine: bool = is_multiplayer_authority()
 	camera.enabled = is_mine
 	if flashlight:
@@ -144,6 +146,7 @@ func _physics_process(delta: float) -> void:
 		request_interact.rpc_id(1)
 	if Input.is_action_just_pressed("ability"):
 		use_ability()
+	_update_weapon_arc()
 	_update_throw(delta)
 
 
@@ -314,6 +317,8 @@ func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count:
 		var final_angle: float = rot + deg_to_rad(randf_range(-spread, spread))
 		bullet.rotation = final_angle
 
+		if bullet.has_method("launch"):
+			bullet.launch(Vector2.RIGHT.rotated(final_angle) * speed, shooter, current_weapon_data.projectile_gravity)
 		if "speed" in bullet: bullet.speed = speed
 		if "direction" in bullet: bullet.direction = Vector2.RIGHT.rotated(final_angle)
 		if "shooter_id" in bullet: bullet.shooter_id = shooter
@@ -490,6 +495,18 @@ func _update_throw(delta: float) -> void:
 		_do_throw()
 
 
+# Armas con proyectil de caída (Bazooka): arco corto siempre visible al apuntar
+func _update_weapon_arc() -> void:
+	if _charging:
+		return
+	var wd := current_weapon_data
+	if wd == null or wd.projectile_gravity <= 0.0 or current_ammo == 0:
+		if throw_arc.get_point_count() > 0:
+			throw_arc.clear_points()
+		return
+	_draw_arc(muzzle.global_position, Vector2.RIGHT.rotated(aim_angle) * wd.bullet_speed, wd.projectile_gravity)
+
+
 func _cancel_charge() -> void:
 	_charging = false
 	throw_arc.clear_points()
@@ -511,11 +528,12 @@ func _throw_origin() -> Vector2:
 
 # Primeros arc_preview_time segundos del vuelo (se corta al chocar con el suelo)
 func _update_arc() -> void:
+	_draw_arc(_throw_origin(), _throw_velocity(), current_item.gravity)
+
+
+func _draw_arc(pos: Vector2, vel: Vector2, g: float) -> void:
 	throw_arc.clear_points()
 	var space := get_world_2d().direct_space_state
-	var pos: Vector2 = _throw_origin()
-	var vel: Vector2 = _throw_velocity()
-	var g: float = current_item.gravity
 	var dt: float = 1.0 / 60.0
 	throw_arc.add_point(pos)
 	for i in int(arc_preview_time / dt):
@@ -581,6 +599,9 @@ func request_throw(item_path: String, origin: Vector2, vel: Vector2) -> void:
 
 # Solo servidor: coloca el objeto en el suelo delante del jugador (Claymore)
 func _place_item(item: ItemData) -> void:
+	if item.place_in_door:
+		_place_in_door(item)
+		return
 	var space := get_world_2d().direct_space_state
 	var from: Vector2 = global_position + Vector2(facing * 16.0, -6.0)
 	var q := PhysicsRayQueryParameters2D.create(from, from + Vector2(0, 40), 1 + 8)
@@ -592,6 +613,45 @@ func _place_item(item: ItemData) -> void:
 	if "shooter_id" in placed:
 		placed.shooter_id = name.to_int()
 	equip_item_rpc.rpc("")
+
+
+# Hilo decapitador: solo si hay una puerta al lado que aún no tenga uno
+func _place_in_door(item: ItemData) -> void:
+	var best: Node2D = null
+	var best_dist: float = 48.0
+	for door in get_tree().get_nodes_in_group("puertas"):
+		var d: float = global_position.distance_to(door.global_position)
+		if d < best_dist and not _door_has_wire(door):
+			best = door
+			best_dist = d
+	if best == null:
+		return
+	var wire = item.scene.instantiate()
+	get_parent().add_child(wire, true)
+	wire.global_position = best.global_position
+	if "shooter_id" in wire:
+		wire.shooter_id = name.to_int()
+	equip_item_rpc.rpc("")
+
+
+func _door_has_wire(door: Node2D) -> bool:
+	for w in get_tree().get_nodes_in_group("hilos"):
+		if w.global_position.distance_to(door.global_position) < 4.0:
+			return true
+	return false
+
+
+# Pem: sin luz propia durante unos segundos (la linterna solo la tiene el dueño)
+func emp(duration: float) -> void:
+	_emp_until_msec = Time.get_ticks_msec() + int(duration * 1000.0)
+	if not is_multiplayer_authority():
+		return
+	flashlight.enabled = false
+	aura.enabled = false
+	await get_tree().create_timer(duration).timeout
+	if Time.get_ticks_msec() >= _emp_until_msec:
+		flashlight.enabled = true
+		aura.enabled = true
 
 
 # El servidor mueve a este jugador (Translocator). Lo aplica el dueño, que es quien manda su posición.

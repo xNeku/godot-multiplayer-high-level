@@ -14,9 +14,12 @@ extends StaticBody2D
 var _inside: int = 0
 var _open: bool = false
 var _tween: Tween
+var _emp_until_msec: int = 0
 
 
 func _ready() -> void:
+	add_to_group("puertas")
+	add_to_group("emp_affected")
 	zone.body_entered.connect(_on_body_entered)
 	zone.body_exited.connect(_on_body_exited)
 
@@ -34,8 +37,16 @@ func _on_body_exited(_body: Node2D) -> void:
 			_set_open(false)
 
 
+# Pem: sin corriente la puerta se queda como está y no reacciona
+func emp(duration: float) -> void:
+	_emp_until_msec = Time.get_ticks_msec() + int(duration * 1000.0)
+	await get_tree().create_timer(duration).timeout
+	if Time.get_ticks_msec() >= _emp_until_msec:
+		_set_open(_inside > 0)
+
+
 func _set_open(value: bool) -> void:
-	if value == _open:
+	if value == _open or Time.get_ticks_msec() < _emp_until_msec:
 		return
 	_open = value
 	collision.set_deferred("disabled", value)

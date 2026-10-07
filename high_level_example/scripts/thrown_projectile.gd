@@ -8,9 +8,13 @@ class_name ThrownProjectile
 #   SEMTEX: se pega a la primera superficie o jugador y explota al acabar la mecha.
 #   SMOKE: rebota como la granada y suelta humo al acabar la mecha.
 #   TRANSLOCATOR: rebota y al acabar la mecha teletransporta a quien lo lanzó hasta donde está.
+#   BETTY: cae al suelo y se arma. Si pisa alguien cerca (menos su dueño) salta a la altura
+#          de la cabeza y explota.
+#   PEM: rebota y al acabar la mecha apaga linternas, bombillas y puertas en un radio.
+#   ROCKET: bala de bazooka con caída; explota al primer contacto.
 
-enum Mode { GRENADE, TOMAHAWK, SEMTEX, SMOKE, TRANSLOCATOR }
-enum State { FLYING, RESTING, STUCK, GONE }
+enum Mode { GRENADE, TOMAHAWK, SEMTEX, SMOKE, TRANSLOCATOR, BETTY, PEM, ROCKET }
+enum State { FLYING, RESTING, STUCK, GONE, POPPING }
 
 const PLATFORM_LAYER: int = 4
 
@@ -29,6 +33,15 @@ var item_data: ItemData
 @export var explosion_radius: float = 70.0
 # Grados/segundo que gira mientras vuela
 @export var spin_deg: float = 600.0
+# ROCKET: el sprite mira hacia donde va
+@export var face_velocity: bool = false
+@export_group("Mina (Betty)")
+@export var arm_time: float = 1.0
+@export var trigger_radius: float = 26.0
+@export var pop_height: float = 40.0
+@export_group("Pem")
+@export var emp_radius: float = 260.0
+@export var emp_duration: float = 6.0
 # Segundos que dura en el mapa si nadie la coge
 @export var lifetime: float = 120.0
 
@@ -41,6 +54,7 @@ var _bounces_left: int = 0
 var _fuse_left: float = -1.0
 var _age: float = 0.0
 var _hit_someone: bool = false
+var _pop_left: float = 0.0
 var _stuck_to: Node2D
 var _stuck_offset: Vector2 = Vector2.ZERO
 
@@ -60,7 +74,7 @@ func launch(vel: Vector2, shooter: int, grav: float) -> void:
 	velocity = vel
 	shooter_id = shooter
 	gravity = grav
-	if mode in [Mode.GRENADE, Mode.SMOKE, Mode.TRANSLOCATOR] and fuse_time > 0.0:
+	if mode in [Mode.GRENADE, Mode.SMOKE, Mode.TRANSLOCATOR, Mode.PEM, Mode.ROCKET] and fuse_time > 0.0:
 		_fuse_left = fuse_time
 
 
@@ -79,6 +93,14 @@ func _physics_process(delta: float) -> void:
 	match _state:
 		State.FLYING:
 			_fly(delta)
+		State.RESTING:
+			if mode == Mode.BETTY:
+				_check_betty_trigger()
+		State.POPPING:
+			global_position.y -= (pop_height / 0.25) * delta
+			_pop_left -= delta
+			if _pop_left <= 0.0:
+				_explode()
 		State.STUCK:
 			if _stuck_to and is_instance_valid(_stuck_to):
 				global_position = _stuck_to.global_position + _stuck_offset
@@ -114,7 +136,9 @@ func _fly(delta: float) -> void:
 	var r := _cast(from, to)
 	if r.is_empty():
 		global_position = to
-		if spin_deg != 0.0:
+		if face_velocity:
+			rotation = velocity.angle()
+		elif spin_deg != 0.0:
 			rotation += deg_to_rad(spin_deg) * signf(velocity.x if velocity.x != 0.0 else 1.0) * delta
 		return
 
@@ -141,6 +165,8 @@ func _hit_body(body: Node, normal: Vector2) -> void:
 				velocity = Vector2.ZERO
 		Mode.SEMTEX:
 			_stick(body)
+		Mode.ROCKET:
+			_explode()
 		_:
 			velocity = velocity.bounce(normal) * bounce_damping
 
@@ -149,6 +175,14 @@ func _hit_surface(normal: Vector2) -> void:
 	match mode:
 		Mode.SEMTEX:
 			_stick(null)
+		Mode.ROCKET:
+			_explode()
+		Mode.BETTY:
+			# Se queda en el suelo; contra paredes y techos rebota y acaba cayendo
+			if normal.y < -0.7:
+				_land()
+			else:
+				velocity = velocity.bounce(normal) * bounce_damping
 		_:
 			if _hit_someone:
 				_land()
@@ -181,8 +215,30 @@ func _stick(body: Node2D) -> void:
 		_fuse_left = fuse_time
 
 
+func _check_betty_trigger() -> void:
+	if _age < arm_time:
+		return
+	var shape := CircleShape2D.new()
+	shape.radius = trigger_radius
+	var q := PhysicsShapeQueryParameters2D.new()
+	q.shape = shape
+	q.transform = Transform2D(0.0, global_position)
+	q.collision_mask = 2
+	for r in get_world_2d().direct_space_state.intersect_shape(q, 8):
+		var body: Node = r.collider
+		if body.has_method("hit") and body.name != str(shooter_id):
+			_state = State.POPPING
+			_pop_left = 0.25
+			return
+
+
 func _fuse_end() -> void:
 	match mode:
+		Mode.PEM:
+			_state = State.GONE
+			_emp_fx.rpc(global_position)
+			await get_tree().create_timer(1.0).timeout
+			queue_free()
 		Mode.SMOKE:
 			_state = State.GONE
 			_smoke_fx.rpc()
@@ -227,11 +283,32 @@ func _explode() -> void:
 func _explode_fx() -> void:
 	_state = State.GONE
 	sprite.visible = false
+	var rocket_light := get_node_or_null("Luz") as Node2D
+	if rocket_light:
+		rocket_light.visible = false
 	fx.play(explosion_radius)
 	var tw := create_tween()
 	fx_light.energy = 3.0
 	fx_light.enabled = true
 	tw.tween_property(fx_light, "energy", 0.0, 0.35)
+	tw.tween_callback(func(): fx_light.enabled = false)
+	fx_sound.play()
+
+
+# Apaga luces y puertas cercanas en TODOS los peers (cada uno aplica lo suyo en local)
+@rpc("authority", "call_local", "reliable")
+func _emp_fx(center: Vector2) -> void:
+	_state = State.GONE
+	sprite.visible = false
+	fx.play(emp_radius, Color(0.3, 0.7, 1.0))
+	for n in get_tree().get_nodes_in_group("emp_affected"):
+		if n.has_method("emp") and n.global_position.distance_to(center) <= emp_radius:
+			n.emp(emp_duration)
+	fx_light.color = Color(0.4, 0.75, 1.0)
+	fx_light.enabled = true
+	fx_light.energy = 2.5
+	var tw := create_tween()
+	tw.tween_property(fx_light, "energy", 0.0, 0.5)
 	tw.tween_callback(func(): fx_light.enabled = false)
 	fx_sound.play()
 

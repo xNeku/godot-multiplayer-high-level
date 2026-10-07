@@ -11,6 +11,8 @@ class_name ItemData
 @export_group("Lanzamiento")
 # true = no se lanza: se coloca en el suelo delante de ti (Claymore)
 @export var place_only: bool = false
+# true (con place_only) = solo se puede colocar en una puerta (Hilo decapitador)
+@export var place_in_door: bool = false
 # Escena que aparece al lanzarlo. Si tiene un método launch(velocity, shooter_id, gravity)
 # se llama; si es un RigidBody2D se le da la velocidad directamente.
 @export var scene: PackedScene

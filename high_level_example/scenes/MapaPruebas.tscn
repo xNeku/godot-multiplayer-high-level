@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3]
+[gd_scene load_steps=38 format=3]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/map_settings.gd" id="1_set"]
 [ext_resource type="Script" path="res://high_level_example/scripts/grid_background.gd" id="2_grid"]
@@ -18,11 +18,19 @@
 [ext_resource type="Resource" path="res://high_level_example/Objetos/Claymore.tres" id="23_obj"]
 [ext_resource type="Resource" path="res://high_level_example/Objetos/Humo.tres" id="24_obj"]
 [ext_resource type="Resource" path="res://high_level_example/Objetos/Translocator.tres" id="25_obj"]
+[ext_resource type="Resource" path="res://high_level_example/Objetos/Betty.tres" id="30_betty"]
+[ext_resource type="Resource" path="res://high_level_example/Objetos/Pem.tres" id="31_pem"]
+[ext_resource type="Resource" path="res://high_level_example/Objetos/Hilo.tres" id="32_hilo"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/Bazooka.tres" id="33_bazooka"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/Puerta.tscn" id="34_puerta"]
 [sub_resource type="RectangleShape2D" id="Rect_P"]
 size = Vector2(500, 8)
 
 [sub_resource type="RectangleShape2D" id="Rect_O"]
 size = Vector2(440, 8)
+
+[sub_resource type="RectangleShape2D" id="Rect_M"]
+size = Vector2(30, 340)
 
 [sub_resource type="RectangleShape2D" id="Rect_1"]
 size = Vector2(2800, 40)
@@ -271,3 +279,36 @@ item = ExtResource("24_obj")
 [node name="SpawnerTranslocator" parent="Objetos" instance=ExtResource("6_spawner")]
 position = Vector2(365, 340)
 item = ExtResource("25_obj")
+
+[node name="SpawnerBetty" parent="Objetos" instance=ExtResource("6_spawner")]
+position = Vector2(410, 340)
+item = ExtResource("30_betty")
+
+[node name="SpawnerPem" parent="Objetos" instance=ExtResource("6_spawner")]
+position = Vector2(455, 340)
+item = ExtResource("31_pem")
+
+[node name="SpawnerHilo" parent="Objetos" instance=ExtResource("6_spawner")]
+position = Vector2(500, 340)
+item = ExtResource("32_hilo")
+
+[node name="SpawnerBazooka" parent="Armas" instance=ExtResource("6_spawner")]
+position = Vector2(1290, 340)
+weapon = ExtResource("33_bazooka")
+
+[node name="MuroPuerta" type="StaticBody2D" parent="."]
+position = Vector2(2000, 270)
+collision_layer = 1
+
+[node name="ColorRect" type="ColorRect" parent="MuroPuerta"]
+offset_left = -15.0
+offset_top = -170.0
+offset_right = 15.0
+offset_bottom = 170.0
+color = Color(0.25, 0.27, 0.33, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MuroPuerta"]
+shape = SubResource("Rect_M")
+
+[node name="Puerta" parent="." instance=ExtResource("34_puerta")]
+position = Vector2(2000, 470.5)

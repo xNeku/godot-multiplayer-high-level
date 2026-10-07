@@ -4,10 +4,12 @@ extends Node2D
 var _radius: float = 0.0
 var _max_radius: float = 70.0
 var _alpha: float = 0.0
+var _color: Color = Color(1.0, 0.55, 0.1)
 
 
-func play(max_radius: float) -> void:
+func play(max_radius: float, color: Color = Color(1.0, 0.55, 0.1)) -> void:
 	_max_radius = max_radius
+	_color = color
 	visible = true
 	var tw := create_tween().set_parallel(true)
 	tw.tween_method(func(v: float): _radius = v; queue_redraw(), 4.0, max_radius, 0.25)
@@ -15,5 +17,5 @@ func play(max_radius: float) -> void:
 
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, _radius, Color(1.0, 0.55, 0.1, _alpha * 0.55))
-	draw_arc(Vector2.ZERO, _radius, 0.0, TAU, 32, Color(1.0, 0.9, 0.5, _alpha), 2.0)
+	draw_circle(Vector2.ZERO, _radius, Color(_color, _alpha * 0.45))
+	draw_arc(Vector2.ZERO, _radius, 0.0, TAU, 32, Color(_color.lightened(0.5), _alpha), 2.0)

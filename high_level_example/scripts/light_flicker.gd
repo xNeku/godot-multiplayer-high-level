@@ -15,10 +15,12 @@ extends PointLight2D
 @export var flicker_speed: float = 0.07
 # Energía con la luz encendida (se copia de la energía de la escena)
 var _base_energy: float
+var _emp_until_msec: int = 0
 
 
 func _ready() -> void:
 	_base_energy = energy
+	add_to_group("emp_affected")
 	# Cada bombilla empieza en un punto distinto para que no vayan a la vez
 	await get_tree().create_timer(randf_range(0.0, on_time_max)).timeout
 	_cycle()
@@ -31,10 +33,24 @@ func _cycle() -> void:
 			return
 		if randf() < flicker_chance:
 			for _i in randi_range(1, flicker_count_max):
-				energy = _base_energy * 0.15
+				_set_energy(_base_energy * 0.15)
 				await get_tree().create_timer(flicker_speed * randf_range(0.5, 1.5)).timeout
-				energy = _base_energy
+				_set_energy(_base_energy)
 				await get_tree().create_timer(flicker_speed * randf_range(0.5, 1.5)).timeout
-		energy = 0.0
+		_set_energy(0.0)
 		await get_tree().create_timer(randf_range(off_time_min, off_time_max)).timeout
+		_set_energy(_base_energy)
+
+
+# Cualquier cambio de energía respeta el apagón del Pem
+func _set_energy(value: float) -> void:
+	energy = 0.0 if Time.get_ticks_msec() < _emp_until_msec else value
+
+
+# Pem: la bombilla se apaga unos segundos
+func emp(duration: float) -> void:
+	_emp_until_msec = Time.get_ticks_msec() + int(duration * 1000.0)
+	energy = 0.0
+	await get_tree().create_timer(duration).timeout
+	if Time.get_ticks_msec() >= _emp_until_msec:
 		energy = _base_energy

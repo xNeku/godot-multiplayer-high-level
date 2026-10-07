@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dytxckecq42lh"]
+[gd_scene load_steps=10 format=3 uid="uid://dytxckecq42lh"]
 
 [ext_resource type="Script" uid="uid://y6bxp4ql7a40" path="res://high_level_example/scripts/high_level_example.gd" id="1_q4tb6"]
 [ext_resource type="Script" uid="uid://c1g12cc12wuaa" path="res://high_level_example/scripts/high_level_player_spawner.gd" id="1_xa5q7"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://b20qpy5kkk3t" path="res://high_level_example/scenes/GameOverUI.tscn" id="8_23wyo"]
 
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaNeku.tscn" id="9_mapaneku"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/TouchControls.tscn" id="10_touch"]
 
 [node name="HighLevelExample" type="Node2D"]
 script = ExtResource("1_q4tb6")
@@ -60,3 +61,5 @@ color = Color(0.00045617123, 0.05110582, 0.31305632, 1)
 
 [node name="GameOverUi" parent="." instance=ExtResource("8_23wyo")]
 visible = false
+
+[node name="TouchControls" parent="." instance=ExtResource("10_touch")]

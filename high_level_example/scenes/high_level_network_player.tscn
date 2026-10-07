@@ -111,6 +111,13 @@ region_rect = Rect2(32, 0, 32, 64)
 [node name="Muzzle" type="Marker2D" parent="HandPivot"]
 position = Vector2(26, -1)
 
+[node name="Fogonazo" type="PointLight2D" parent="HandPivot/Muzzle"]
+enabled = false
+color = Color(1, 0.8, 0.45, 1)
+energy = 1.6
+texture = ExtResource("7_light")
+texture_scale = 0.35
+
 [node name="LaserSight" type="Line2D" parent="HandPivot"]
 z_index = 10
 width = 2.0

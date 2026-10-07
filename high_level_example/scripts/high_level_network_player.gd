@@ -29,8 +29,10 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export_group("Arma")
 # Arma con la que se empieza y con la que se reaparece.
 @export var default_weapon: WeaponData
-# Mientras no haya recogida de munición, el arma no se queda sin balas.
-@export var debug_unlimited_ammo: bool = true
+# Para pruebas: ninguna arma gasta munición. (El arma inicial ya es infinita.)
+@export var debug_unlimited_ammo: bool = false
+# A qué distancia se puede coger un arma con el botón de interactuar
+@export var interact_range: float = 36.0
 
 @export_group("Pruebas (habilidad y objeto lanzable)")
 @export_enum("NONE", "DASH", "RICOCHET") var ability_type: String = "NONE"
@@ -42,12 +44,15 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export var throw_force: float = 800.0
 
 var current_weapon_data: WeaponData
+# Balas que quedan. -1 = infinitas (arma inicial). Sin recarga: a 0 el arma queda vacía.
 var current_ammo: int = 0
 var next_shot_bounces: bool = false
 var is_aiming_laser: bool = false
 var facing: int = 1 # 1 = derecha, -1 = izquierda
 var aim_angle: float = 0.0 # radianes, ángulo global del disparo
 var _aim_up: float = 0.0 # cuánto ha subido el arma (0 = recto)
+var _recoil: float = 0.0 # retroceso acumulado (radianes hacia arriba)
+var _recoil_recover_at_msec: int = 0
 
 # Cooldowns por marca de tiempo (más barato que crear un timer por disparo)
 var _next_shot_msec: int = 0
@@ -64,6 +69,9 @@ var _drop_until_msec: int = 0
 @onready var camera: Camera2D = $Camera2D
 @onready var weapon_sprite: Sprite2D = $HandPivot/Sprite2D
 @onready var laser_sight: Line2D = $HandPivot/LaserSight
+@onready var muzzle_flash: PointLight2D = $HandPivot/Muzzle/Fogonazo
+
+const DROPPED_WEAPON_SCENE: PackedScene = preload("res://high_level_example/scenes/ArmaSuelta.tscn")
 
 
 func _enter_tree() -> void:
@@ -86,7 +94,7 @@ func _ready() -> void:
 		set_physics_process(false)
 
 	if default_weapon:
-		equip_weapon(default_weapon)
+		equip_weapon(default_weapon, -1)
 
 
 func _physics_process(delta: float) -> void:
@@ -121,8 +129,13 @@ func _physics_process(delta: float) -> void:
 
 	update_aiming(delta)
 
-	if Input.is_action_pressed("shoot"):
-		shoot()
+	if current_weapon_data:
+		var auto: bool = current_weapon_data.fire_mode == WeaponData.FireMode.AUTO
+		var trigger: bool = Input.is_action_pressed("shoot") if auto else Input.is_action_just_pressed("shoot")
+		if trigger:
+			shoot()
+	if Input.is_action_just_pressed("interact"):
+		request_interact.rpc_id(1)
 	if Input.is_action_just_pressed("ability"):
 		use_ability()
 	if Input.is_action_just_pressed("throw"):
@@ -151,18 +164,31 @@ func update_aiming(delta: float) -> void:
 	var target: float = deg_to_rad(aim_up_max_deg) if want_up else 0.0
 	_aim_up = move_toward(_aim_up, target, deg_to_rad(aim_rotation_speed_deg) * delta)
 
-	aim_angle = Vector2(facing * cos(_aim_up), -sin(_aim_up)).angle()
+	# El retroceso baja solo cuando pasa la pausa sin disparar
+	if _recoil > 0.0:
+		if current_weapon_data == null:
+			_recoil = 0.0
+		elif Time.get_ticks_msec() >= _recoil_recover_at_msec:
+			_recoil = move_toward(_recoil, 0.0, deg_to_rad(current_weapon_data.recoil_recovery_deg_per_sec) * delta)
+
+	var up_total: float = clampf(_aim_up + _recoil, 0.0, deg_to_rad(90.0))
+	aim_angle = Vector2(facing * cos(up_total), -sin(up_total)).angle()
 
 	hand_pivot.global_rotation = aim_angle
 	visual.set_facing(facing)
 	hand_pivot.scale.y = -1 if facing < 0 else 1
 
 
-func equip_weapon(new_weapon: WeaponData) -> void:
+# ammo: -2 = cargador lleno, -1 = infinita, otro valor = esa cantidad
+func equip_weapon(new_weapon: WeaponData, ammo: int = -2) -> void:
+	_recoil = 0.0
 	current_weapon_data = new_weapon
-	current_ammo = new_weapon.max_ammo
-	if new_weapon.texture:
-		weapon_sprite.texture = new_weapon.texture
+	if new_weapon == null:
+		current_ammo = 0
+		weapon_sprite.texture = null
+		return
+	current_ammo = new_weapon.max_ammo if ammo == -2 else ammo
+	weapon_sprite.texture = new_weapon.texture
 
 
 # --- HABILIDAD DE PRUEBA ---
@@ -193,11 +219,11 @@ func shoot() -> void:
 	var now: int = Time.get_ticks_msec()
 	if now < _next_shot_msec:
 		return
-	if current_ammo <= 0 and not debug_unlimited_ammo:
+	if current_ammo == 0 and not debug_unlimited_ammo:
 		return
 
 	_next_shot_msec = now + int(current_weapon_data.fire_rate * 1000.0)
-	if not debug_unlimited_ammo:
+	if current_ammo > 0 and not debug_unlimited_ammo:
 		current_ammo -= 1
 
 	var total_bounces: int = current_weapon_data.bounces
@@ -219,6 +245,11 @@ func shoot() -> void:
 		current_weapon_data.return_ammo_on_kill,
 		total_bounces
 	)
+
+	# El disparo sale con el ángulo actual; el retroceso afecta al siguiente
+	if current_weapon_data.recoil_per_shot_deg > 0.0:
+		_recoil = minf(_recoil + deg_to_rad(current_weapon_data.recoil_per_shot_deg), deg_to_rad(current_weapon_data.recoil_max_deg))
+		_recoil_recover_at_msec = now + int(current_weapon_data.recoil_pause * 1000.0)
 
 
 func update_laser_trajectory() -> void:
@@ -262,6 +293,12 @@ func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count:
 	# El tirador es el dueño de este nodo (su nombre es su id de red)
 	var shooter: int = name.to_int()
 
+	# La copia del servidor también cuenta la munición (el dueño ya descontó la suya)
+	if not is_multiplayer_authority() and current_ammo > 0:
+		current_ammo -= 1
+	if not current_weapon_data.silenced:
+		_fire_flash.rpc()
+
 	for _i in count:
 		var bullet = current_weapon_data.bullet_scene.instantiate()
 		get_parent().add_child(bullet, true)
@@ -277,6 +314,70 @@ func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count:
 		if "bounces" in bullet: bullet.bounces = bounces_amount
 
 
+@rpc("any_peer", "call_local", "unreliable")
+func _fire_flash() -> void:
+	muzzle_flash.enabled = true
+	await get_tree().create_timer(0.06).timeout
+	muzzle_flash.enabled = false
+
+
+# --- RECOGER Y SOLTAR ARMAS ---
+
+# Lo pide el dueño con el botón de interactuar; decide el servidor.
+# Si hay un arma cerca la coge (y suelta la que llevaba); si no, suelta la que lleva.
+@rpc("any_peer", "call_local", "reliable")
+func request_interact() -> void:
+	if not multiplayer.is_server():
+		return
+	var sender: int = multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != name.to_int():
+		return
+
+	var best: Node2D = null
+	var best_dist: float = interact_range
+	for pickup in get_tree().get_nodes_in_group("pickups"):
+		if not pickup.is_available():
+			continue
+		var d: float = global_position.distance_to(pickup.global_position)
+		if d < best_dist:
+			best = pickup
+			best_dist = d
+
+	if best:
+		var data: WeaponData = best.get_weapon()
+		var ammo: int = best.ammo
+		best.take()
+		_drop_current_weapon(Vector2(randf_range(-40.0, 40.0), -120.0))
+		equip_rpc.rpc(data.resource_path, ammo)
+	elif current_weapon_data:
+		_drop_current_weapon(Vector2(facing * 140.0, -140.0))
+		equip_rpc.rpc("", 0)
+
+
+# path vacío = quedarse sin arma
+@rpc("any_peer", "call_local", "reliable")
+func equip_rpc(path: String, ammo: int) -> void:
+	var sender: int = multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	if path == "":
+		equip_weapon(null)
+	else:
+		equip_weapon(load(path), ammo)
+
+
+# Solo servidor: deja en el suelo el arma que lleva (el arma inicial, infinita, se descarta)
+func _drop_current_weapon(toss: Vector2) -> void:
+	if current_weapon_data == null or current_ammo == -1:
+		return
+	var drop := DROPPED_WEAPON_SCENE.instantiate()
+	drop.weapon_path = current_weapon_data.resource_path
+	drop.ammo = current_ammo
+	get_parent().add_child(drop, true)
+	drop.global_position = global_position + Vector2(0, -6)
+	drop.linear_velocity = toss
+
+
 # --- DAÑO Y VICTORIA ---
 
 func hit(shooter_id: int, ammo_back: bool = false, _damage_amount: int = 1) -> void:
@@ -284,6 +385,7 @@ func hit(shooter_id: int, ammo_back: bool = false, _damage_amount: int = 1) -> v
 		return
 
 	var current_points: int = GameManager.add_point(shooter_id)
+	_drop_current_weapon(Vector2(randf_range(-80.0, 80.0), -200.0))
 
 	# Armas que devuelven munición al matar (Tomahawk)
 	if ammo_back:
@@ -301,7 +403,7 @@ func hit(shooter_id: int, ammo_back: bool = false, _damage_amount: int = 1) -> v
 func respawn_rpc() -> void:
 	# Al reaparecer se vuelve al arma por defecto con la munición llena
 	if default_weapon:
-		equip_weapon(default_weapon)
+		equip_weapon(default_weapon, -1)
 	next_shot_bounces = false
 
 	if is_multiplayer_authority():

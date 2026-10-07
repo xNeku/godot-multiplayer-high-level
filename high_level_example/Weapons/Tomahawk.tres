@@ -9,6 +9,7 @@ script = ExtResource("1_m3w6i")
 role_name = "Tomahawk"
 texture = ExtResource("3_0e012")
 bullet_scene = ExtResource("1_1buhd")
+fire_mode = 1
 fire_rate = 0.6
 max_ammo = 5
 bullet_speed = 1200.0

@@ -1,10 +1,19 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/map_settings.gd" id="1_set"]
 [ext_resource type="Script" path="res://high_level_example/scripts/grid_background.gd" id="2_grid"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MunecoFijo.tscn" id="3_fijo"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MunecoCaminante.tscn" id="4_walker"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/Interruptor.tscn" id="5_switch"]
+
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/ArmaSpawner.tscn" id="6_spawner"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/Pistola.tres" id="7_pistola"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/Escopeta.tres" id="8_escopeta"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/Sniper.tres" id="9_sniper"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/Tomahawk.tres" id="10_tomahawk"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/Mp7.tres" id="11_mp7"]
+[sub_resource type="RectangleShape2D" id="Rect_P"]
+size = Vector2(500, 8)
 
 [sub_resource type="RectangleShape2D" id="Rect_1"]
 size = Vector2(2800, 40)
@@ -173,3 +182,41 @@ position = Vector2(1000, 476)
 
 [node name="Spawn6" type="Marker2D" parent="SpawnPoints" groups=["spawn_points"]]
 position = Vector2(1100, 476)
+
+[node name="PlataformaArmas" type="StaticBody2D" parent="Plataformas"]
+position = Vector2(1150, 344)
+collision_layer = 8
+collision_mask = 0
+
+[node name="ColorRect" type="ColorRect" parent="Plataformas/PlataformaArmas"]
+offset_left = -250.0
+offset_top = -4.0
+offset_right = 250.0
+offset_bottom = 4.0
+color = Color(0.75, 0.55, 0.3, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Plataformas/PlataformaArmas"]
+one_way_collision = true
+shape = SubResource("Rect_P")
+
+[node name="Armas" type="Node2D" parent="."]
+
+[node name="SpawnerPistola" parent="Armas" instance=ExtResource("6_spawner")]
+position = Vector2(940, 340)
+weapon = ExtResource("7_pistola")
+
+[node name="SpawnerEscopeta" parent="Armas" instance=ExtResource("6_spawner")]
+position = Vector2(1010, 340)
+weapon = ExtResource("8_escopeta")
+
+[node name="SpawnerSniper" parent="Armas" instance=ExtResource("6_spawner")]
+position = Vector2(1080, 340)
+weapon = ExtResource("9_sniper")
+
+[node name="SpawnerTomahawk" parent="Armas" instance=ExtResource("6_spawner")]
+position = Vector2(1150, 340)
+weapon = ExtResource("10_tomahawk")
+
+[node name="SpawnerMp7" parent="Armas" instance=ExtResource("6_spawner")]
+position = Vector2(1220, 340)
+weapon = ExtResource("11_mp7")

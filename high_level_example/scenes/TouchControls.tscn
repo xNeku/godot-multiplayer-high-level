@@ -137,3 +137,18 @@ theme_override_font_sizes/font_size = 28
 text = "v"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Coger" type="TouchScreenButton" parent="."]
+position = Vector2(422, 214)
+scale = Vector2(0.9, 0.9)
+texture_normal = SubResource("GradientTexture2D_touch")
+passby_press = true
+action = "interact"
+
+[node name="Label" type="Label" parent="Coger"]
+offset_right = 64.0
+offset_bottom = 64.0
+theme_override_font_sizes/font_size = 28
+text = "E"
+horizontal_alignment = 1
+vertical_alignment = 1

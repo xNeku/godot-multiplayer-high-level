@@ -6,10 +6,15 @@
 
 [resource]
 script = ExtResource("1_mcdms")
-name = "Escopeta"
+role_name = "Escopeta"
 texture = ExtResource("3_kjswc")
 bullet_scene = ExtResource("1_lb1cm")
-max_ammo = 200
+fire_mode = 1
+fire_rate = 0.8
+recoil_per_shot_deg = 10.0
+recoil_max_deg = 25.0
+recoil_pause = 1.0
+max_ammo = 8
 spread = 10.0
 bullet_count = 3
 metadata/_custom_type_script = "uid://1e258mb4p2cj"

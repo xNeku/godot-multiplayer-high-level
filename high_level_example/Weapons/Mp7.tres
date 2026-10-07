@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://high_level_example/scripts/WeaponData.gd" id="1_wd"]
+[ext_resource type="Texture2D" uid="uid://7mquxwvns2ra" path="res://high_level_example/assets/weapons/gun.png" id="2_tex"]
+[ext_resource type="PackedScene" uid="uid://ldk5hvdqjjr" path="res://high_level_example/scenes/Bullet.tscn" id="3_bul"]
+
+[resource]
+script = ExtResource("1_wd")
+role_name = "Mp7"
+texture = ExtResource("2_tex")
+bullet_scene = ExtResource("3_bul")
+fire_mode = 0
+fire_rate = 0.07
+max_ammo = 30
+spread = 1.5
+recoil_per_shot_deg = 2.5
+recoil_max_deg = 40.0
+recoil_pause = 0.25
+recoil_recovery_deg_per_sec = 90.0
+silenced = true

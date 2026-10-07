@@ -6,9 +6,13 @@
 
 [resource]
 script = ExtResource("1_bssik")
-name = "Pistola"
+role_name = "Pistola"
 texture = ExtResource("3_ulg63")
 bullet_scene = ExtResource("1_15l6h")
+fire_mode = 1
+recoil_per_shot_deg = 3.0
+recoil_max_deg = 15.0
+recoil_pause = 0.5
 fire_rate = 0.4
 max_ammo = 5
 metadata/_custom_type_script = "uid://1e258mb4p2cj"

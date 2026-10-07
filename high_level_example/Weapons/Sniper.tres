@@ -6,10 +6,11 @@
 
 [resource]
 script = ExtResource("1_oupe8")
-name = "Sniper"
+role_name = "Sniper"
 texture = ExtResource("3_o1pet")
 bullet_scene = ExtResource("1_g5jd0")
+fire_mode = 2
 fire_rate = 1.5
-max_ammo = 100
+max_ammo = 5
 bullet_speed = 3000.0
 metadata/_custom_type_script = "uid://1e258mb4p2cj"

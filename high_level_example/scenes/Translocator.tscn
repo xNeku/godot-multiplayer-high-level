@@ -20,6 +20,7 @@ size = Vector2(24.296545, 38.31182)
 [node name="Translocator" type="RigidBody2D"]
 scale = Vector2(0.16066399, -0.13564375)
 collision_layer = 4
+collision_mask = 9
 physics_material_override = SubResource("PhysicsMaterial_wbogh")
 script = ExtResource("1_wbogh")
 

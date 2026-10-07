@@ -29,6 +29,7 @@ properties/1/replication_mode = 1
 
 [node name="SmokeBomb" type="RigidBody2D"]
 collision_layer = 4
+collision_mask = 9
 physics_material_override = SubResource("PhysicsMaterial_r46on")
 script = ExtResource("1_pcgdo")
 

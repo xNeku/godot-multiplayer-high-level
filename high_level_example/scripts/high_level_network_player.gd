@@ -5,6 +5,7 @@ extends CharacterBody2D
 # Las clases están aparcadas (carpeta Classes/): todos empiezan con default_weapon.
 
 const LASER_RANGE: float = 2000.0
+const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 
 @export_group("Movimiento")
 @export var walk_speed: float = 220.0
@@ -13,6 +14,8 @@ const LASER_RANGE: float = 2000.0
 @export var friction: float = 1500.0
 @export var acceleration: float = 1800.0
 @export var gravity: float = 2000.0
+# Segundos que dura la caída a través de una plataforma
+@export var drop_through_time: float = 0.25
 
 @export_group("Puntería (sin ratón, estilo Duck Game)")
 # Se dispara recto hacia donde se mira. El arma sube hacia arriba mientras
@@ -50,6 +53,7 @@ var _aim_up: float = 0.0 # cuánto ha subido el arma (0 = recto)
 var _next_shot_msec: int = 0
 var _next_ability_msec: int = 0
 var _next_throw_msec: int = 0
+var _drop_until_msec: int = 0
 
 @onready var visual: Node2D = $Cuerpo
 @onready var hand_pivot: Node2D = $HandPivot
@@ -87,8 +91,18 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y += gravity * delta
 
+	# Plataformas atravesables: se recuperan al acabar el tiempo de caída
+	if _drop_until_msec > 0 and Time.get_ticks_msec() >= _drop_until_msec:
+		set_collision_mask_value(PLATFORM_LAYER, true)
+		_drop_until_msec = 0
+
 	if Input.is_action_just_pressed("ui_up") and is_on_floor():
-		velocity.y = jump_velocity
+		# Abajo + salto sobre una plataforma = bajar a través de ella
+		if Input.is_action_pressed("ui_down") and _is_on_platform():
+			set_collision_mask_value(PLATFORM_LAYER, false)
+			_drop_until_msec = Time.get_ticks_msec() + int(drop_through_time * 1000.0)
+		else:
+			velocity.y = jump_velocity
 
 	var speed: float = run_speed if Input.is_action_pressed("ui_run") else walk_speed
 	var direction: float = Input.get_axis("ui_left", "ui_right")
@@ -112,13 +126,22 @@ func _physics_process(delta: float) -> void:
 		throw_object()
 
 
+# ¿Estoy de pie sobre una plataforma atravesable?
+func _is_on_platform() -> bool:
+	for i in get_slide_collision_count():
+		var c := get_slide_collision(i).get_collider()
+		if c is CollisionObject2D and c.get_collision_layer_value(PLATFORM_LAYER):
+			return true
+	return false
+
+
 func update_aiming(delta: float) -> void:
 	var direction: float = Input.get_axis("ui_left", "ui_right")
 	if direction != 0.0:
 		facing = 1 if direction > 0.0 else -1
 
 	# ¿Hay que apuntar arriba? Botón de salto mantenido, o pegado a una pared mirándola
-	var want_up: bool = Input.is_action_pressed("ui_up")
+	var want_up: bool = Input.is_action_pressed("ui_up") and not Input.is_action_pressed("ui_down")
 	if aim_up_at_wall and is_on_wall() and get_wall_normal().x * facing < 0.0:
 		want_up = true
 

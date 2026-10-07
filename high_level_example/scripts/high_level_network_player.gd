@@ -56,6 +56,8 @@ var _next_throw_msec: int = 0
 var _drop_until_msec: int = 0
 
 @onready var visual: Node2D = $Cuerpo
+# Luz tenue solo para uno mismo: así te ves aunque estés a oscuras
+@onready var aura: PointLight2D = $Aura
 @onready var hand_pivot: Node2D = $HandPivot
 @onready var muzzle: Marker2D = $HandPivot/Muzzle
 @onready var flashlight: PointLight2D = $HandPivot/PointLight2D
@@ -73,6 +75,7 @@ func _ready() -> void:
 	camera.enabled = is_mine
 	if flashlight:
 		flashlight.enabled = is_mine
+	aura.enabled = is_mine
 	laser_sight.visible = false
 
 	if is_mine:

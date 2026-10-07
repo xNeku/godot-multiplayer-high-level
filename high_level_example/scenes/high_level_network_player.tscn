@@ -77,6 +77,13 @@ texture_filter = 1
 position = Vector2(0, 0)
 texture = ExtResource("4_face")
 
+[node name="Aura" type="PointLight2D" parent="."]
+enabled = false
+color = Color(0.75, 0.85, 1, 1)
+energy = 0.7
+texture = ExtResource("7_light")
+texture_scale = 0.4
+
 [node name="HandPivot" type="Node2D" parent="."]
 
 [node name="PointLight2D" type="PointLight2D" parent="HandPivot"]

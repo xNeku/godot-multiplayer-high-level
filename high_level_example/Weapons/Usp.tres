@@ -1,24 +1,23 @@
 [gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/WeaponData.gd" id="1_wd"]
-[ext_resource type="Texture2D" path="res://high_level_example/assets/weapons/mp7_ak.png" id="2_tex"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/weapons/gun.png" id="2_tex"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/Bullet.tscn" id="3_bul"]
 [ext_resource type="AudioStream" path="res://high_level_example/assets/sounds/disparo_silenciado.wav" id="4_snd"]
 
 [resource]
 script = ExtResource("1_wd")
-role_name = "Mp7"
+role_name = "Usp"
 texture = ExtResource("2_tex")
 bullet_scene = ExtResource("3_bul")
 shot_sound = ExtResource("4_snd")
-sprite_scale = 0.8
 fire_mode = 0
-fire_rate = 0.07
-max_ammo = 40
-spread = 2.0
-recoil_per_shot_deg = 5.0
-recoil_max_deg = 70.0
-recoil_pause = 0.2
-recoil_recovery_deg_per_sec = 70.0
+fire_rate = 0.14
+max_ammo = 20
+spread = 1.0
+recoil_per_shot_deg = 1.2
+recoil_max_deg = 20.0
+recoil_pause = 0.3
+recoil_recovery_deg_per_sec = 60.0
 silenced = true
-hearing_range = 300.0
+hearing_range = 220.0

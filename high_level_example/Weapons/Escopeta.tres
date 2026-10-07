@@ -1,8 +1,10 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=4 format=3 uid="uid://pichp47orwdo"]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3 uid="uid://pichp47orwdo"]
 
 [ext_resource type="PackedScene" uid="uid://ldk5hvdqjjr" path="res://high_level_example/scenes/Bullet.tscn" id="1_lb1cm"]
 [ext_resource type="Script" uid="uid://1e258mb4p2cj" path="res://high_level_example/scripts/WeaponData.gd" id="1_mcdms"]
 [ext_resource type="Texture2D" uid="uid://c82j3gahk28go" path="res://high_level_example/assets/weapons/shotgun.png" id="3_kjswc"]
+
+[ext_resource type="AudioStream" path="res://high_level_example/assets/sounds/disparo_desert_eagle.wav" id="9_snd"]
 
 [resource]
 script = ExtResource("1_mcdms")
@@ -17,4 +19,6 @@ recoil_pause = 1.0
 max_ammo = 8
 spread = 10.0
 bullet_count = 3
+shot_sound = ExtResource("9_snd")
+hearing_range = 1400.0
 metadata/_custom_type_script = "uid://1e258mb4p2cj"

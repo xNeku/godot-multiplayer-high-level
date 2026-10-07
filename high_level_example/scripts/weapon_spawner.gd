@@ -23,6 +23,7 @@ func _ready() -> void:
 	_phase = randf() * TAU
 	if weapon:
 		sprite.texture = weapon.texture
+		sprite.scale = Vector2.ONE * 1.2 * weapon.sprite_scale
 		label.text = weapon.role_name
 	label.visible = show_label
 

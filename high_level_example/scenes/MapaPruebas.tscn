@@ -7,11 +7,11 @@
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/Interruptor.tscn" id="5_switch"]
 
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/ArmaSpawner.tscn" id="6_spawner"]
-[ext_resource type="Resource" path="res://high_level_example/Weapons/Pistola.tres" id="7_pistola"]
-[ext_resource type="Resource" path="res://high_level_example/Weapons/Escopeta.tres" id="8_escopeta"]
-[ext_resource type="Resource" path="res://high_level_example/Weapons/Sniper.tres" id="9_sniper"]
-[ext_resource type="Resource" path="res://high_level_example/Weapons/Tomahawk.tres" id="10_tomahawk"]
-[ext_resource type="Resource" path="res://high_level_example/Weapons/Mp7.tres" id="11_mp7"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/Sniper.tres" id="7_sniper"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/SniperSilenciosa.tres" id="8_snipersilenciosa"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/DesertEagle.tres" id="9_deserteagle"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/Mp7.tres" id="10_mp7"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/Usp.tres" id="11_usp"]
 [sub_resource type="RectangleShape2D" id="Rect_P"]
 size = Vector2(500, 8)
 
@@ -201,22 +201,22 @@ shape = SubResource("Rect_P")
 
 [node name="Armas" type="Node2D" parent="."]
 
-[node name="SpawnerPistola" parent="Armas" instance=ExtResource("6_spawner")]
-position = Vector2(940, 340)
-weapon = ExtResource("7_pistola")
-
-[node name="SpawnerEscopeta" parent="Armas" instance=ExtResource("6_spawner")]
-position = Vector2(1010, 340)
-weapon = ExtResource("8_escopeta")
-
 [node name="SpawnerSniper" parent="Armas" instance=ExtResource("6_spawner")]
-position = Vector2(1080, 340)
-weapon = ExtResource("9_sniper")
+position = Vector2(940, 340)
+weapon = ExtResource("7_sniper")
 
-[node name="SpawnerTomahawk" parent="Armas" instance=ExtResource("6_spawner")]
-position = Vector2(1150, 340)
-weapon = ExtResource("10_tomahawk")
+[node name="SpawnerSniperSilenciosa" parent="Armas" instance=ExtResource("6_spawner")]
+position = Vector2(1010, 340)
+weapon = ExtResource("8_snipersilenciosa")
+
+[node name="SpawnerDesertEagle" parent="Armas" instance=ExtResource("6_spawner")]
+position = Vector2(1080, 340)
+weapon = ExtResource("9_deserteagle")
 
 [node name="SpawnerMp7" parent="Armas" instance=ExtResource("6_spawner")]
+position = Vector2(1150, 340)
+weapon = ExtResource("10_mp7")
+
+[node name="SpawnerUsp" parent="Armas" instance=ExtResource("6_spawner")]
 position = Vector2(1220, 340)
-weapon = ExtResource("11_mp7")
+weapon = ExtResource("11_usp")

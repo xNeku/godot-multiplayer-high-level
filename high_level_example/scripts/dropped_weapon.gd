@@ -14,6 +14,7 @@ func _ready() -> void:
 	if weapon_path != "":
 		weapon = load(weapon_path)
 		$Sprite2D.texture = weapon.texture
+		$Sprite2D.scale = Vector2.ONE * 1.2 * weapon.sprite_scale
 	# Los clientes solo siguen la posición que manda el servidor
 	freeze = not multiplayer.is_server()
 	if multiplayer.is_server():

@@ -70,6 +70,7 @@ var _drop_until_msec: int = 0
 @onready var weapon_sprite: Sprite2D = $HandPivot/Sprite2D
 @onready var laser_sight: Line2D = $HandPivot/LaserSight
 @onready var muzzle_flash: PointLight2D = $HandPivot/Muzzle/Fogonazo
+@onready var shot_audio: AudioStreamPlayer2D = $HandPivot/Muzzle/SonidoDisparo
 
 const DROPPED_WEAPON_SCENE: PackedScene = preload("res://high_level_example/scenes/ArmaSuelta.tscn")
 
@@ -188,7 +189,10 @@ func equip_weapon(new_weapon: WeaponData, ammo: int = -2) -> void:
 		weapon_sprite.texture = null
 		return
 	current_ammo = new_weapon.max_ammo if ammo == -2 else ammo
+	# Margen tras coger/cambiar de arma (evita disparar sin querer al pulsar E)
+	_next_shot_msec = Time.get_ticks_msec() + 200
 	weapon_sprite.texture = new_weapon.texture
+	weapon_sprite.scale = Vector2.ONE * 1.2 * new_weapon.sprite_scale
 
 
 # --- HABILIDAD DE PRUEBA ---
@@ -296,8 +300,7 @@ func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count:
 	# La copia del servidor también cuenta la munición (el dueño ya descontó la suya)
 	if not is_multiplayer_authority() and current_ammo > 0:
 		current_ammo -= 1
-	if not current_weapon_data.silenced:
-		_fire_flash.rpc()
+	_shot_fx.rpc(not current_weapon_data.silenced)
 
 	for _i in count:
 		var bullet = current_weapon_data.bullet_scene.instantiate()
@@ -314,11 +317,19 @@ func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count:
 		if "bounces" in bullet: bullet.bounces = bounces_amount
 
 
+# Sonido (con alcance según el arma) y, si no lleva silenciador, fogonazo de luz.
+# Cada peer usa el arma que tiene equipada este jugador.
 @rpc("any_peer", "call_local", "unreliable")
-func _fire_flash() -> void:
-	muzzle_flash.enabled = true
-	await get_tree().create_timer(0.06).timeout
-	muzzle_flash.enabled = false
+func _shot_fx(with_flash: bool) -> void:
+	var wd := current_weapon_data
+	if wd and wd.shot_sound:
+		shot_audio.stream = wd.shot_sound
+		shot_audio.max_distance = wd.hearing_range
+		shot_audio.play()
+	if with_flash:
+		muzzle_flash.enabled = true
+		await get_tree().create_timer(0.06).timeout
+		muzzle_flash.enabled = false
 
 
 # --- RECOGER Y SOLTAR ARMAS ---

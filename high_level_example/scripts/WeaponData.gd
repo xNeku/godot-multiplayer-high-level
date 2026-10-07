@@ -12,6 +12,7 @@ enum FireMode {
 @export_group("Identidad")
 @export var role_name: String = "Arma" # Nombre del arma (ej: "Tomahawk")
 @export var texture: Texture2D # Sprite del arma
+@export var sprite_scale: float = 1.0 # tamaño relativo del sprite en mano y en el suelo
 
 @export_group("Estadísticas Base")
 @export var bullet_scene: PackedScene # La escena de la bala
@@ -39,6 +40,9 @@ enum FireMode {
 @export_group("Luz y sonido")
 # Las armas sin silenciador sueltan un fogonazo de luz que delata tu posición
 @export var silenced: bool = false
+@export var shot_sound: AudioStream
+# A cuántos píxeles se oye el disparo (el volumen baja con la distancia)
+@export var hearing_range: float = 800.0
 
 @export_group("Especiales")
 @export var return_ammo_on_kill: bool = false

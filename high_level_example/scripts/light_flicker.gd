@@ -51,6 +51,6 @@ func _set_energy(value: float) -> void:
 func emp(duration: float) -> void:
 	_emp_until_msec = Time.get_ticks_msec() + int(duration * 1000.0)
 	energy = 0.0
-	await get_tree().create_timer(duration).timeout
+	await get_tree().create_timer(duration + 0.05).timeout
 	if Time.get_ticks_msec() >= _emp_until_msec:
 		energy = _base_energy

@@ -30,7 +30,6 @@ func _ready():
 	
 	# 3. IMPORTANTE: Si se pierde la conexión con el server
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
-	# (Selección de clases aparcada: los botones siguen en Menu.tscn, ocultos)
 
 # --- BOTONES ---
 func _on_host_pressed():

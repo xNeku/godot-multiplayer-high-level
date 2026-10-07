@@ -126,11 +126,6 @@ max_distance = 800.0
 attenuation = 1.6
 max_polyphony = 4
 
-[node name="LaserSight" type="Line2D" parent="HandPivot"]
-z_index = 10
-width = 2.0
-default_color = Color(1, 0.01, 0.01, 1)
-
 [node name="ArcoLanzamiento" type="Line2D" parent="."]
 top_level = true
 z_index = 10

@@ -40,7 +40,7 @@ func _on_body_exited(_body: Node2D) -> void:
 # Pem: sin corriente la puerta se queda como está y no reacciona
 func emp(duration: float) -> void:
 	_emp_until_msec = Time.get_ticks_msec() + int(duration * 1000.0)
-	await get_tree().create_timer(duration).timeout
+	await get_tree().create_timer(duration + 0.05).timeout
 	if Time.get_ticks_msec() >= _emp_until_msec:
 		_set_open(_inside > 0)
 

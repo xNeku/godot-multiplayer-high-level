@@ -55,6 +55,7 @@ var _fuse_left: float = -1.0
 var _age: float = 0.0
 var _hit_someone: bool = false
 var _pop_left: float = 0.0
+var _betty_query: PhysicsShapeQueryParameters2D
 var _stuck_to: Node2D
 var _stuck_offset: Vector2 = Vector2.ZERO
 
@@ -218,13 +219,14 @@ func _stick(body: Node2D) -> void:
 func _check_betty_trigger() -> void:
 	if _age < arm_time:
 		return
-	var shape := CircleShape2D.new()
-	shape.radius = trigger_radius
-	var q := PhysicsShapeQueryParameters2D.new()
-	q.shape = shape
-	q.transform = Transform2D(0.0, global_position)
-	q.collision_mask = 2
-	for r in get_world_2d().direct_space_state.intersect_shape(q, 8):
+	if _betty_query == null:
+		var shape := CircleShape2D.new()
+		shape.radius = trigger_radius
+		_betty_query = PhysicsShapeQueryParameters2D.new()
+		_betty_query.shape = shape
+		_betty_query.collision_mask = 2
+	_betty_query.transform = Transform2D(0.0, global_position)
+	for r in get_world_2d().direct_space_state.intersect_shape(_betty_query, 8):
 		var body: Node = r.collider
 		if body.has_method("hit") and body.name != str(shooter_id):
 			_state = State.POPPING

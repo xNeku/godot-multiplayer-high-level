@@ -5,30 +5,18 @@ extends Area2D
 # Se rellenan desde el jugador al disparar
 var speed: float = 2000.0
 var direction: Vector2 = Vector2.RIGHT
-var bounces: int = 0
 var shooter_id: int = 0
-var return_ammo_on_kill: bool = false
 
 # Ajustables desde el inspector de cada escena de bala
 @export var lifetime: float = 10.0
-# Grados/segundo que gira el Sprite2D (Tomahawk). 0 = no gira.
-@export var spin_speed: float = 0.0
 # Protección para no matarse al disparar
 @export var spawn_protection_time: float = 0.1
 
 var _age: float = 0.0
-var _sprite: Node2D
 
 
 func _ready() -> void:
-	_sprite = get_node_or_null("Sprite2D")
 	set_physics_process(multiplayer.is_server())
-	set_process(spin_speed != 0.0 and _sprite != null)
-
-
-func _process(delta: float) -> void:
-	# Solo estética, corre en todos los peers
-	_sprite.rotation += deg_to_rad(spin_speed) * delta
 
 
 func _physics_process(delta: float) -> void:
@@ -65,19 +53,7 @@ func _physics_process(delta: float) -> void:
 
 	if collider is CharacterBody2D:
 		if collider.has_method("hit"):
-			collider.hit(shooter_id, return_ammo_on_kill)
+			collider.hit(shooter_id)
 		queue_free()
-	elif collider.is_in_group("blanco"):
-		queue_free() # las dianas absorben la bala, no rebota
-	elif bounces > 0:
-		_bounce(result.normal)
 	else:
 		queue_free()
-
-
-func _bounce(normal: Vector2) -> void:
-	direction = direction.bounce(normal)
-	rotation = direction.angle()
-	bounces -= 1
-	# Sacarla un poco de la pared para que no se quede pegada
-	global_position += normal * 2.0

@@ -93,21 +93,6 @@ text = "O"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Habilidad" type="TouchScreenButton" parent="."]
-position = Vector2(562, 214)
-scale = Vector2(0.9, 0.9)
-texture_normal = SubResource("GradientTexture2D_touch")
-passby_press = true
-action = "ability"
-
-[node name="Label" type="Label" parent="Habilidad"]
-offset_right = 64.0
-offset_bottom = 64.0
-theme_override_font_sizes/font_size = 28
-text = "F"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="Objeto" type="TouchScreenButton" parent="."]
 position = Vector2(492, 214)
 scale = Vector2(0.9, 0.9)

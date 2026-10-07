@@ -1,7 +1,6 @@
 extends RigidBody2D
 
 var shooter_id = 0
-var damage = 3 # Daño fuerte
 
 func _ready():
 	# Si toca a alguien en el área, explota

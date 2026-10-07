@@ -46,7 +46,7 @@ func _physics_process(delta: float) -> void:
 
 
 # Mismo contrato que el jugador: lo llaman balas y claymores (solo servidor)
-func hit(shooter_id: int = 0, _return_ammo: bool = false) -> void:
+func hit(shooter_id: int = 0) -> void:
 	if not multiplayer.is_server() or _dead:
 		return
 	_dead = true

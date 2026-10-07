@@ -19,14 +19,11 @@ enum FireMode {
 @export var fire_mode: FireMode = FireMode.SEMI
 @export var fire_rate: float = 0.5 # segundos entre disparos
 @export var max_ammo: int = 10 # sin recarga: cuando se acaba, el arma queda vacía
-@export var damage: int = 1 # (Opcional si usas one-hit-kill)
 
 @export_group("Balística")
 @export var bullet_speed: float = 2000.0
 @export var spread: float = 0.0
 @export var bullet_count: int = 1
-# Rebotes base del arma
-@export var bounces: int = 0
 # Mayor que 0 = el proyectil cae con esta gravedad y se muestra el arco al apuntar (Bazooka).
 # La escena de bala tiene que ser un proyectil con trayectoria (ThrownProjectile).
 @export var projectile_gravity: float = 0.0
@@ -46,6 +43,3 @@ enum FireMode {
 @export var shot_sound: AudioStream
 # A cuántos píxeles se oye el disparo (el volumen baja con la distancia)
 @export var hearing_range: float = 800.0
-
-@export_group("Especiales")
-@export var return_ammo_on_kill: bool = false

@@ -100,39 +100,6 @@ layout_mode = 2
 text = "Start
 "
 
-[node name="HBoxContainer" type="HBoxContainer" parent="LobbyPanel"]
-visible = false
-layout_mode = 0
-offset_left = -123.77713
-offset_top = -45.24679
-offset_right = 273.22287
-offset_bottom = -5.246792
-
-[node name="BtnAsalto" type="Button" parent="LobbyPanel/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 0
-text = "Asalto"
-
-[node name="BtnPipero" type="Button" parent="LobbyPanel/HBoxContainer"]
-layout_mode = 2
-text = "Pipero
-"
-
-[node name="BtnSniper" type="Button" parent="LobbyPanel/HBoxContainer"]
-layout_mode = 2
-text = "Sniper
-"
-
-[node name="ClassLabel" type="Label" parent="LobbyPanel/HBoxContainer"]
-layout_mode = 2
-text = "Clase actual: Asalto"
-
-[node name="BtnNinja" type="Button" parent="LobbyPanel/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 0
-text = "Ninja
-"
-
 [node name="Origbig" type="Sprite2D" parent="."]
 position = Vector2(1163, 851.99994)
 scale = Vector2(1.8031923, 2.0297847)

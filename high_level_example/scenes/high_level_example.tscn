@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://y6bxp4ql7a40" path="res://high_level_example/scripts/high_level_example.gd" id="1_q4tb6"]
 [ext_resource type="Script" uid="uid://c1g12cc12wuaa" path="res://high_level_example/scripts/high_level_player_spawner.gd" id="1_xa5q7"]
 [ext_resource type="PackedScene" uid="uid://dqp3koxevnhjm" path="res://high_level_example/scenes/high_level_network_player.tscn" id="2_cqmdx"]
-[ext_resource type="PackedScene" uid="uid://ucabdyrsn7bt" path="res://high_level_example/scenes/high_level_ui.tscn" id="2_evg4q"]
 [ext_resource type="Script" uid="uid://d3de8joimspg3" path="res://high_level_example/scripts/score_label.gd" id="5_h3rma"]
 [ext_resource type="Texture2D" uid="uid://bp8pdw0prviff" path="res://high_level_example/assets/TileSet/origbig.png" id="6_uc0g2"]
 [ext_resource type="PackedScene" uid="uid://b20qpy5kkk3t" path="res://high_level_example/scenes/GameOverUI.tscn" id="8_23wyo"]
@@ -21,14 +20,6 @@ default_map = ExtResource("9_mapaneku")
 texture_filter = 1
 position = Vector2(427, 201)
 texture = ExtResource("6_uc0g2")
-
-
-[node name="HighLevelUI" parent="." instance=ExtResource("2_evg4q")]
-visible = false
-offset_left = 180.0
-offset_top = 36.0
-offset_right = 180.0
-offset_bottom = 36.0
 
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]

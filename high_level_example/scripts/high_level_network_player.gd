@@ -2,9 +2,8 @@ extends CharacterBody2D
 # Jugador en red. Cada peer controla SOLO su jugador (la autoridad es el id que
 # lleva el nombre del nodo). Los demás jugadores se ven por el
 # MultiplayerSynchronizer (posición, animación y puntería) y no simulan nada.
-# Las clases están aparcadas (carpeta Classes/): todos empiezan con default_weapon.
+# Todos empiezan con default_weapon (pistola infinita).
 
-const LASER_RANGE: float = 2000.0
 const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 
 @export_group("Movimiento")
@@ -38,20 +37,13 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 # Del arco de previsualización solo se enseña este tramo del vuelo (segundos)
 @export var arc_preview_time: float = 0.45
 
-@export_group("Pruebas (habilidad)")
-@export_enum("NONE", "DASH", "RICOCHET") var ability_type: String = "NONE"
-@export var ability_cooldown: float = 3.0
-@export var dash_speed: float = 900.0
-
 var current_weapon_data: WeaponData
 var current_item: ItemData
 var _charging: bool = false
-var _emp_until_msec: int = 0
 var _charge_time: float = 0.0
+var _emp_until_msec: int = 0
 # Balas que quedan. -1 = infinitas (arma inicial). Sin recarga: a 0 el arma queda vacía.
 var current_ammo: int = 0
-var next_shot_bounces: bool = false
-var is_aiming_laser: bool = false
 var facing: int = 1 # 1 = derecha, -1 = izquierda
 var aim_angle: float = 0.0 # radianes, ángulo global del disparo
 var _aim_up: float = 0.0 # cuánto ha subido el arma (0 = recto)
@@ -60,8 +52,6 @@ var _recoil_recover_at_msec: int = 0
 
 # Cooldowns por marca de tiempo (más barato que crear un timer por disparo)
 var _next_shot_msec: int = 0
-var _next_ability_msec: int = 0
-var _next_throw_msec: int = 0
 var _drop_until_msec: int = 0
 
 @onready var visual: Node2D = $Cuerpo
@@ -72,7 +62,6 @@ var _drop_until_msec: int = 0
 @onready var flashlight: PointLight2D = $HandPivot/PointLight2D
 @onready var camera: Camera2D = $Camera2D
 @onready var weapon_sprite: Sprite2D = $HandPivot/Sprite2D
-@onready var laser_sight: Line2D = $HandPivot/LaserSight
 @onready var muzzle_flash: PointLight2D = $HandPivot/Muzzle/Fogonazo
 @onready var shot_audio: AudioStreamPlayer2D = $HandPivot/Muzzle/SonidoDisparo
 @onready var throw_arc: Line2D = $ArcoLanzamiento
@@ -91,7 +80,6 @@ func _ready() -> void:
 	if flashlight:
 		flashlight.enabled = is_mine
 	aura.enabled = is_mine
-	laser_sight.visible = false
 	throw_arc.clear_points()
 
 	if is_mine:
@@ -132,9 +120,6 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-	if is_aiming_laser:
-		update_laser_trajectory()
-
 	update_aiming(delta)
 
 	if current_weapon_data:
@@ -144,8 +129,6 @@ func _physics_process(delta: float) -> void:
 			shoot()
 	if Input.is_action_just_pressed("interact"):
 		request_interact.rpc_id(1)
-	if Input.is_action_just_pressed("ability"):
-		use_ability()
 	_update_weapon_arc()
 	_update_throw(delta)
 
@@ -202,26 +185,6 @@ func equip_weapon(new_weapon: WeaponData, ammo: int = -2) -> void:
 	weapon_sprite.scale = Vector2.ONE * 1.2 * new_weapon.sprite_scale
 
 
-# --- HABILIDAD DE PRUEBA ---
-
-func use_ability() -> void:
-	if ability_type == "NONE":
-		return
-	var now: int = Time.get_ticks_msec()
-	if now < _next_ability_msec:
-		return
-	_next_ability_msec = now + int(ability_cooldown * 1000.0)
-
-	match ability_type:
-		"DASH":
-			velocity = Vector2.RIGHT.rotated(aim_angle) * dash_speed
-		"RICOCHET":
-			# El siguiente disparo rebota una vez más y se enseña el láser
-			next_shot_bounces = true
-			is_aiming_laser = true
-			laser_sight.visible = true
-
-
 # --- DISPARO ---
 
 func shoot() -> void:
@@ -237,14 +200,6 @@ func shoot() -> void:
 	if current_ammo > 0 and not debug_unlimited_ammo:
 		current_ammo -= 1
 
-	var total_bounces: int = current_weapon_data.bounces
-	if next_shot_bounces:
-		total_bounces += 1
-		next_shot_bounces = false
-		is_aiming_laser = false
-		laser_sight.visible = false
-		laser_sight.clear_points()
-
 	# El ángulo va en global (aim_angle). hand_pivot.rotation es local y este nodo
 	# tiene escala no uniforme, así que con él las balas se desviaban.
 	request_shoot.rpc_id(1,
@@ -252,9 +207,7 @@ func shoot() -> void:
 		aim_angle,
 		current_weapon_data.bullet_speed,
 		current_weapon_data.spread,
-		current_weapon_data.bullet_count,
-		current_weapon_data.return_ammo_on_kill,
-		total_bounces
+		current_weapon_data.bullet_count
 	)
 
 	# El disparo sale con el ángulo actual; el retroceso afecta al siguiente
@@ -263,39 +216,8 @@ func shoot() -> void:
 		_recoil_recover_at_msec = now + int(current_weapon_data.recoil_pause * 1000.0)
 
 
-func update_laser_trajectory() -> void:
-	laser_sight.clear_points()
-
-	var start: Vector2 = muzzle.global_position
-	var direction: Vector2 = Vector2.RIGHT.rotated(aim_angle)
-	laser_sight.add_point(laser_sight.to_local(start))
-
-	var space := get_world_2d().direct_space_state
-
-	# Rayo 1: del arma a la primera pared (capa 1 = suelo)
-	var query := PhysicsRayQueryParameters2D.create(start, start + direction * LASER_RANGE, 1)
-	var result := space.intersect_ray(query)
-	if result.is_empty():
-		laser_sight.add_point(laser_sight.to_local(start + direction * LASER_RANGE))
-		return
-
-	var hit_pos: Vector2 = result.position
-	var normal: Vector2 = result.normal
-	laser_sight.add_point(laser_sight.to_local(hit_pos))
-
-	# Rayo 2: el rebote, saliendo un pelín separado de la pared
-	var bounce_dir: Vector2 = direction.bounce(normal)
-	var bounce_start: Vector2 = hit_pos + normal
-	var query2 := PhysicsRayQueryParameters2D.create(bounce_start, bounce_start + bounce_dir * LASER_RANGE, 1)
-	var result2 := space.intersect_ray(query2)
-	if result2.is_empty():
-		laser_sight.add_point(laser_sight.to_local(bounce_start + bounce_dir * LASER_RANGE))
-	else:
-		laser_sight.add_point(laser_sight.to_local(result2.position))
-
-
 @rpc("any_peer", "call_local", "reliable")
-func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count: int, return_ammo: bool, bounces_amount: int) -> void:
+func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count: int) -> void:
 	if not multiplayer.is_server():
 		return
 	if current_weapon_data == null or current_weapon_data.bullet_scene == null:
@@ -322,8 +244,6 @@ func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count:
 		if "speed" in bullet: bullet.speed = speed
 		if "direction" in bullet: bullet.direction = Vector2.RIGHT.rotated(final_angle)
 		if "shooter_id" in bullet: bullet.shooter_id = shooter
-		if "return_ammo_on_kill" in bullet: bullet.return_ammo_on_kill = return_ammo
-		if "bounces" in bullet: bullet.bounces = bounces_amount
 
 
 # Sonido (con alcance según el arma) y, si no lleva silenciador, fogonazo de luz.
@@ -416,7 +336,7 @@ func _drop_current_item(toss: Vector2) -> void:
 
 # --- DAÑO Y VICTORIA ---
 
-func hit(shooter_id: int, ammo_back: bool = false, _damage_amount: int = 1) -> void:
+func hit(shooter_id: int) -> void:
 	if not multiplayer.is_server():
 		return
 
@@ -426,12 +346,6 @@ func hit(shooter_id: int, ammo_back: bool = false, _damage_amount: int = 1) -> v
 		current_points = GameManager.add_point(shooter_id)
 	_drop_current_weapon(Vector2(randf_range(-80.0, 80.0), -200.0))
 	_drop_current_item(Vector2(randf_range(-80.0, 80.0), -200.0))
-
-	# Armas que devuelven munición al matar (Tomahawk)
-	if ammo_back:
-		var shooter_node = get_parent().get_node_or_null(str(shooter_id))
-		if shooter_node:
-			shooter_node.regain_ammo.rpc_id(shooter_id)
 
 	if current_points >= 10:
 		game_over_rpc.rpc(shooter_id)
@@ -444,13 +358,10 @@ func respawn_rpc() -> void:
 	# Al reaparecer se vuelve al arma por defecto con la munición llena
 	if default_weapon:
 		equip_weapon(default_weapon, -1)
-	next_shot_bounces = false
 	current_item = null
 
 	if is_multiplayer_authority():
-		is_aiming_laser = false
 		_aim_up = 0.0
-		laser_sight.visible = false
 		global_position = GameManager.get_spawn_position()
 		velocity = Vector2.ZERO
 
@@ -465,11 +376,6 @@ func game_over_rpc(winner_id: int) -> void:
 		get_tree().create_timer(5.0).timeout.connect(func():
 			multiplayer.multiplayer_peer.close()
 		)
-
-
-@rpc("any_peer", "call_local", "reliable")
-func regain_ammo() -> void:
-	current_ammo += 1
 
 
 # --- OBJETO: LANZAR CON CARGA Y ARCO ---
@@ -648,7 +554,7 @@ func emp(duration: float) -> void:
 		return
 	flashlight.enabled = false
 	aura.enabled = false
-	await get_tree().create_timer(duration).timeout
+	await get_tree().create_timer(duration + 0.05).timeout
 	if Time.get_ticks_msec() >= _emp_until_msec:
 		flashlight.enabled = true
 		aura.enabled = true

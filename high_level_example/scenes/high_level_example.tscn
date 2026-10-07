@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/TouchControls.tscn" id="10_touch"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/HudInventario.tscn" id="11_hud"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/KillFeed.tscn" id="12_kf"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/PanelAjustes.tscn" id="13_aj"]
 
 [node name="HighLevelExample" type="Node2D"]
 script = ExtResource("1_q4tb6")
@@ -60,3 +61,5 @@ visible = false
 [node name="HudInventario" parent="." instance=ExtResource("11_hud")]
 
 [node name="KillFeed" parent="." instance=ExtResource("12_kf")]
+
+[node name="PanelAjustes" parent="." instance=ExtResource("13_aj")]

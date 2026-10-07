@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://high_level_example/scripts/ItemData.gd" id="1_id"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/weapons/tomahakw.png" id="2_tex"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/TomahawkObjeto.tscn" id="3_scene"]
+
+[resource]
+script = ExtResource("1_id")
+item_name = "Tomahawk"
+texture = ExtResource("2_tex")
+sprite_scale = 1.0
+scene = ExtResource("3_scene")
+max_speed = 900.0
+lob_deg = 8.0

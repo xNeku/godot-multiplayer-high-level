@@ -3,7 +3,9 @@ extends Node2D
 # Al cogerla, vuelve a aparecer en este mismo sitio tras respawn_time segundos.
 # Para cambiar el arma: arrastra otro .tres al campo "Weapon" en el inspector.
 
+# Pon UNO de los dos: un arma o un objeto
 @export var weapon: WeaponData
+@export var item: ItemData
 @export var respawn_time: float = 5.0
 @export var show_label: bool = true
 @export var float_height: float = 2.5
@@ -25,6 +27,10 @@ func _ready() -> void:
 		sprite.texture = weapon.texture
 		sprite.scale = Vector2.ONE * 1.2 * weapon.sprite_scale
 		label.text = weapon.role_name
+	elif item:
+		sprite.texture = item.texture
+		sprite.scale = Vector2.ONE * 1.2 * item.sprite_scale
+		label.text = item.item_name
 	label.visible = show_label
 
 
@@ -39,11 +45,19 @@ func _draw() -> void:
 
 
 func is_available() -> bool:
-	return _available and weapon != null
+	return _available and (weapon != null or item != null)
+
+
+func pickup_kind() -> String:
+	return "weapon" if weapon else "item"
 
 
 func get_weapon() -> WeaponData:
 	return weapon
+
+
+func get_item() -> ItemData:
+	return item
 
 
 # Solo el servidor (lo llama el jugador que interactúa)

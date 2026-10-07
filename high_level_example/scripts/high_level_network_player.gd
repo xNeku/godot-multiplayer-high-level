@@ -34,16 +34,19 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 # A qué distancia se puede coger un arma con el botón de interactuar
 @export var interact_range: float = 36.0
 
-@export_group("Pruebas (habilidad y objeto lanzable)")
+@export_group("Objeto (lanzamiento)")
+# Del arco de previsualización solo se enseña este tramo del vuelo (segundos)
+@export var arc_preview_time: float = 0.45
+
+@export_group("Pruebas (habilidad)")
 @export_enum("NONE", "DASH", "RICOCHET") var ability_type: String = "NONE"
 @export var ability_cooldown: float = 3.0
 @export var dash_speed: float = 900.0
-# Arrastra aquí Claymore, SmokeBomb o Translocator para probarlos con la tecla G.
-@export var throwable_scene: PackedScene
-@export var throwable_cooldown: float = 5.0
-@export var throw_force: float = 800.0
 
 var current_weapon_data: WeaponData
+var current_item: ItemData
+var _charging: bool = false
+var _charge_time: float = 0.0
 # Balas que quedan. -1 = infinitas (arma inicial). Sin recarga: a 0 el arma queda vacía.
 var current_ammo: int = 0
 var next_shot_bounces: bool = false
@@ -71,6 +74,7 @@ var _drop_until_msec: int = 0
 @onready var laser_sight: Line2D = $HandPivot/LaserSight
 @onready var muzzle_flash: PointLight2D = $HandPivot/Muzzle/Fogonazo
 @onready var shot_audio: AudioStreamPlayer2D = $HandPivot/Muzzle/SonidoDisparo
+@onready var throw_arc: Line2D = $ArcoLanzamiento
 
 const DROPPED_WEAPON_SCENE: PackedScene = preload("res://high_level_example/scenes/ArmaSuelta.tscn")
 
@@ -86,6 +90,7 @@ func _ready() -> void:
 		flashlight.enabled = is_mine
 	aura.enabled = is_mine
 	laser_sight.visible = false
+	throw_arc.clear_points()
 
 	if is_mine:
 		global_position = GameManager.get_spawn_position()
@@ -139,8 +144,7 @@ func _physics_process(delta: float) -> void:
 		request_interact.rpc_id(1)
 	if Input.is_action_just_pressed("ability"):
 		use_ability()
-	if Input.is_action_just_pressed("throw"):
-		throw_object()
+	_update_throw(delta)
 
 
 # ¿Estoy de pie sobre una plataforma atravesable?
@@ -354,7 +358,12 @@ func request_interact() -> void:
 			best = pickup
 			best_dist = d
 
-	if best:
+	if best and best.pickup_kind() == "item":
+		var picked: ItemData = best.get_item()
+		best.take()
+		_drop_current_item(Vector2(randf_range(-40.0, 40.0), -120.0))
+		equip_item_rpc.rpc(picked.resource_path)
+	elif best:
 		var data: WeaponData = best.get_weapon()
 		var ammo: int = best.ammo
 		best.take()
@@ -389,14 +398,29 @@ func _drop_current_weapon(toss: Vector2) -> void:
 	drop.linear_velocity = toss
 
 
+# Solo servidor: deja en el suelo el objeto que lleva
+func _drop_current_item(toss: Vector2) -> void:
+	if current_item == null:
+		return
+	var drop := DROPPED_WEAPON_SCENE.instantiate()
+	drop.item_path = current_item.resource_path
+	get_parent().add_child(drop, true)
+	drop.global_position = global_position + Vector2(0, -6)
+	drop.linear_velocity = toss
+
+
 # --- DAÑO Y VICTORIA ---
 
 func hit(shooter_id: int, ammo_back: bool = false, _damage_amount: int = 1) -> void:
 	if not multiplayer.is_server():
 		return
 
-	var current_points: int = GameManager.add_point(shooter_id)
+	# Matarte a ti mismo (granada propia...) no da punto a nadie
+	var current_points: int = GameManager.scores.get(str(shooter_id), 0)
+	if shooter_id != name.to_int():
+		current_points = GameManager.add_point(shooter_id)
 	_drop_current_weapon(Vector2(randf_range(-80.0, 80.0), -200.0))
+	_drop_current_item(Vector2(randf_range(-80.0, 80.0), -200.0))
 
 	# Armas que devuelven munición al matar (Tomahawk)
 	if ammo_back:
@@ -416,6 +440,7 @@ func respawn_rpc() -> void:
 	if default_weapon:
 		equip_weapon(default_weapon, -1)
 	next_shot_bounces = false
+	current_item = null
 
 	if is_multiplayer_authority():
 		is_aiming_laser = false
@@ -442,39 +467,114 @@ func regain_ammo() -> void:
 	current_ammo += 1
 
 
-# --- OBJETOS LANZABLES (de prueba, ver exports) ---
+# --- OBJETO: LANZAR CON CARGA Y ARCO ---
 
-func throw_object() -> void:
-	if throwable_scene == null:
+# Mantén el botón para cargar (el arco se alarga) y suéltalo para lanzar
+func _update_throw(delta: float) -> void:
+	if current_item == null:
+		if _charging:
+			_cancel_charge()
 		return
-	var now: int = Time.get_ticks_msec()
-	if now < _next_throw_msec:
+	if Input.is_action_just_pressed("throw"):
+		_charging = true
+		_charge_time = 0.0
+	if not _charging:
 		return
-	_next_throw_msec = now + int(throwable_cooldown * 1000.0)
+	_charge_time += delta
+	_update_arc()
+	if Input.is_action_just_released("throw") or not Input.is_action_pressed("throw"):
+		_do_throw()
 
-	var throw_dir: Vector2 = Vector2.RIGHT.rotated(aim_angle)
-	throw_dir.y -= 0.2 # arco ligero
 
-	# Se manda la RUTA de la escena; el servidor la instancia
-	request_throw.rpc_id(1, throwable_scene.resource_path, hand_pivot.global_position, throw_dir, throw_force)
+func _cancel_charge() -> void:
+	_charging = false
+	throw_arc.clear_points()
+
+
+func _throw_direction() -> Vector2:
+	var a: float = clampf(_aim_up + deg_to_rad(current_item.lob_deg), 0.0, deg_to_rad(95.0))
+	return Vector2(facing * cos(a), -sin(a))
+
+
+func _throw_velocity() -> Vector2:
+	var t: float = clampf(_charge_time / maxf(current_item.charge_time, 0.01), 0.0, 1.0)
+	return _throw_direction() * lerpf(current_item.min_speed, current_item.max_speed, t)
+
+
+func _throw_origin() -> Vector2:
+	return global_position + Vector2(facing * 8.0, -6.0)
+
+
+# Primeros arc_preview_time segundos del vuelo (se corta al chocar con el suelo)
+func _update_arc() -> void:
+	throw_arc.clear_points()
+	var space := get_world_2d().direct_space_state
+	var pos: Vector2 = _throw_origin()
+	var vel: Vector2 = _throw_velocity()
+	var g: float = current_item.gravity
+	var dt: float = 1.0 / 60.0
+	throw_arc.add_point(pos)
+	for i in int(arc_preview_time / dt):
+		vel.y += g * dt
+		var next: Vector2 = pos + vel * dt
+		var q := PhysicsRayQueryParameters2D.create(pos, next, 1)
+		var r := space.intersect_ray(q)
+		if not r.is_empty():
+			throw_arc.add_point(r.position)
+			break
+		pos = next
+		if i % 2 == 1:
+			throw_arc.add_point(pos)
+
+
+func _do_throw() -> void:
+	var item := current_item
+	var vel: Vector2 = _throw_velocity()
+	var origin: Vector2 = _throw_origin()
+	_cancel_charge()
+	request_throw.rpc_id(1, item.resource_path, origin, vel)
 
 
 @rpc("any_peer", "call_local", "reliable")
-func request_throw(scene_path: String, pos: Vector2, dir: Vector2, force: float) -> void:
+func request_throw(item_path: String, origin: Vector2, vel: Vector2) -> void:
 	if not multiplayer.is_server():
 		return
-
-	var scene: PackedScene = load(scene_path)
-	if scene == null:
+	var sender: int = multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != name.to_int():
 		return
+	# Tiene que ser el objeto que lleva (la copia del servidor lo sabe)
+	if current_item == null or current_item.resource_path != item_path or current_item.scene == null:
+		return
+	var item := current_item
+	if vel.length() > item.max_speed * 1.05:
+		vel = vel.normalized() * item.max_speed
 
-	var projectile = scene.instantiate()
+	# Si hay una pared entre el jugador y la mano, sale desde el jugador
+	var space := get_world_2d().direct_space_state
+	var los := PhysicsRayQueryParameters2D.create(global_position, origin, 1)
+	var block := space.intersect_ray(los)
+	if not block.is_empty():
+		origin = block.position + block.normal * 2.0
+
+	var projectile = item.scene.instantiate()
 	get_parent().add_child(projectile, true)
-	projectile.global_position = pos
-
-	if projectile is RigidBody2D:
-		projectile.linear_velocity = dir * force
-		projectile.angular_velocity = randf_range(-10, 10)
-
+	projectile.global_position = origin
 	if "shooter_id" in projectile:
 		projectile.shooter_id = name.to_int()
+	if "item_data" in projectile:
+		projectile.item_data = item
+	if projectile.has_method("launch"):
+		projectile.launch(vel, name.to_int(), item.gravity)
+	elif projectile is RigidBody2D:
+		projectile.linear_velocity = vel
+		projectile.angular_velocity = randf_range(-10, 10)
+
+	equip_item_rpc.rpc("")
+
+
+@rpc("any_peer", "call_local", "reliable")
+func equip_item_rpc(path: String) -> void:
+	var sender: int = multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	current_item = null if path == "" else load(path)

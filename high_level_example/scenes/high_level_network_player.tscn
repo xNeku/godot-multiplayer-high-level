@@ -23,6 +23,9 @@ properties/3/path = NodePath("HandPivot:scale")
 properties/3/spawn = true
 properties/3/replication_mode = 2
 
+[sub_resource type="Gradient" id="Gradient_arc"]
+colors = PackedColorArray(1, 1, 1, 0.9, 1, 1, 1, 0.05)
+
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_player"]
 radius = 7.0
 height = 22.0
@@ -127,6 +130,12 @@ max_polyphony = 4
 z_index = 10
 width = 2.0
 default_color = Color(1, 0.01, 0.01, 1)
+
+[node name="ArcoLanzamiento" type="Line2D" parent="."]
+top_level = true
+z_index = 10
+width = 1.5
+gradient = SubResource("Gradient_arc")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(1.5, 1.5)

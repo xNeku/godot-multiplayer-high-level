@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/map_settings.gd" id="1_set"]
 [ext_resource type="Script" path="res://high_level_example/scripts/grid_background.gd" id="2_grid"]
@@ -6,14 +6,23 @@
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MunecoCaminante.tscn" id="4_walker"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/Interruptor.tscn" id="5_switch"]
 
-[ext_resource type="PackedScene" path="res://high_level_example/scenes/ArmaSpawner.tscn" id="6_spawner"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/Spawner.tscn" id="6_spawner"]
 [ext_resource type="Resource" path="res://high_level_example/Weapons/Sniper.tres" id="7_sniper"]
 [ext_resource type="Resource" path="res://high_level_example/Weapons/SniperSilenciosa.tres" id="8_snipersilenciosa"]
 [ext_resource type="Resource" path="res://high_level_example/Weapons/DesertEagle.tres" id="9_deserteagle"]
 [ext_resource type="Resource" path="res://high_level_example/Weapons/Mp7.tres" id="10_mp7"]
 [ext_resource type="Resource" path="res://high_level_example/Weapons/Usp.tres" id="11_usp"]
+[ext_resource type="Resource" path="res://high_level_example/Objetos/Granada.tres" id="20_obj"]
+[ext_resource type="Resource" path="res://high_level_example/Objetos/Semtex.tres" id="21_obj"]
+[ext_resource type="Resource" path="res://high_level_example/Objetos/Tomahawk.tres" id="22_obj"]
+[ext_resource type="Resource" path="res://high_level_example/Objetos/Claymore.tres" id="23_obj"]
+[ext_resource type="Resource" path="res://high_level_example/Objetos/Humo.tres" id="24_obj"]
+[ext_resource type="Resource" path="res://high_level_example/Objetos/Translocator.tres" id="25_obj"]
 [sub_resource type="RectangleShape2D" id="Rect_P"]
 size = Vector2(500, 8)
+
+[sub_resource type="RectangleShape2D" id="Rect_O"]
+size = Vector2(440, 8)
 
 [sub_resource type="RectangleShape2D" id="Rect_1"]
 size = Vector2(2800, 40)
@@ -220,3 +229,45 @@ weapon = ExtResource("10_mp7")
 [node name="SpawnerUsp" parent="Armas" instance=ExtResource("6_spawner")]
 position = Vector2(1220, 340)
 weapon = ExtResource("11_usp")
+
+[node name="PlataformaObjetos" type="StaticBody2D" parent="Plataformas"]
+position = Vector2(320, 344)
+collision_layer = 8
+collision_mask = 0
+
+[node name="ColorRect" type="ColorRect" parent="Plataformas/PlataformaObjetos"]
+offset_left = -220.0
+offset_top = -4.0
+offset_right = 220.0
+offset_bottom = 4.0
+color = Color(0.45, 0.6, 0.75, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Plataformas/PlataformaObjetos"]
+one_way_collision = true
+shape = SubResource("Rect_O")
+
+[node name="Objetos" type="Node2D" parent="."]
+
+[node name="SpawnerGranada" parent="Objetos" instance=ExtResource("6_spawner")]
+position = Vector2(140, 340)
+item = ExtResource("20_obj")
+
+[node name="SpawnerSemtex" parent="Objetos" instance=ExtResource("6_spawner")]
+position = Vector2(185, 340)
+item = ExtResource("21_obj")
+
+[node name="SpawnerTomahawk" parent="Objetos" instance=ExtResource("6_spawner")]
+position = Vector2(230, 340)
+item = ExtResource("22_obj")
+
+[node name="SpawnerClaymore" parent="Objetos" instance=ExtResource("6_spawner")]
+position = Vector2(275, 340)
+item = ExtResource("23_obj")
+
+[node name="SpawnerHumo" parent="Objetos" instance=ExtResource("6_spawner")]
+position = Vector2(320, 340)
+item = ExtResource("24_obj")
+
+[node name="SpawnerTranslocator" parent="Objetos" instance=ExtResource("6_spawner")]
+position = Vector2(365, 340)
+item = ExtResource("25_obj")

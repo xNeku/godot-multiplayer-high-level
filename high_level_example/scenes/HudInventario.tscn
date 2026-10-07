@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://high_level_example/scripts/inventory_hud.gd" id="1_hud"]
+
+[node name="HudInventario" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="Label" type="Label" parent="."]
+offset_left = 8.0
+offset_top = 6.0
+offset_right = 220.0
+offset_bottom = 40.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 11

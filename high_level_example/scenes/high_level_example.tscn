@@ -10,6 +10,7 @@
 
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaNeku.tscn" id="9_mapaneku"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/TouchControls.tscn" id="10_touch"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/HudInventario.tscn" id="11_hud"]
 
 [node name="HighLevelExample" type="Node2D"]
 script = ExtResource("1_q4tb6")
@@ -31,7 +32,7 @@ offset_bottom = 36.0
 
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
-_spawnable_scenes = PackedStringArray("uid://dqp3koxevnhjm", "uid://ldk5hvdqjjr", "uid://ch6oowh2u6cep", "uid://cb8pey23ripbu", "uid://e44uojx4gye6", "uid://bqc70bgjnwbvm", "res://high_level_example/scenes/ArmaSuelta.tscn")
+_spawnable_scenes = PackedStringArray("uid://dqp3koxevnhjm", "uid://ldk5hvdqjjr", "uid://ch6oowh2u6cep", "uid://cb8pey23ripbu", "uid://bqc70bgjnwbvm", "res://high_level_example/scenes/ArmaSuelta.tscn", "res://high_level_example/scenes/Granada.tscn", "res://high_level_example/scenes/Semtex.tscn", "res://high_level_example/scenes/TomahawkObjeto.tscn")
 spawn_path = NodePath("../PlayerSpawnContainer")
 script = ExtResource("1_xa5q7")
 network_player = ExtResource("2_cqmdx")
@@ -63,3 +64,5 @@ color = Color(0.00045617123, 0.05110582, 0.31305632, 1)
 visible = false
 
 [node name="TouchControls" parent="." instance=ExtResource("10_touch")]
+
+[node name="HudInventario" parent="." instance=ExtResource("11_hud")]

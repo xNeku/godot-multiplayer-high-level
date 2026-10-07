@@ -54,7 +54,7 @@ offset_bottom = 103.0
 script = ExtResource("5_h3rma")
 
 
-[node name="CanvasModulate" type="CanvasModulate" parent="."]
+[node name="CanvasModulate" type="CanvasModulate" parent="." groups=["darkness"]]
 visible = false
 color = Color(0.00045617123, 0.05110582, 0.31305632, 1)
 

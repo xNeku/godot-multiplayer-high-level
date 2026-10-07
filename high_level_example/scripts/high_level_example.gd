@@ -12,11 +12,19 @@ func _ready() -> void:
 	var map_scene: PackedScene = default_map
 	if GameManager.selected_map_path != "":
 		map_scene = load(GameManager.selected_map_path)
+	var with_darkness := true
+	var show_city := true
 	if map_scene:
-		map_container.add_child(map_scene.instantiate())
+		var map := map_scene.instantiate()
+		map_container.add_child(map)
+		# Ajustes opcionales del mapa (script map_settings.gd)
+		if "with_darkness" in map:
+			with_darkness = map.with_darkness
+			show_city = map.show_city_background
 
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
-	if darkness: darkness.visible = true
+	if darkness: darkness.visible = with_darkness
+	$Origbig.visible = show_city
 
 # Esta función la llamará el jugador al ganar
 func end_game_sequence(winner_id: int):

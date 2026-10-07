@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://b1f217vubxffw"]
+[gd_scene load_steps=7 format=3 uid="uid://b1f217vubxffw"]
 
 [ext_resource type="Script" uid="uid://bmxqdw0blxmia" path="res://high_level_example/scripts/menu.gd" id="1_leprn"]
 [ext_resource type="Texture2D" uid="uid://bp8pdw0prviff" path="res://high_level_example/assets/TileSet/origbig.png" id="2_na366"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaNeku.tscn" id="3_mapa1"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaEdificio.tscn" id="4_mapa2"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaPruebas.tscn" id="5_mapa3"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rp73m"]
 
@@ -16,7 +17,7 @@ offset_right = 140.0
 offset_bottom = 66.0
 scale = Vector2(0.15158302, 0.13575149)
 script = ExtResource("1_leprn")
-maps = Array[PackedScene]([ExtResource("3_mapa1"), ExtResource("4_mapa2")])
+maps = Array[PackedScene]([ExtResource("3_mapa1"), ExtResource("4_mapa2"), ExtResource("5_mapa3")])
 
 [node name="PanelPrincipal" type="Panel" parent="."]
 modulate = Color(0.50329494, 0.6151131, 0.8859464, 1)
@@ -86,11 +87,13 @@ auto_height = true
 [node name="MapSelector" type="OptionButton" parent="LobbyPanel/VBoxContainer"]
 layout_mode = 2
 selected = 0
-item_count = 2
+item_count = 3
 popup/item_0/text = "Mapa de Neku"
 popup/item_0/id = 0
 popup/item_1/text = "Edificio"
 popup/item_1/id = 1
+popup/item_2/text = "Pruebas de armas"
+popup/item_2/id = 2
 
 [node name="StartButton" type="Button" parent="LobbyPanel/VBoxContainer"]
 layout_mode = 2

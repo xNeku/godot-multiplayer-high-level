@@ -59,10 +59,16 @@ func _physics_process(delta: float) -> void:
 	global_position = result.position
 	var collider = result.collider
 
+	# Dianas, interruptores... (solo se ejecuta en el servidor)
+	if collider.has_method("on_impact"):
+		collider.on_impact(result.position)
+
 	if collider is CharacterBody2D:
 		if collider.has_method("hit"):
 			collider.hit(shooter_id, return_ammo_on_kill)
 		queue_free()
+	elif collider.is_in_group("blanco"):
+		queue_free() # las dianas absorben la bala, no rebota
 	elif bounces > 0:
 		_bounce(result.normal)
 	else:

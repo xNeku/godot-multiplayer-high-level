@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://high_level_example/scripts/target_dummy.gd" id="1_dummy"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/MunecoVisual.tscn" id="2_visual"]
+[ext_resource type="Script" path="res://high_level_example/scripts/impact_marker.gd" id="3_marker"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 8.0
+height = 26.0
+
+[node name="MunecoFijo" type="StaticBody2D" groups=["blanco"]]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1_dummy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_1")
+
+[node name="Visual" parent="." instance=ExtResource("2_visual")]
+position = Vector2(0, 0)
+
+[node name="Marca" type="Node2D" parent="."]
+visible = false
+z_index = 20
+script = ExtResource("3_marker")

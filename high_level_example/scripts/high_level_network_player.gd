@@ -25,6 +25,23 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 # Segundos que dura la caída a través de una plataforma
 @export var drop_through_time: float = 0.25
 
+@export_group("Juice")
+@export var shake_per_shot: float = 2.0
+@export var shake_on_death: float = 14.0
+@export var shake_decay: float = 40.0
+# Pausa breve (hit-stop) al matar o morir
+@export var hit_stop_time: float = 0.07
+@export var corpse_force: float = 380.0
+@export var sfx_step: AudioStream = preload("res://high_level_example/assets/sounds/paso.wav")
+@export var sfx_jump: AudioStream = preload("res://high_level_example/assets/sounds/salto.wav")
+@export var sfx_land: AudioStream = preload("res://high_level_example/assets/sounds/aterrizaje.wav")
+@export var sfx_death: AudioStream = preload("res://high_level_example/assets/sounds/muerte.wav")
+@export var sfx_pickup: AudioStream = preload("res://high_level_example/assets/sounds/recoger.wav")
+# Distancia (px) entre pasos al andar y al correr, y alcance del sonido (el sigilo importa)
+@export var step_distance: float = 34.0
+@export var step_range_walk: float = 380.0
+@export var step_range_run: float = 700.0
+
 @export_group("Red")
 # Suavizado de los jugadores de los demás: más alto = más pegado a la posición
 # recibida, más bajo = más suave pero con algo de retraso visual.
@@ -82,6 +99,7 @@ var _drop_until_msec: int = 0
 @onready var shot_audio: AudioStreamPlayer2D = $HandPivot/Muzzle/SonidoDisparo
 @onready var throw_arc: Line2D = $ArcoLanzamiento
 
+const CORPSE_SCENE: PackedScene = preload("res://high_level_example/scenes/Cadaver.tscn")
 const TRACER_SCENE: PackedScene = preload("res://high_level_example/scenes/Trazador.tscn")
 const DROPPED_WEAPON_SCENE: PackedScene = preload("res://high_level_example/scenes/ArmaSuelta.tscn")
 
@@ -91,6 +109,12 @@ const DROPPED_WEAPON_SCENE: PackedScene = preload("res://high_level_example/scen
 var net_position: Vector2 = Vector2.ZERO
 
 
+var _shake: float = 0.0
+var _fx_last_pos: Vector2 = Vector2.ZERO
+var _fx_vel: Vector2 = Vector2.ZERO
+var _fx_airborne: bool = false
+var _fx_peak_fall: float = 0.0
+var _fx_step_acc: float = 0.0
 var _coyote_left: float = 0.0
 var _jump_buffer_left: float = 0.0
 var _was_on_floor: bool = false
@@ -144,15 +168,70 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	# Copias remotas: sin física, solo se acercan a la posición recibida.
 	if is_multiplayer_authority():
+		if _shake > 0.0:
+			_shake = maxf(0.0, _shake - shake_decay * delta)
+			camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake
+		elif camera.offset != Vector2.ZERO:
+			camera.offset = Vector2.ZERO
+	elif net_position != Vector2.ZERO:
+		# Copias remotas: sin física, solo se acercan a la posición recibida.
+		if global_position.distance_to(net_position) > remote_snap_distance:
+			global_position = net_position
+		else:
+			global_position = global_position.lerp(net_position, 1.0 - exp(-remote_smoothing * delta))
+	_movement_sfx(delta)
+
+
+# Pasos, salto y aterrizaje deducidos del movimiento, así suenan igual para todos
+# (en un juego de sigilo los demás tienen que oír cómo te mueves).
+func _movement_sfx(delta: float) -> void:
+	if delta <= 0.0:
 		return
-	if net_position == Vector2.ZERO:
+	var pos: Vector2 = global_position
+	if _fx_last_pos == Vector2.ZERO:
+		_fx_last_pos = pos
+	_fx_vel = _fx_vel.lerp((pos - _fx_last_pos) / delta, 0.5)
+	var dx: float = pos.x - _fx_last_pos.x
+	_fx_last_pos = pos
+	if absf(dx) > 100.0:
+		return # teletransporte / reaparición
+	var airborne: bool = absf(_fx_vel.y) > 60.0
+	if airborne and not _fx_airborne and _fx_vel.y < -200.0:
+		_play_sfx(sfx_jump, step_range_walk, -6.0)
+	if airborne:
+		_fx_peak_fall = maxf(_fx_peak_fall, _fx_vel.y)
+	elif _fx_airborne:
+		if _fx_peak_fall > 250.0:
+			_play_sfx(sfx_land, step_range_run, -2.0)
+			_land_fx(_fx_peak_fall)
+		_fx_peak_fall = 0.0
+	_fx_airborne = airborne
+	if not airborne:
+		_fx_step_acc += absf(dx)
+		if _fx_step_acc >= step_distance:
+			_fx_step_acc = 0.0
+			var running: bool = absf(_fx_vel.x) > (walk_speed + run_speed) * 0.5
+			_play_sfx(sfx_step, step_range_run if running else step_range_walk, -4.0 if running else -10.0)
+
+
+func _play_sfx(stream: AudioStream, hearing: float, volume_db: float = 0.0) -> void:
+	if stream == null:
 		return
-	if global_position.distance_to(net_position) > remote_snap_distance:
-		global_position = net_position
-	else:
-		global_position = global_position.lerp(net_position, 1.0 - exp(-remote_smoothing * delta))
+	var a := AudioStreamPlayer2D.new()
+	a.stream = stream
+	a.max_distance = hearing
+	a.attenuation = 1.6
+	a.volume_db = volume_db
+	a.pitch_scale = randf_range(0.92, 1.08)
+	add_child(a)
+	a.finished.connect(a.queue_free)
+	a.play()
+
+
+func shake(amount: float) -> void:
+	if is_multiplayer_authority():
+		_shake = maxf(_shake, amount)
 
 
 func _physics_process(delta: float) -> void:
@@ -160,8 +239,6 @@ func _physics_process(delta: float) -> void:
 	var on_floor: bool = is_on_floor()
 	if on_floor:
 		_coyote_left = coyote_time
-		if not _was_on_floor and _prev_fall_speed > 200.0:
-			_land_fx(_prev_fall_speed)
 	else:
 		_coyote_left = maxf(0.0, _coyote_left - delta)
 		velocity.y += gravity * (fall_gravity_mult if velocity.y > 0.0 else 1.0) * delta
@@ -292,6 +369,7 @@ func shoot() -> void:
 	)
 
 	# Efectos inmediatos en el tirador (sin esperar al servidor)
+	shake(shake_per_shot * (1.0 + current_weapon_data.recoil_per_shot_deg * 0.15))
 	_play_shot_fx(not current_weapon_data.silenced)
 	if not multiplayer.is_server() and current_weapon_data.projectile_gravity <= 0.0:
 		_spawn_local_tracers()
@@ -419,6 +497,7 @@ func equip_rpc(path: String, ammo: int) -> void:
 		equip_weapon(null)
 	else:
 		equip_weapon(load(path), ammo)
+		_play_sfx(sfx_pickup, 300.0, -4.0)
 
 
 # Solo servidor: deja en el suelo el arma que lleva (el arma inicial, infinita, se descarta)
@@ -456,11 +535,69 @@ func hit(shooter_id: int) -> void:
 		current_points = GameManager.add_point(shooter_id)
 	_drop_current_weapon(Vector2(randf_range(-80.0, 80.0), -200.0))
 	_drop_current_item(Vector2(randf_range(-80.0, 80.0), -200.0))
+	death_fx_rpc.rpc(shooter_id)
 
 	if current_points >= 10:
 		game_over_rpc.rpc(shooter_id)
 	else:
 		respawn_rpc.rpc()
+
+
+# Efectos de muerte en todos los peers: cadáver que sale despedido, sangre/chispas,
+# sonido, sacudida, hit-stop y entrada en el feed de muertes.
+@rpc("any_peer", "call_local", "reliable")
+func death_fx_rpc(shooter_id: int) -> void:
+	var sender: int = multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	var dir := Vector2.UP
+	var shooter := get_parent().get_node_or_null(str(shooter_id)) as Node2D
+	if shooter and shooter != self:
+		dir = (global_position - shooter.global_position).normalized()
+		dir.y = minf(dir.y, -0.3)
+		dir = dir.normalized()
+	var corpse := CORPSE_SCENE.instantiate()
+	get_tree().current_scene.add_child(corpse)
+	corpse.global_position = global_position
+	corpse.setup(visual, dir * corpse_force)
+	_burst_fx(dir)
+	_play_sfx(sfx_death, step_range_run + 200.0, 0.0)
+
+	var mine: int = multiplayer.get_unique_id()
+	if name.to_int() == mine:
+		shake(shake_on_death)
+	if name.to_int() == mine or shooter_id == mine:
+		_hit_stop()
+	var feed := get_tree().current_scene.get_node_or_null("KillFeed")
+	if feed:
+		feed.add_entry(shooter_id, name.to_int())
+
+
+func _burst_fx(dir: Vector2) -> void:
+	var p := CPUParticles2D.new()
+	p.one_shot = true
+	p.emitting = true
+	p.amount = 18
+	p.lifetime = 0.5
+	p.explosiveness = 1.0
+	p.direction = dir
+	p.spread = 50.0
+	p.initial_velocity_min = 80.0
+	p.initial_velocity_max = 260.0
+	p.gravity = Vector2(0, 700)
+	p.scale_amount_min = 1.5
+	p.scale_amount_max = 3.5
+	p.color = Color(0.85, 0.12, 0.1)
+	get_tree().current_scene.add_child(p)
+	p.global_position = global_position
+	get_tree().create_timer(1.0).timeout.connect(p.queue_free)
+
+
+func _hit_stop() -> void:
+	Engine.time_scale = 0.05
+	# El temporizador ignora la escala de tiempo (4º parámetro)
+	await get_tree().create_timer(hit_stop_time, true, false, true).timeout
+	Engine.time_scale = 1.0
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -687,3 +824,5 @@ func equip_item_rpc(path: String) -> void:
 	if sender != 0 and sender != 1:
 		return
 	current_item = null if path == "" else load(path)
+	if path != "":
+		_play_sfx(sfx_pickup, 300.0, -4.0)

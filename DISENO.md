@@ -26,8 +26,21 @@ juego los construye al vuelo con `scripts/map_loader.gd`, sin importar nada ni a
   (el generador y su validador siguen en `tools/mapgen`, ya sin uso directo).
 
 ## Sistema de rondas (diseño, **aún sin implementar**)
-- Se entra y se juega; gana quien llegue primero a **11 puntos** (en la alpha: **5**, sin recuento).
-- Ganar la ronda = +1 punto. Morir el primero = −1 punto, **solo con 4 jugadores o más**.
+Flujo de una ronda:
+1. Apareces **sin nada en la mano**, solo con la linterna.
+2. Hay armas y objetos repartidos por el mapa: los coges y a jugar.
+3. Cuando queda un solo jugador vivo, acaba la ronda. El superviviente gana **+1 punto**.
+4. Voto rápido: ¿saltarse la repetición de la última kill? (la repetición solo se ve si la mayoría no la salta)
+5. Siguiente ronda, otro mapa, de nuevo sin nada en la mano.
+
+Reglas:
+- Gana quien llegue primero a **11 puntos** (en la alpha: **5**, sin recuento).
+- Morir el primero = −1 punto, **solo con 4 jugadores o más**.
 - Cada 10 rondas hay una pausa con animación que muestra el recuento.
 - No se repite ningún mapa hasta agotar la lista (hace falta una variedad amplia de mapas).
 - Los ajustes personalizados de partida llegan mucho más adelante.
+- Objetivo: partidas pulidas y rápidas.
+
+Pendiente de decidir: qué pasa si todos mueren a la vez (empate: nadie suma) y si una ronda tiene límite de tiempo.
+
+Ver `ROADMAP.md` para el orden de trabajo.

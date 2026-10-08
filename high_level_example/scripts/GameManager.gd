@@ -7,6 +7,8 @@ var scores: Dictionary = {}
 
 # Mapa elegido en el menú (ruta de la escena). Vacío = el que tenga la escena de juego.
 var selected_map_path: String = ""
+# Mapa JSON elegido (el texto entero: así viaja por red a los clientes). Tiene prioridad.
+var selected_map_json: String = ""
 
 
 # Solo se llama en el servidor. Devuelve los puntos del jugador.

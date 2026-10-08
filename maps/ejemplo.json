@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "name": "ejemplo",
+  "grid": {"w":96,"h":54,"block_px":11},
+  "tiles": {
+    "solid": [
+      {"x":0,"y":0,"w":96,"h":2},
+      {"x":0,"y":2,"w":2,"h":48},
+      {"x":94,"y":2,"w":2,"h":48},
+      {"x":0,"y":50,"w":96,"h":4}
+    ],
+    "platform": [
+      {"x":20,"y":24,"w":10,"h":1},
+      {"x":66,"y":24,"w":10,"h":1},
+      {"x":38,"y":32,"w":20,"h":1},
+      {"x":12,"y":40,"w":12,"h":1},
+      {"x":72,"y":40,"w":12,"h":1}
+    ]
+  },
+  "entities": [
+    {"type":"spawn","x":8,"y":48},
+    {"type":"spawn","x":20,"y":48},
+    {"type":"spawn","x":36,"y":48},
+    {"type":"spawn","x":60,"y":48},
+    {"type":"spawn","x":76,"y":48},
+    {"type":"spawn","x":88,"y":48},
+    {"type":"weapon_base","x":24,"y":23},
+    {"type":"weapon_base","x":70,"y":23},
+    {"type":"weapon_base","x":47,"y":31},
+    {"type":"weapon_base","x":16,"y":39},
+    {"type":"weapon_base","x":76,"y":39},
+    {"type":"box_big","x":30,"y":48},
+    {"type":"box_small","x":60,"y":49},
+    {"type":"door","x":48,"y":45,"w":2,"h":5,"open":false},
+    {"type":"light","x":20,"y":4,"on":true},
+    {"type":"light","x":48,"y":4,"on":true},
+    {"type":"light","x":76,"y":4,"on":true},
+    {"type":"light","x":48,"y":20,"on":false}
+  ]
+}

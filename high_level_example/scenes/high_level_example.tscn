@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://bp8pdw0prviff" path="res://high_level_example/assets/TileSet/origbig.png" id="6_uc0g2"]
 [ext_resource type="PackedScene" uid="uid://b20qpy5kkk3t" path="res://high_level_example/scenes/GameOverUI.tscn" id="8_23wyo"]
 
-[ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaNeku.tscn" id="9_mapaneku"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaPruebas.tscn" id="9_mapaneku"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/HudInventario.tscn" id="11_hud"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/KillFeed.tscn" id="12_kf"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/PanelAjustes.tscn" id="13_aj"]

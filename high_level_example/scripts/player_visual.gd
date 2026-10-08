@@ -30,6 +30,7 @@ extends Node2D
 @onready var free_hand: Sprite2D = $ManoLibre
 
 var _rest := {}
+var _base_y: float = 0.0
 var _last_pos: Vector2
 var _vel := Vector2.ZERO
 var _phase := 0.0
@@ -42,12 +43,26 @@ func _ready() -> void:
 	for s in [foot_l, foot_r, torso, head, free_hand]:
 		_rest[s] = s.position
 	scale = Vector2(base_scale, base_scale)
+	_base_y = position.y
 	_last_pos = (get_parent() as Node2D).global_position
 
 
 # 1 = mira a la derecha, -1 = izquierda
 func set_facing(facing: int) -> void:
-	scale = Vector2(base_scale * facing, base_scale)
+	var st: int = 0
+	var par := get_parent()
+	if "stance" in par:
+		st = par.stance
+	# Agachado y slide: cuerpo aplastado, con los pies siempre en el suelo
+	var sy: float = 1.0
+	var sx: float = 1.0
+	if st == 1:
+		sy = 0.75
+	elif st == 2:
+		sy = 0.5
+		sx = 1.15
+	scale = Vector2(base_scale * facing * sx, base_scale * sy)
+	position.y = _base_y + (1.0 - sy) * 14.0
 
 
 func _process(delta: float) -> void:

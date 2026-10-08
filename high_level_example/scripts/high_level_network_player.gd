@@ -25,6 +25,27 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 # Segundos que dura la caída a través de una plataforma
 @export var drop_through_time: float = 0.25
 
+@export_group("Sprint / Agacharse / Slide / Backflip")
+# Sprint: doble toque rápido de dirección (teclado) o stick a fondo (mando)
+@export var double_tap_time: float = 0.25
+@export_range(0.5, 1.0) var pad_sprint_threshold: float = 0.9
+# Agachado (Shift): más lento y sin ruido de pasos
+@export var crouch_speed: float = 55.0
+@export var crouch_height: float = 15.0
+# Slide (Shift corriendo): impulso, frenado y velocidad a la que sales del slide
+@export var slide_speed: float = 330.0
+@export var slide_min_speed: float = 150.0
+@export var slide_friction: float = 450.0
+@export var slide_exit_speed: float = 60.0
+@export var slide_height: float = 14.0
+# Backflip (doble pulsación de salto en los primeros instantes del salto)
+@export var backflip_window: float = 0.22
+# Altura total del backflip desde donde despegas (px). El salto normal son ~52.
+@export var backflip_height: float = 72.0
+@export var backflip_speed: float = 140.0
+@export var backflip_time: float = 0.5
+@export_range(0.0, 1.0) var backflip_air_control: float = 0.25
+
 @export_group("Juice")
 @export var shake_per_shot: float = 2.0
 @export var shake_on_death: float = 14.0
@@ -41,6 +62,8 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export var step_distance: float = 34.0
 @export var step_range_walk: float = 660.0
 @export var step_range_run: float = 1200.0
+@export var sfx_slide: AudioStream = preload("res://high_level_example/assets/sounds/deslizar.wav")
+@export var sfx_flip: AudioStream = preload("res://high_level_example/assets/sounds/voltereta.wav")
 
 @export_group("Red")
 # Suavizado de los jugadores de los demás: más alto = más pegado a la posición
@@ -120,6 +143,32 @@ var _jump_buffer_left: float = 0.0
 var _was_on_floor: bool = false
 var _prev_fall_speed: float = 0.0
 
+enum Stance { STAND, CROUCH, SLIDE }
+# Postura (se replica; mueve la hitbox en todos los peers para que los disparos acierten)
+var stance: int = Stance.STAND:
+	set(v):
+		if v == stance:
+			return
+		stance = v
+		if is_node_ready():
+			_apply_stance_shape()
+			if v == Stance.SLIDE:
+				_play_sfx(sfx_slide, step_range_run, -4.0)
+var _col: CollisionShape2D
+var _col_base_y: float = 0.0
+var _col_base_h: float = 22.0
+var _hand_base: Vector2 = Vector2.ZERO
+var _visual_base_y: float = -3.0
+var _kb_sprint_dir: int = 0
+var _tap_dir: int = 0
+var _tap_time: float = -10.0
+var _since_jump: float = 99.0
+var _flip_t: float = -1.0 # <0 = sin backflip; si no, segundos transcurridos
+var _flip_facing: int = 1
+var _fx_flipping: bool = false
+var _dir: int = 0
+var _jump_start_y: float = 0.0
+
 
 # Polvo al aterrizar (solo visual, local; los demás no lo ven por ahora)
 func _land_fx(speed: float) -> void:
@@ -155,6 +204,15 @@ func _ready() -> void:
 	aura.enabled = is_mine
 	throw_arc.clear_points()
 
+	# La hitbox cambia con la postura: cada instancia necesita su propia copia
+	_col = $CollisionShape2D
+	_col.shape = _col.shape.duplicate()
+	_col_base_y = _col.position.y
+	_col_base_h = (_col.shape as CapsuleShape2D).height
+	_hand_base = hand_pivot.position
+	_visual_base_y = visual.position.y
+	_apply_stance_shape()
+
 	if is_mine:
 		global_position = GameManager.get_spawn_position()
 		net_position = global_position
@@ -166,6 +224,22 @@ func _ready() -> void:
 
 	if default_weapon:
 		equip_weapon(default_weapon, -1)
+
+
+func _apply_stance_shape() -> void:
+	var h: float = _col_base_h
+	if stance == Stance.CROUCH:
+		h = crouch_height
+	elif stance == Stance.SLIDE:
+		h = slide_height
+	(_col.shape as CapsuleShape2D).height = h
+	# Los pies se quedan en el suelo: la cápsula se encoge hacia abajo
+	_col.position.y = _col_base_y + (_col_base_h - h) * 0.5
+
+
+# ¿Hay hueco para ponerse de pie?
+func _can_stand() -> bool:
+	return not test_move(global_transform, Vector2(0.0, -(_col_base_h - (_col.shape as CapsuleShape2D).height) - 1.0))
 
 
 # Los mapas pueden limitar la cámara para que no se vea el vacío exterior
@@ -222,7 +296,11 @@ func _movement_sfx(delta: float) -> void:
 			_land_fx(_fx_peak_fall)
 		_fx_peak_fall = 0.0
 	_fx_airborne = airborne
-	if not airborne:
+	var flipping: bool = absf(visual.rotation) > 0.05
+	if flipping and not _fx_flipping:
+		_play_sfx(sfx_flip, step_range_walk, -4.0)
+	_fx_flipping = flipping
+	if not airborne and stance == Stance.STAND:
 		_fx_step_acc += absf(dx)
 		if _fx_step_acc >= step_distance:
 			_fx_step_acc = 0.0
@@ -264,12 +342,31 @@ func _physics_process(delta: float) -> void:
 		set_collision_mask_value(PLATFORM_LAYER, true)
 		_drop_until_msec = 0
 
-	if Input.is_action_just_pressed("ui_up"):
+	var dir: int = _read_dir()
+	_dir = dir
+	_update_sprint(dir)
+	_since_jump += delta
+	var crouch_held: bool = Input.is_action_pressed("crouch")
+	_update_stance(on_floor, dir, crouch_held, Input.is_action_just_pressed("crouch"))
+
+	var jump_pressed: bool = Input.is_action_just_pressed("ui_up")
+	if jump_pressed:
 		_jump_buffer_left = jump_buffer_time
 	else:
 		_jump_buffer_left = maxf(0.0, _jump_buffer_left - delta)
 
-	if _jump_buffer_left > 0.0 and on_floor and Input.is_action_pressed("ui_down") and _is_on_platform():
+	# Segunda pulsación de salto nada más empezar el salto = backflip
+	if jump_pressed and _flip_t < 0.0 and not on_floor and _since_jump <= backflip_window \
+			and stance == Stance.STAND:
+		_flip_t = 0.0
+		_flip_facing = facing
+		# Velocidad justa para que el pico del salto sea backflip_height desde el despegue
+		var left: float = maxf(backflip_height - (_jump_start_y - global_position.y), 12.0)
+		velocity.y = -sqrt(2.0 * gravity * left)
+		velocity.x = -facing * backflip_speed
+		_jump_buffer_left = 0.0
+		_since_jump = 99.0
+	elif _jump_buffer_left > 0.0 and on_floor and Input.is_action_pressed("ui_down") and _is_on_platform():
 		# Abajo + salto sobre una plataforma = bajar a través de ella
 		set_collision_mask_value(PLATFORM_LAYER, false)
 		_drop_until_msec = Time.get_ticks_msec() + int(drop_through_time * 1000.0)
@@ -278,21 +375,36 @@ func _physics_process(delta: float) -> void:
 		velocity.y = jump_velocity
 		_jump_buffer_left = 0.0
 		_coyote_left = 0.0
-	# Soltar el salto en la subida lo acorta
-	if Input.is_action_just_released("ui_up") and velocity.y < 0.0:
+		_since_jump = 0.0
+		_jump_start_y = global_position.y
+		if stance == Stance.SLIDE:
+			stance = Stance.CROUCH # saltar desde el slide: mantiene el impulso
+	# Soltar el salto en la subida lo acorta (no en el backflip)
+	if Input.is_action_just_released("ui_up") and velocity.y < 0.0 and _flip_t < 0.0:
 		velocity.y *= jump_cut
 
-	var speed: float = run_speed if Input.is_action_pressed("ui_run") else walk_speed
-	var direction: float = Input.get_axis("ui_left", "ui_right")
-	if direction != 0.0:
-		velocity.x = move_toward(velocity.x, direction * speed, acceleration * delta)
+	if stance == Stance.SLIDE:
+		if on_floor:
+			velocity.x = move_toward(velocity.x, 0.0, slide_friction * delta)
+	elif _flip_t >= 0.0:
+		if dir != 0:
+			velocity.x = move_toward(velocity.x, dir * walk_speed, acceleration * backflip_air_control * delta)
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+		var speed: float = walk_speed
+		if stance == Stance.CROUCH:
+			speed = crouch_speed
+		elif _is_sprinting(dir):
+			speed = run_speed
+		if dir != 0:
+			velocity.x = move_toward(velocity.x, dir * speed, acceleration * delta)
+		else:
+			velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 
 	_prev_fall_speed = velocity.y
 	move_and_slide()
 	net_position = global_position
 
+	_update_flip(delta)
 	update_aiming(delta)
 
 	if current_weapon_data:
@@ -306,6 +418,78 @@ func _physics_process(delta: float) -> void:
 	_update_throw(delta)
 
 
+func _read_dir() -> int:
+	return int(signf(Input.get_axis("ui_left", "ui_right")))
+
+
+# Sprint: doble toque de dirección (se mantiene mientras no sueltes) o stick a fondo
+func _update_sprint(dir: int) -> void:
+	var now: float = Time.get_ticks_msec() / 1000.0
+	for d in [-1, 1]:
+		if Input.is_action_just_pressed("ui_left" if d < 0 else "ui_right"):
+			if _tap_dir == d and now - _tap_time <= double_tap_time:
+				_kb_sprint_dir = d
+			_tap_dir = d
+			_tap_time = now
+	if dir == 0 or dir != _kb_sprint_dir:
+		_kb_sprint_dir = 0
+
+
+func _is_sprinting(dir: int) -> bool:
+	if dir == 0 or stance != Stance.STAND:
+		return false
+	if _kb_sprint_dir == dir:
+		return true
+	for id in Input.get_connected_joypads():
+		var x: float = Input.get_joy_axis(id, JOY_AXIS_LEFT_X)
+		if absf(x) >= pad_sprint_threshold and int(signf(x)) == dir:
+			return true
+	return false
+
+
+func _update_stance(on_floor: bool, dir: int, crouch_held: bool, crouch_pressed: bool) -> void:
+	if _flip_t >= 0.0 or not on_floor:
+		return
+	match stance:
+		Stance.STAND:
+			if crouch_held:
+				if crouch_pressed and absf(velocity.x) >= slide_min_speed:
+					_start_slide()
+				else:
+					stance = Stance.CROUCH
+		Stance.CROUCH:
+			# (si el botón llega un frame después de empezar a agacharse, también vale)
+			if crouch_pressed and absf(velocity.x) >= slide_min_speed:
+				_start_slide()
+			elif not crouch_held and _can_stand():
+				stance = Stance.STAND
+		Stance.SLIDE:
+			# Te quedas tumbado hasta que te vuelvas a mover (o frenes y pulses dirección)
+			var s: float = absf(velocity.x)
+			var sd: int = int(signf(velocity.x))
+			if dir != 0 and (s < slide_exit_speed or (sd != 0 and dir != sd)):
+				stance = Stance.CROUCH
+				if not crouch_held and _can_stand():
+					stance = Stance.STAND
+
+
+func _start_slide() -> void:
+	velocity.x = signf(velocity.x) * maxf(absf(velocity.x), slide_speed)
+	_kb_sprint_dir = 0
+	stance = Stance.SLIDE
+
+
+func _update_flip(delta: float) -> void:
+	if _flip_t < 0.0:
+		return
+	_flip_t += delta
+	if _flip_t >= backflip_time or (is_on_floor() and _flip_t > 0.12):
+		_flip_t = -1.0
+		visual.rotation = 0.0
+	else:
+		visual.rotation = -_flip_facing * TAU * (_flip_t / backflip_time)
+
+
 # ¿Estoy de pie sobre una plataforma atravesable?
 func _is_on_platform() -> bool:
 	for i in get_slide_collision_count():
@@ -316,9 +500,8 @@ func _is_on_platform() -> bool:
 
 
 func update_aiming(delta: float) -> void:
-	var direction: float = Input.get_axis("ui_left", "ui_right")
-	if direction != 0.0:
-		facing = 1 if direction > 0.0 else -1
+	if _flip_t < 0.0 and _dir != 0:
+		facing = _dir
 
 	# ¿Hay que apuntar arriba? Botón de salto mantenido, o pegado a una pared mirándola
 	var want_up: bool = Input.is_action_pressed("ui_up") and not Input.is_action_pressed("ui_down")
@@ -338,7 +521,14 @@ func update_aiming(delta: float) -> void:
 	var up_total: float = clampf(_aim_up + _recoil, 0.0, deg_to_rad(90.0))
 	aim_angle = Vector2(facing * cos(up_total), -sin(up_total)).angle()
 
+	# En el backflip el arma va pegada al cuerpo y gira con él
+	if _flip_t >= 0.0:
+		aim_angle = Vector2(_flip_facing, 0.0).rotated(visual.rotation).angle()
 	hand_pivot.global_rotation = aim_angle
+	# Agachado / deslizando el arma baja con el cuerpo
+	var center := Vector2(0.0, _visual_base_y)
+	var low: Vector2 = _hand_base + Vector2(0.0, _col.position.y - _col_base_y)
+	hand_pivot.position = center + (low - center).rotated(visual.rotation)
 	visual.set_facing(facing)
 	hand_pivot.scale.y = -1 if facing < 0 else 1
 
@@ -624,6 +814,10 @@ func respawn_rpc() -> void:
 
 	if is_multiplayer_authority():
 		_aim_up = 0.0
+		stance = Stance.STAND
+		_flip_t = -1.0
+		visual.rotation = 0.0
+		_kb_sprint_dir = 0
 		global_position = GameManager.get_spawn_position()
 		velocity = Vector2.ZERO
 

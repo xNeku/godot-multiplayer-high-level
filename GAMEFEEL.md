@@ -33,6 +33,33 @@ Valores = los actuales en el repo (rama `escala-y-mapas`: escala nueva, cámara 
 Notas movimiento:
 -
 
+### 1b. Sprint, agacharse, slide y backflip
+Grupo *Sprint / Agacharse / Slide / Backflip* del mismo script. Todo editable en el panel F1.
+
+Controles: **sprint** = doble toque rápido de dirección (teclado) o stick a fondo (mando) · **agacharse** = Shift (LB en mando; mantener) · **slide** = Shift estando en sprint · **backflip** = pulsar salto dos veces seguidas.
+
+| Parámetro | Valor | Qué hace | Notas |
+|---|---|---|---|
+| `double_tap_time` | 0.25 | Ventana (s) entre los dos toques de dirección para el sprint | |
+| `pad_sprint_threshold` | 0.9 | Inclinación del stick (0-1) que cuenta como "a fondo" | |
+| `crouch_speed` | 55 | Velocidad agachado (sin ruido de pasos) | |
+| `crouch_height` | 15 | Altura de la hitbox agachado (normal 22) | |
+| `slide_speed` | 330 | Velocidad al empezar el slide | |
+| `slide_min_speed` | 150 | Velocidad mínima para que Shift haga slide en vez de agacharse | |
+| `slide_friction` | 450 | Frenado del slide (≈110 px de recorrido) | |
+| `slide_exit_speed` | 60 | Por debajo de esto, pulsar dirección te saca del slide | |
+| `slide_height` | 14 | Altura de la hitbox en slide (mínimo posible = 14) | |
+| `backflip_window` | 0.22 | Tiempo tras empezar un salto en el que una 2ª pulsación lo convierte en backflip | |
+| `backflip_height` | 72 | Altura total del backflip desde el despegue (px; salto normal ≈ 52) | |
+| `backflip_speed` | 140 | Velocidad hacia atrás | |
+| `backflip_time` | 0.5 | Duración de la voltereta (debería coincidir con el tiempo en el aire) | |
+| `backflip_air_control` | 0.25 | Control horizontal durante el backflip (× aceleración) | |
+
+Notas sprint/slide/backflip:
+- El backflip no añade latencia al salto: el salto arranca normal y, si llega la 2ª pulsación dentro de la ventana, se transforma (todavía a pocos px del suelo).
+- En slide el arma baja con el cuerpo. Te quedas tumbado hasta que vuelves a pulsar dirección (con la velocidad ya baja) o saltas.
+- En backflip el arma va pegada al cuerpo y gira con él.
+
 ## 2. Puntería y retroceso del jugador
 `scripts/high_level_network_player.gd` (grupo *Puntería*)
 

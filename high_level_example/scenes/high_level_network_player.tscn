@@ -22,6 +22,18 @@ properties/2/replication_mode = 1
 properties/3/path = NodePath("HandPivot:scale")
 properties/3/spawn = true
 properties/3/replication_mode = 2
+properties/4/path = NodePath(".:stance")
+properties/4/spawn = true
+properties/4/replication_mode = 1
+properties/5/path = NodePath("Cuerpo:rotation")
+properties/5/spawn = true
+properties/5/replication_mode = 1
+properties/6/path = NodePath("Cuerpo:position")
+properties/6/spawn = true
+properties/6/replication_mode = 1
+properties/7/path = NodePath("HandPivot:position")
+properties/7/spawn = true
+properties/7/replication_mode = 1
 
 [sub_resource type="Gradient" id="Gradient_arc"]
 colors = PackedColorArray(1, 1, 1, 0.9, 1, 1, 1, 0.05)

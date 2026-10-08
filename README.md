@@ -17,7 +17,9 @@ A networked 2D arena prototype built in Godot 4 using ENet high-level multiplaye
 
 ## Controls
 - `WASD`: move
-- `Shift`: run
+- Doble toque de dirección: sprint (mando: stick a fondo)
+- `Shift`: agacharse; con sprint, slide
+- Salto dos veces seguidas: backflip
 - `Left Click`: shoot
 - `F`: ability
 - `G`: throw gadget

@@ -23,7 +23,7 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
 - Navegación por mando en menú y lobby (ahora solo ratón; E / G hacen Listo y cambiar color).
 - Reasignar controles en Opciones (ahora solo se muestran).
 - Entrar a mitad de partida (ahora se rechaza) y pausa de recuento cada 10 rondas.
-- El mismo ID de objeto/arma en el HUD dice "E · Coger" fijo aunque se juegue con mando.
+- El aviso del HUD dice "E · Coger" fijo aunque se juegue con mando.
 
 ## Después
 7. **Soga**: se consigue en un sitio del mapa y se queda toda la ronda. Colgarse, balancearse, subir y bajar despacio.

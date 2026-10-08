@@ -13,9 +13,9 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
 3. **Mapas** (FlashMapMaker). Hacen falta unos 10-12 para que no se repitan.
 
 ## Alpha jugable
-4. **Menú principal**: crear partida, unirse, opciones (resolución, sonido, controles...).
-5. **Lobby**: se entra y se mueve el bicho, con pistola de juguete (knockback, no mata), se eligen cosméticos
-   (color, pecho, cara) y se pulsa Listo; cuando todos están listos, cuenta atrás y empieza.
+4. **Menú principal** ✅: crear partida, unirse, opciones (volumen, pantalla completa, resolución; controles solo en lectura, falta reasignarlos).
+5. **Lobby** ✅: se entra y se mueve el bicho, con pistola de juguete (knockback, no mata), se eligen cosméticos
+   (color ✅; pecho y cara cuando haya arte) y se pulsa Listo; cuando todos están listos, cuenta atrás y empieza ✅. Pendiente: navegación con mando en la interfaz.
 6. **Votación de repetición** al final de cada ronda (la repetición en sí, más tarde).
 
 ## Después

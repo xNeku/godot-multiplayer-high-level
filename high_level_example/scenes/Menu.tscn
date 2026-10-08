@@ -1,102 +1,163 @@
-[gd_scene load_steps=9 format=3 uid="uid://b1f217vubxffw"]
+[gd_scene load_steps=3 format=3 uid="uid://b1f217vubxffw"]
 
-[ext_resource type="Script" uid="uid://bmxqdw0blxmia" path="res://high_level_example/scripts/menu.gd" id="1_leprn"]
+[ext_resource type="Script" path="res://high_level_example/scripts/menu.gd" id="1_leprn"]
 [ext_resource type="Texture2D" uid="uid://bp8pdw0prviff" path="res://high_level_example/assets/TileSet/origbig.png" id="2_na366"]
-[ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaEdificio.tscn" id="4_mapa2"]
-[ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaPruebas.tscn" id="5_mapa3"]
-
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rp73m"]
 
 [node name="Menu" type="Control"]
 layout_mode = 3
-anchors_preset = 0
-offset_left = 140.0
-offset_top = 66.0
-offset_right = 140.0
-offset_bottom = 66.0
-scale = Vector2(0.15158302, 0.13575149)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_leprn")
-maps = Array[PackedScene]([ExtResource("4_mapa2"), ExtResource("5_mapa3")])
 
-[node name="PanelPrincipal" type="Panel" parent="."]
-modulate = Color(0.50329494, 0.6151131, 0.8859464, 1)
-self_modulate = Color(0.34384155, 0.9484506, 0.78228104, 1)
-top_level = true
-material = SubResource("CanvasItemMaterial_rp73m")
-layout_mode = 0
-offset_left = 117.99994
-offset_top = 55.0
-offset_right = 417.99994
-offset_bottom = 254.99997
-scale = Vector2(1.3711023, 1.251167)
+[node name="Fondo" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.05, 0.06, 0.09, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelPrincipal"]
-layout_mode = 0
-offset_left = 53.235367
-offset_top = 30.806984
-offset_right = 250.23537
-offset_bottom = 158.80698
-
-[node name="Title" type="Label" parent="PanelPrincipal/VBoxContainer"]
-layout_mode = 2
-text = "PERO TIOOOOO  PROJECT"
-
-[node name="IpInput" type="LineEdit" parent="PanelPrincipal/VBoxContainer"]
-layout_mode = 2
-placeholder_text = "\"Escribe IP del Host\""
-
-[node name="HostButton" type="Button" parent="PanelPrincipal/VBoxContainer"]
-layout_mode = 2
-text = "Crear Partida
-"
-
-[node name="JoinButton" type="Button" parent="PanelPrincipal/VBoxContainer"]
-layout_mode = 2
-text = "Unirse a IP
-"
-
-[node name="LobbyPanel" type="Panel" parent="."]
-z_index = 1
-layout_mode = 0
-offset_left = 765.0
-offset_top = 369.0
-offset_right = 805.0
-offset_bottom = 409.0
-scale = Vector2(6.713441, 8.806495)
-
-[node name="VBoxContainer" type="VBoxContainer" parent="LobbyPanel"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="Label" type="Label" parent="LobbyPanel/VBoxContainer"]
-layout_mode = 2
-text = "\"Esperando jugadores...\"
-"
-
-[node name="PlayerList" type="ItemList" parent="LobbyPanel/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.057, 0.4290832, 1)
-theme_override_colors/font_hovered_color = Color(0, 1, 0.5500002, 1)
-theme_override_colors/font_selected_color = Color(1, 0.04000002, 0.04000002, 1)
-max_text_lines = 2
-auto_width = true
-auto_height = true
-
-[node name="MapSelector" type="OptionButton" parent="LobbyPanel/VBoxContainer"]
-layout_mode = 2
-
-[node name="ImportButton" type="Button" parent="LobbyPanel/VBoxContainer"]
-visible = false
-layout_mode = 2
-text = "Importar JSON..."
-
-[node name="StartButton" type="Button" parent="LobbyPanel/VBoxContainer"]
-layout_mode = 2
-text = "Start
-"
-
-[node name="Origbig" type="Sprite2D" parent="."]
-position = Vector2(1163, 851.99994)
-scale = Vector2(1.8031923, 2.0297847)
+[node name="Imagen" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0.25)
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 texture = ExtResource("2_na366")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Centro" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelPrincipal" type="PanelContainer" parent="Centro"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(230, 0)
+layout_mode = 2
+
+[node name="Margen" type="MarginContainer" parent="Centro/PanelPrincipal"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="Caja" type="VBoxContainer" parent="Centro/PanelPrincipal/Margen"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Titulo" type="Label" parent="Centro/PanelPrincipal/Margen/Caja"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "PERO TIOOOOO"
+horizontal_alignment = 1
+
+[node name="HostButton" type="Button" parent="Centro/PanelPrincipal/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Crear partida"
+
+[node name="IpInput" type="LineEdit" parent="Centro/PanelPrincipal/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "IP del host (vacío = local)"
+
+[node name="JoinButton" type="Button" parent="Centro/PanelPrincipal/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Unirse"
+
+[node name="OpcionesButton" type="Button" parent="Centro/PanelPrincipal/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Opciones"
+
+[node name="SalirButton" type="Button" parent="Centro/PanelPrincipal/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Salir"
+
+[node name="Mensaje" type="Label" parent="Centro/PanelPrincipal/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+modulate = Color(1, 0.6, 0.5, 1)
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="PanelOpciones" type="PanelContainer" parent="Centro"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+
+[node name="Margen" type="MarginContainer" parent="Centro/PanelOpciones"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="Caja" type="VBoxContainer" parent="Centro/PanelOpciones/Margen"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Titulo" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "OPCIONES"
+horizontal_alignment = 1
+
+[node name="LabelVolumen" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
+layout_mode = 2
+text = "Volumen"
+
+[node name="Volumen" type="HSlider" parent="Centro/PanelOpciones/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="Pantalla" type="CheckButton" parent="Centro/PanelOpciones/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Pantalla completa"
+
+[node name="LabelRes" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
+layout_mode = 2
+text = "Resolución de ventana"
+
+[node name="Resolucion" type="OptionButton" parent="Centro/PanelOpciones/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+
+[node name="LabelControles" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
+layout_mode = 2
+text = "Controles (cambiarlos, más adelante)"
+
+[node name="Controles" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.75)
+theme_override_font_sizes/font_size = 9
+
+[node name="VolverButton" type="Button" parent="Centro/PanelOpciones/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Volver"

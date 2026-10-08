@@ -11,6 +11,8 @@ var shooter_id: int = 0
 @export var lifetime: float = 10.0
 # Protección para no matarse al disparar
 @export var spawn_protection_time: float = 0.1
+# Mayor que 0 = bala de juguete (lobby): empuja al jugador en vez de matarlo
+@export var knockback: float = 0.0
 
 var _age: float = 0.0
 
@@ -56,7 +58,11 @@ func _physics_process(delta: float) -> void:
 		collider.on_impact(result.position)
 
 	if collider is CharacterBody2D:
-		if collider.has_method("hit"):
+		if knockback > 0.0:
+			if collider.has_method("knockback_rpc"):
+				var push := Vector2(direction.x * knockback, -90.0)
+				collider.knockback_rpc.rpc(push)
+		elif collider.has_method("hit"):
 			collider.hit(shooter_id)
 		queue_free()
 	else:

@@ -65,6 +65,12 @@ func set_facing(facing: int) -> void:
 	position.y = _base_y + (1.0 - sy) * 14.0
 
 
+# Color del jugador (cosmético): tiñe pecho y manos
+func set_tint(c: Color) -> void:
+	torso.modulate = c
+	free_hand.modulate = c
+
+
 func _process(delta: float) -> void:
 	if delta <= 0.0:
 		return

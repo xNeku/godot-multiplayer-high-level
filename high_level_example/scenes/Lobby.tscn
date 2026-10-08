@@ -1,0 +1,175 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://high_level_example/scripts/lobby.gd" id="1_lobby"]
+[ext_resource type="Script" uid="uid://c1g12cc12wuaa" path="res://high_level_example/scripts/high_level_player_spawner.gd" id="2_spawner"]
+[ext_resource type="PackedScene" uid="uid://dqp3koxevnhjm" path="res://high_level_example/scenes/high_level_network_player.tscn" id="3_player"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaEdificio.tscn" id="4_edif"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaPruebas.tscn" id="5_prue"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/PanelAjustes.tscn" id="6_aj"]
+
+[node name="Lobby" type="Node2D"]
+script = ExtResource("1_lobby")
+maps = Array[PackedScene]([ExtResource("4_edif"), ExtResource("5_prue")])
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("uid://dqp3koxevnhjm", "res://high_level_example/scenes/BalaJuguete.tscn")
+spawn_path = NodePath("../PlayerSpawnContainer")
+script = ExtResource("2_spawner")
+network_player = ExtResource("3_player")
+
+[node name="MapContainer" type="Node2D" parent="."]
+
+[node name="PlayerSpawnContainer" type="Node2D" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Raiz" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Jugadores" type="PanelContainer" parent="UI/Raiz"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 170.0
+offset_bottom = 40.0
+self_modulate = Color(1, 1, 1, 0.8)
+
+[node name="Margen" type="MarginContainer" parent="UI/Raiz/Jugadores"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="Caja" type="VBoxContainer" parent="UI/Raiz/Jugadores/Margen"]
+layout_mode = 2
+
+[node name="Titulo" type="Label" parent="UI/Raiz/Jugadores/Margen/Caja"]
+layout_mode = 2
+text = "SALA"
+
+[node name="JugadoresLista" type="VBoxContainer" parent="UI/Raiz/Jugadores/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Colores" type="HBoxContainer" parent="UI/Raiz"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 34.0
+offset_right = 100.0
+offset_bottom = 58.0
+grow_horizontal = 2
+alignment = 1
+
+[node name="ListoButton" type="Button" parent="UI/Raiz"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -70.0
+offset_top = -36.0
+offset_right = 70.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 0
+focus_mode = 0
+text = "Listo"
+
+[node name="CuentaAtras" type="Label" parent="UI/Raiz"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -60.0
+offset_right = 40.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelHost" type="PanelContainer" parent="UI/Raiz"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -190.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = 40.0
+grow_horizontal = 0
+self_modulate = Color(1, 1, 1, 0.8)
+
+[node name="Margen" type="MarginContainer" parent="UI/Raiz/PanelHost"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="Caja" type="VBoxContainer" parent="UI/Raiz/PanelHost/Margen"]
+layout_mode = 2
+
+[node name="Titulo" type="Label" parent="UI/Raiz/PanelHost/Margen/Caja"]
+layout_mode = 2
+text = "Mapa (host)"
+
+[node name="MapSelector" type="OptionButton" parent="UI/Raiz/PanelHost/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+
+[node name="ImportButton" type="Button" parent="UI/Raiz/PanelHost/Margen/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Importar JSON..."
+
+[node name="SalirButton" type="Button" parent="UI/Raiz"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = -30.0
+offset_right = 66.0
+offset_bottom = -6.0
+grow_vertical = 0
+focus_mode = 0
+text = "Salir"
+
+[node name="Pista" type="Label" parent="UI/Raiz"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -14.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 1
+modulate = Color(1, 1, 1, 0.6)
+
+[node name="PanelAjustes" parent="." instance=ExtResource("6_aj")]

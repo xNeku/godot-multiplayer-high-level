@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/BalaJuguete.tscn" id="1_15l6h"]
+[ext_resource type="Script" uid="uid://1e258mb4p2cj" path="res://high_level_example/scripts/WeaponData.gd" id="1_bssik"]
+[ext_resource type="Texture2D" uid="uid://7mquxwvns2ra" path="res://high_level_example/assets/weapons/gun.png" id="3_ulg63"]
+
+[ext_resource type="AudioStream" path="res://high_level_example/assets/sounds/disparo_pistola.wav" id="9_snd"]
+
+[resource]
+script = ExtResource("1_bssik")
+role_name = "Pistola de juguete"
+texture = ExtResource("3_ulg63")
+bullet_scene = ExtResource("1_15l6h")
+fire_mode = 1
+recoil_per_shot_deg = 0.0
+recoil_max_deg = 15.0
+recoil_pause = 0.5
+fire_rate = 0.22
+max_ammo = 99
+shot_sound = ExtResource("9_snd")
+hearing_range = 1400.0
+metadata/_custom_type_script = "uid://1e258mb4p2cj"

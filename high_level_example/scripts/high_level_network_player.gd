@@ -84,6 +84,8 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export_group("Arma")
 # Arma con la que se empieza y con la que se reaparece.
 @export var default_weapon: WeaponData
+# Arma de juguete del lobby (empuja, no mata)
+@export var lobby_weapon: WeaponData
 # Para pruebas: ninguna arma gasta munición. (El arma inicial ya es infinita.)
 @export var debug_unlimited_ammo: bool = false
 # A qué distancia se puede coger un arma con el botón de interactuar
@@ -168,6 +170,12 @@ var _flip_facing: int = 1
 var _fx_flipping: bool = false
 var _dir: int = 0
 var _dead: bool = false
+# Cosmético elegido en el lobby (índice de Settings.PLAYER_COLORS). Se replica.
+var color_index: int = 0:
+	set(v):
+		color_index = v
+		if is_node_ready():
+			visual.set_tint(Settings.PLAYER_COLORS[clampi(v, 0, Settings.PLAYER_COLORS.size() - 1)])
 var _jump_start_y: float = 0.0
 
 
@@ -228,9 +236,13 @@ func _ready() -> void:
 		# Los jugadores de los demás no corren física ni input aquí.
 		set_physics_process(false)
 
-	if default_weapon:
-		equip_weapon(default_weapon, -1)
-	if multiplayer.is_server():
+	if is_mine:
+		color_index = Settings.color_index
+	visual.set_tint(Settings.PLAYER_COLORS[clampi(color_index, 0, Settings.PLAYER_COLORS.size() - 1)])
+	var start_weapon: WeaponData = lobby_weapon if GameManager.in_lobby else default_weapon
+	if start_weapon:
+		equip_weapon(start_weapon, -1)
+	if multiplayer.is_server() and not GameManager.in_lobby:
 		RoundManager.register_player(name.to_int())
 
 
@@ -737,6 +749,17 @@ func _drop_current_item(toss: Vector2) -> void:
 
 
 # --- DAÑO Y VICTORIA ---
+
+# Empujón de las balas de juguete del lobby. Lo manda el servidor; lo aplica el dueño.
+@rpc("any_peer", "call_local", "reliable")
+func knockback_rpc(impulse: Vector2) -> void:
+	var sender: int = multiplayer.get_remote_sender_id()
+	if sender != 0 and sender != 1:
+		return
+	if is_multiplayer_authority():
+		velocity += impulse
+		_coyote_left = 0.0
+
 
 func hit(shooter_id: int) -> void:
 	if not multiplayer.is_server() or _dead:

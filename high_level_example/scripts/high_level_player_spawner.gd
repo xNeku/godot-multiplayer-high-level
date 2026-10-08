@@ -3,7 +3,7 @@ extends MultiplayerSpawner
 @export var network_player: PackedScene
 
 func _ready() -> void:
-	multiplayer.peer_connected.connect(spawn_player)
+	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(remove_player)
 	
 	# Si soy el servidor, tengo que spawnear a los que YA están conectados (del Lobby)
@@ -16,6 +16,15 @@ func _ready() -> void:
 		# 2. Spawnea a los clientes que ya estaban en el lobby
 		for peer_id in multiplayer.get_peers():
 			spawn_player(peer_id)
+
+
+# Margen para que el cliente que entra termine de cargar la escena antes de spawnearlo
+func _on_peer_connected(id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	await get_tree().create_timer(0.8).timeout
+	if multiplayer.get_peers().has(id):
+		spawn_player(id)
 
 
 func spawn_player(id: int) -> void:

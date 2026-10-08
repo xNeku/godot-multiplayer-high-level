@@ -9,6 +9,8 @@ var scores: Dictionary = {}
 var selected_map_path: String = ""
 # Mapa JSON elegido (el texto entero: así viaja por red a los clientes). Tiene prioridad.
 var selected_map_json: String = ""
+# true mientras se está en el lobby (jugadores con pistola de juguete, sin rondas)
+var in_lobby: bool = false
 
 
 # Solo se llama en el servidor. Devuelve los puntos del jugador.

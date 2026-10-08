@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://high_level_example/assets/players/dopamine/Player_Hands.png" id="6_hands"]
 [ext_resource type="Texture2D" uid="uid://dxsyu5kk6asb1" path="res://high_level_example/assets/lights/2d_lights_and_shadows_neutral_point_light.webp" id="7_light"]
 [ext_resource type="Resource" uid="uid://w5fenq3fvdoa" path="res://high_level_example/Weapons/Pistola.tres" id="9_pistola"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/PistolaJuguete.tres" id="10_juguete"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_player"]
 properties/0/path = NodePath(".:net_position")
@@ -34,6 +35,9 @@ properties/6/replication_mode = 1
 properties/7/path = NodePath("HandPivot:position")
 properties/7/spawn = true
 properties/7/replication_mode = 1
+properties/8/path = NodePath(".:color_index")
+properties/8/spawn = true
+properties/8/replication_mode = 1
 
 [sub_resource type="Gradient" id="Gradient_arc"]
 colors = PackedColorArray(1, 1, 1, 0.9, 1, 1, 1, 0.05)
@@ -46,6 +50,7 @@ height = 22.0
 collision_layer = 2
 collision_mask = 9
 script = ExtResource("1_player")
+lobby_weapon = ExtResource("10_juguete")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_player")

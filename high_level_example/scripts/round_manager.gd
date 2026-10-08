@@ -11,6 +11,7 @@ signal banner(text: String, seconds: float)
 
 const MapLoader := preload("res://high_level_example/scripts/map_loader.gd")
 const GAME_SCENE: String = "res://high_level_example/scenes/high_level_example.tscn"
+const LOBBY_SCENE: String = "res://high_level_example/scenes/Lobby.tscn"
 
 const POINTS_TO_WIN: int = 5
 # Margen entre que queda uno vivo y que acaba la ronda (segundos)
@@ -20,10 +21,10 @@ const BETWEEN_TIME: float = 3.0
 # Con este número de jugadores o más, el primero en morir pierde 1 punto
 const PENALTY_MIN_PLAYERS: int = 4
 
-enum State { IDLE, PLAYING, ENDING, BETWEEN, OVER }
+enum State { LOBBY, IDLE, PLAYING, ENDING, BETWEEN, OVER }
 
 var round_number: int = 0
-var state: int = State.IDLE
+var state: int = State.LOBBY
 
 # Solo en el servidor
 var _alive: Array[int] = []
@@ -34,7 +35,56 @@ var _current_map_path: String = ""
 var _end_timer: SceneTreeTimer
 
 
+func _ready() -> void:
+	multiplayer.peer_connected.connect(_on_peer_connected)
+
+
+# Una vez empezada la partida no se admite a nadie más (hasta volver al lobby)
+func _on_peer_connected(id: int) -> void:
+	if multiplayer.is_server() and not GameManager.in_lobby:
+		multiplayer.multiplayer_peer.disconnect_peer(id)
+
+
 # --- Partida ---
+
+# El servidor (lobby) lanza la partida. Todos cargan el primer mapa.
+func start_match(scene_path: String, map_json: String) -> void:
+	if multiplayer.is_server():
+		_start_match.rpc(scene_path, map_json)
+
+
+@rpc("authority", "call_local", "reliable")
+func _start_match(scene_path: String, map_json: String) -> void:
+	GameManager.reset_scores()
+	GameManager.in_lobby = false
+	begin_match()
+	GameManager.selected_map_json = map_json
+	GameManager.selected_map_path = ""
+	# Mapa de escena antiguo: solo los que ofrece el lobby
+	var lobby := get_tree().current_scene
+	if map_json == "" and "maps" in lobby:
+		for scene in lobby.maps:
+			if scene.resource_path == scene_path:
+				GameManager.selected_map_path = scene_path
+	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+@rpc("authority", "call_local", "reliable")
+func _return_to_lobby() -> void:
+	GameManager.in_lobby = true
+	GameManager.selected_map_json = ""
+	GameManager.selected_map_path = ""
+	GameManager.reset_scores()
+	state = State.LOBBY
+	_reset_round_state()
+	get_tree().change_scene_to_file(LOBBY_SCENE)
+
+
+func enter_lobby() -> void:
+	state = State.LOBBY
+	GameManager.in_lobby = true
+	_reset_round_state()
+
 
 # Lo llama el menú en TODOS los peers al empezar la partida
 func begin_match() -> void:
@@ -65,7 +115,7 @@ func _reset_round_state() -> void:
 # --- Registro de jugadores (servidor) ---
 
 func register_player(id: int) -> void:
-	if not multiplayer.is_server() or state == State.OVER:
+	if not multiplayer.is_server() or state == State.OVER or state == State.LOBBY:
 		return
 	if not _alive.has(id):
 		_alive.append(id)
@@ -184,6 +234,5 @@ func _game_over(winner_id: int) -> void:
 	if level.has_method("end_game_sequence"):
 		level.end_game_sequence(winner_id)
 	if multiplayer.is_server():
-		get_tree().create_timer(5.0).timeout.connect(func():
-			multiplayer.multiplayer_peer.close()
-		)
+		await get_tree().create_timer(6.0).timeout
+		_return_to_lobby.rpc()

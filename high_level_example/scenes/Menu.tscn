@@ -1,10 +1,22 @@
-[gd_scene load_steps=7 format=3 uid="uid://b1f217vubxffw"]
+[gd_scene load_steps=22 format=3 uid="uid://b1f217vubxffw"]
 
 [ext_resource type="Script" uid="uid://bmxqdw0blxmia" path="res://high_level_example/scripts/menu.gd" id="1_leprn"]
 [ext_resource type="Texture2D" uid="uid://bp8pdw0prviff" path="res://high_level_example/assets/TileSet/origbig.png" id="2_na366"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaNeku.tscn" id="3_mapa1"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaEdificio.tscn" id="4_mapa2"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaPruebas.tscn" id="5_mapa3"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa01_Cuadrilatero.tscn" id="10_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa02_Almacen.tscn" id="11_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa03_Torre.tscn" id="12_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa04_DosEdificios.tscn" id="13_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa05_Pasillos.tscn" id="14_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa06_Cueva.tscn" id="15_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa07_Oficina.tscn" id="16_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa08_Azotea.tscn" id="17_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa09_Fabrica.tscn" id="18_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa10_Cruce.tscn" id="19_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa11_FaroYTrinchera.tscn" id="20_mapa"]
+[ext_resource type="PackedScene" path="res://high_level_example/scenes/mapas/Mapa12_Laberinto.tscn" id="21_mapa"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rp73m"]
 
@@ -17,7 +29,7 @@ offset_right = 140.0
 offset_bottom = 66.0
 scale = Vector2(0.15158302, 0.13575149)
 script = ExtResource("1_leprn")
-maps = Array[PackedScene]([ExtResource("3_mapa1"), ExtResource("4_mapa2"), ExtResource("5_mapa3")])
+maps = Array[PackedScene]([ExtResource("3_mapa1"), ExtResource("4_mapa2"), ExtResource("5_mapa3"), ExtResource("10_mapa"), ExtResource("11_mapa"), ExtResource("12_mapa"), ExtResource("13_mapa"), ExtResource("14_mapa"), ExtResource("15_mapa"), ExtResource("16_mapa"), ExtResource("17_mapa"), ExtResource("18_mapa"), ExtResource("19_mapa"), ExtResource("20_mapa"), ExtResource("21_mapa")])
 
 [node name="PanelPrincipal" type="Panel" parent="."]
 modulate = Color(0.50329494, 0.6151131, 0.8859464, 1)
@@ -87,13 +99,37 @@ auto_height = true
 [node name="MapSelector" type="OptionButton" parent="LobbyPanel/VBoxContainer"]
 layout_mode = 2
 selected = 0
-item_count = 3
-popup/item_0/text = "Mapa de Neku"
+item_count = 15
+popup/item_0/text = "(antiguo) Mapa de Neku"
 popup/item_0/id = 0
-popup/item_1/text = "Edificio"
+popup/item_1/text = "(antiguo) Edificio"
 popup/item_1/id = 1
-popup/item_2/text = "Pruebas de armas"
+popup/item_2/text = "Pruebas de armas (escala antigua)"
 popup/item_2/id = 2
+popup/item_3/text = "01 Cuadrilátero (rápido, 2-4)"
+popup/item_3/id = 3
+popup/item_4/text = "02 Almacén"
+popup/item_4/id = 4
+popup/item_5/text = "03 Torre (vertical)"
+popup/item_5/id = 5
+popup/item_6/text = "04 Dos edificios"
+popup/item_6/id = 6
+popup/item_7/text = "05 Pasillos (sigilo)"
+popup/item_7/id = 7
+popup/item_8/text = "06 Cueva"
+popup/item_8/id = 8
+popup/item_9/text = "07 Oficina"
+popup/item_9/id = 9
+popup/item_10/text = "08 Azoteas"
+popup/item_10/id = 10
+popup/item_11/text = "09 Fábrica (grande)"
+popup/item_11/id = 11
+popup/item_12/text = "10 Cruce (pozo)"
+popup/item_12/id = 12
+popup/item_13/text = "11 Faro y trinchera"
+popup/item_13/id = 13
+popup/item_14/text = "12 Laberinto"
+popup/item_14/id = 14
 
 [node name="StartButton" type="Button" parent="LobbyPanel/VBoxContainer"]
 layout_mode = 2

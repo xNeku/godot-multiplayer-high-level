@@ -9,7 +9,7 @@ Se edita directamente en el repo (`git pull` / `git push`), o desde GitHub.
 - En el juego, en vivo: **F1** (o el botón ⚙ arriba al centro). Sliders para jugador y arma actual. **Guardar** lo deja en tu `user://ajustes.cfg` (solo tu máquina). Restablecer vuelve a los valores por defecto.
 - Fijo, para todos: en el inspector de Godot (el script / `.tres` indicado) y commit. Cuando un valor probado en el panel guste, hay que pasarlo aquí y a su archivo.
 
-Valores = los actuales en el repo (rama `fase-0-limpieza`). Unidades: px, segundos, grados, px/s.
+Valores = los actuales en el repo (rama `escala-y-mapas`: escala nueva, cámara zoom 0,85 ≈ 19 personajes de alto; alcances de sonido ×1,75). Unidades: px, segundos, grados, px/s.
 
 ---
 
@@ -18,11 +18,11 @@ Valores = los actuales en el repo (rama `fase-0-limpieza`). Unidades: px, segund
 
 | Parámetro | Valor | Qué hace | Notas |
 |---|---|---|---|
-| `walk_speed` | 220 | Velocidad andando | |
-| `run_speed` | 450 | Velocidad corriendo | |
-| `acceleration` | 1800 | Qué rápido llega a la velocidad objetivo | |
-| `friction` | 1500 | Qué rápido frena al soltar | |
-| `jump_velocity` | -750 | Impulso del salto (negativo = arriba). Altura ≈ 147 px | |
+| `walk_speed` | 120 | Velocidad andando | |
+| `run_speed` | 230 | Velocidad corriendo | |
+| `acceleration` | 1400 | Qué rápido llega a la velocidad objetivo | |
+| `friction` | 1400 | Qué rápido frena al soltar | |
+| `jump_velocity` | -440 | Impulso del salto (negativo = arriba). Altura ≈ 48-52 px = 2,2-2,4 personajes | |
 | `gravity` | 2000 | Gravedad al subir | |
 | `fall_gravity_mult` | 1.3 | Gravedad extra al caer (menos flotante) | |
 | `jump_cut` | 0.45 | Al soltar salto subiendo, velocidad vertical × esto. Menor = salto corto más corto | |
@@ -48,20 +48,20 @@ Notas puntería:
 -
 
 ## 3. Armas
-`Weapons/*.tres` (recurso `WeaponData`). Los campos sin valor propio usan el defecto: `bullet_speed` 2000, `spread` 0, `recoil_max_deg` 30, `recoil_pause` 0.4, `recoil_recovery_deg_per_sec` 60, `hearing_range` 800.
+`Weapons/*.tres` (recurso `WeaponData`). Los campos sin valor propio usan el defecto: `bullet_speed` 2000, `spread` 0, `recoil_max_deg` 30, `recoil_pause` 0.4, `recoil_recovery_deg_per_sec` 60, `hearing_range` 1400.
 
 Modo: AUTO = mantener, SEMI = un disparo por pulsación, BOLT = cerrojo.
 
 | Arma | Modo | `fire_rate` (s) | Munición | `bullet_speed` | `spread` ° | Balas | Retroceso/disparo ° | Máx ° | Pausa (s) | Recuperación °/s | Silenciada | Alcance sonido | Notas |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Pistola (inicial) | SEMI | 0.4 | ∞ | 2000 | 0 | 1 | 3 | 15 | 0.5 | 60 | no | 800 | |
-| Escopeta | SEMI | 0.8 | 8 | 2000 | 10 | 3 | 10 | 25 | 1.0 | 60 | no | 1400 | |
-| Sniper | BOLT | 1.5 | 5 | 3000 | 0 | 1 | 0 | – | – | – | no | 2200 | |
-| Sniper silenciosa | BOLT | 1.6 | 5 | 4000 | 0 | 1 | 0 | – | – | – | sí | 350 | |
-| Desert Eagle | SEMI | 0.35 | 7 | 2400 | 0 | 1 | 14 | 50 | 0.7 | 50 | no | 1500 | |
-| MP7 | AUTO | 0.07 | 40 | 2000 | 2 | 1 | 5 | 70 | 0.2 | 70 | sí | 300 | |
-| USP | AUTO | 0.14 | 20 | 2000 | 1 | 1 | 1.2 | 20 | 0.3 | 60 | sí | 220 | |
-| Bazooka | SEMI | 1.0 | 1 | 900 | 0 | 1 | 0 | – | – | – | no | 2000 | gravedad proyectil 500 |
+| Pistola (inicial) | SEMI | 0.4 | ∞ | 2000 | 0 | 1 | 3 | 15 | 0.5 | 60 | no | 1400 | |
+| Escopeta | SEMI | 0.8 | 8 | 2000 | 10 | 3 | 10 | 25 | 1.0 | 60 | no | 2450 | |
+| Sniper | BOLT | 1.5 | 5 | 3000 | 0 | 1 | 0 | – | – | – | no | 3850 | |
+| Sniper silenciosa | BOLT | 1.6 | 5 | 4000 | 0 | 1 | 0 | – | – | – | sí | 610 | |
+| Desert Eagle | SEMI | 0.35 | 7 | 2400 | 0 | 1 | 14 | 50 | 0.7 | 50 | no | 2620 | |
+| MP7 | AUTO | 0.07 | 40 | 2000 | 2 | 1 | 5 | 70 | 0.2 | 70 | sí | 520 | |
+| USP | AUTO | 0.14 | 20 | 2000 | 1 | 1 | 1.2 | 20 | 0.3 | 60 | sí | 380 | |
+| Bazooka | SEMI | 1.0 | 1 | 900 | 0 | 1 | 0 | – | – | – | no | 3500 | gravedad proyectil 500 |
 
 Notas armas (por arma, cómo se siente el retroceso, ritmo, alcance del sonido...):
 -
@@ -123,8 +123,8 @@ Todos los sonidos son **placeholders generados**. En un juego de sigilo el sonid
 | Parámetro | Valor | Qué hace | Notas |
 |---|---|---|---|
 | `step_distance` | 34 | Píxeles recorridos entre pasos | |
-| `step_range_walk` | 380 | Alcance del paso andando | |
-| `step_range_run` | 700 | Alcance del paso corriendo (y aterrizaje) | |
+| `step_range_walk` | 660 | Alcance del paso andando | |
+| `step_range_run` | 1200 | Alcance del paso corriendo (y aterrizaje) | |
 | Salto | alcance = `step_range_walk` | | |
 | Muerte | alcance = `step_range_run` + 200 | | |
 | `hearing_range` por arma | ver sección 3 | Silenciadas se oyen a corta distancia | |

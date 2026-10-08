@@ -20,4 +20,4 @@ recoil_max_deg = 20.0
 recoil_pause = 0.3
 recoil_recovery_deg_per_sec = 60.0
 silenced = true
-hearing_range = 220.0
+hearing_range = 380.0

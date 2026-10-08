@@ -20,5 +20,5 @@ max_ammo = 8
 spread = 10.0
 bullet_count = 3
 shot_sound = ExtResource("9_snd")
-hearing_range = 1400.0
+hearing_range = 2450.0
 metadata/_custom_type_script = "uid://1e258mb4p2cj"

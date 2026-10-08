@@ -7,11 +7,11 @@ extends CharacterBody2D
 const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 
 @export_group("Movimiento")
-@export var walk_speed: float = 220.0
-@export var run_speed: float = 450.0
-@export var jump_velocity: float = -750.0
-@export var friction: float = 1500.0
-@export var acceleration: float = 1800.0
+@export var walk_speed: float = 120.0
+@export var run_speed: float = 230.0
+@export var jump_velocity: float = -440.0
+@export var friction: float = 1400.0
+@export var acceleration: float = 1400.0
 @export var gravity: float = 2000.0
 # Margen para saltar justo después de salir de un borde
 @export var coyote_time: float = 0.1
@@ -39,8 +39,8 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export var sfx_pickup: AudioStream = preload("res://high_level_example/assets/sounds/recoger.wav")
 # Distancia (px) entre pasos al andar y al correr, y alcance del sonido (el sigilo importa)
 @export var step_distance: float = 34.0
-@export var step_range_walk: float = 380.0
-@export var step_range_run: float = 700.0
+@export var step_range_walk: float = 660.0
+@export var step_range_run: float = 1200.0
 
 @export_group("Red")
 # Suavizado de los jugadores de los demás: más alto = más pegado a la posición
@@ -158,6 +158,7 @@ func _ready() -> void:
 	if is_mine:
 		global_position = GameManager.get_spawn_position()
 		net_position = global_position
+		_apply_camera_limits()
 		camera.make_current()
 	else:
 		# Los jugadores de los demás no corren física ni input aquí.
@@ -165,6 +166,20 @@ func _ready() -> void:
 
 	if default_weapon:
 		equip_weapon(default_weapon, -1)
+
+
+# Los mapas pueden limitar la cámara para que no se vea el vacío exterior
+func _apply_camera_limits() -> void:
+	var m := get_tree().get_first_node_in_group("map_settings")
+	if m == null or not ("camera_limits" in m):
+		return
+	var r: Rect2 = m.camera_limits
+	if r.size == Vector2.ZERO:
+		return
+	camera.limit_left = int(r.position.x)
+	camera.limit_top = int(r.position.y)
+	camera.limit_right = int(r.end.x)
+	camera.limit_bottom = int(r.end.y)
 
 
 func _process(delta: float) -> void:

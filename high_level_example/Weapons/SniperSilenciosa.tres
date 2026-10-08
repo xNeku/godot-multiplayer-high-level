@@ -16,4 +16,4 @@ fire_rate = 1.6
 max_ammo = 5
 bullet_speed = 4000.0
 silenced = true
-hearing_range = 350.0
+hearing_range = 610.0

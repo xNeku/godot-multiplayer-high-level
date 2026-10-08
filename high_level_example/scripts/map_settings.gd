@@ -5,3 +5,9 @@ extends Node2D
 @export var with_darkness: bool = true
 # Imagen de ciudad de fondo (Origbig en la escena del juego)
 @export var show_city_background: bool = true
+# Límites de la cámara (en píxeles del mundo). Tamaño 0 = sin límites.
+@export var camera_limits: Rect2 = Rect2()
+
+
+func _ready() -> void:
+	add_to_group("map_settings")

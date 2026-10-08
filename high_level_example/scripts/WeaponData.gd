@@ -42,4 +42,4 @@ enum FireMode {
 @export var silenced: bool = false
 @export var shot_sound: AudioStream
 # A cuántos píxeles se oye el disparo (el volumen baja con la distancia)
-@export var hearing_range: float = 800.0
+@export var hearing_range: float = 1400.0

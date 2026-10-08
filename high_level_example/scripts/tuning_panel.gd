@@ -32,7 +32,7 @@ const WEAPON_PROPS := [
 	["recoil_max_deg", 0.0, 90.0, 1.0],
 	["recoil_pause", 0.0, 1.5, 0.05],
 	["recoil_recovery_deg_per_sec", 0.0, 300.0, 5.0],
-	["hearing_range", 100, 3000, 50],
+	["hearing_range", 100, 5000, 50],
 ]
 
 @onready var panel: PanelContainer = $Panel

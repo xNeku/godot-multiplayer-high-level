@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://bp8pdw0prviff" path="res://high_level_example/assets/TileSet/origbig.png" id="6_uc0g2"]
 [ext_resource type="PackedScene" uid="uid://b20qpy5kkk3t" path="res://high_level_example/scenes/GameOverUI.tscn" id="8_23wyo"]
 
+[ext_resource type="Script" path="res://high_level_example/scripts/round_hud.gd" id="14_rh"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaPruebas.tscn" id="9_mapaneku"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/HudInventario.tscn" id="11_hud"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/KillFeed.tscn" id="12_kf"]
@@ -46,6 +47,18 @@ offset_right = 412.0
 offset_bottom = 103.0
 script = ExtResource("5_h3rma")
 
+
+[node name="BannerLabel" type="Label" parent="CanvasLayer"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -250.0
+offset_top = 24.0
+offset_right = 250.0
+offset_bottom = 56.0
+grow_horizontal = 2
+horizontal_alignment = 1
+script = ExtResource("14_rh")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." groups=["darkness"]]
 visible = false

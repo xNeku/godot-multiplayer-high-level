@@ -167,6 +167,7 @@ var _flip_t: float = -1.0 # <0 = sin backflip; si no, segundos transcurridos
 var _flip_facing: int = 1
 var _fx_flipping: bool = false
 var _dir: int = 0
+var _dead: bool = false
 var _jump_start_y: float = 0.0
 
 
@@ -193,6 +194,11 @@ func _land_fx(speed: float) -> void:
 
 func _enter_tree() -> void:
 	set_multiplayer_authority(name.to_int())
+
+
+func _exit_tree() -> void:
+	if multiplayer.has_multiplayer_peer() and multiplayer.is_server() and not _dead:
+		RoundManager.player_left(name.to_int())
 
 
 func _ready() -> void:
@@ -224,6 +230,8 @@ func _ready() -> void:
 
 	if default_weapon:
 		equip_weapon(default_weapon, -1)
+	if multiplayer.is_server():
+		RoundManager.register_player(name.to_int())
 
 
 func _apply_stance_shape() -> void:
@@ -731,21 +739,15 @@ func _drop_current_item(toss: Vector2) -> void:
 # --- DAÑO Y VICTORIA ---
 
 func hit(shooter_id: int) -> void:
-	if not multiplayer.is_server():
+	if not multiplayer.is_server() or _dead:
 		return
-
-	# Matarte a ti mismo (granada propia...) no da punto a nadie
-	var current_points: int = GameManager.scores.get(str(shooter_id), 0)
-	if shooter_id != name.to_int():
-		current_points = GameManager.add_point(shooter_id)
+	# Muerte de un golpe. No hay reaparición: se vuelve en la siguiente ronda.
+	# (Los puntos los reparte RoundManager al acabar la ronda, no las kills.)
+	_dead = true
 	_drop_current_weapon(Vector2(randf_range(-80.0, 80.0), -200.0))
 	_drop_current_item(Vector2(randf_range(-80.0, 80.0), -200.0))
 	death_fx_rpc.rpc(shooter_id)
-
-	if current_points >= 10:
-		game_over_rpc.rpc(shooter_id)
-	else:
-		respawn_rpc.rpc()
+	RoundManager.player_died(name.to_int())
 
 
 # Efectos de muerte en todos los peers: cadáver que sale despedido, sangre/chispas,
@@ -776,6 +778,23 @@ func death_fx_rpc(shooter_id: int) -> void:
 	var feed := get_tree().current_scene.get_node_or_null("KillFeed")
 	if feed:
 		feed.add_entry(shooter_id, name.to_int())
+	_set_dead_local()
+
+
+# Muerto hasta la siguiente ronda: sin cuerpo, sin luz, sin colisión, sin control
+func _set_dead_local() -> void:
+	_dead = true
+	visual.visible = false
+	hand_pivot.visible = false
+	aura.enabled = false
+	if flashlight:
+		flashlight.enabled = false
+	collision_layer = 0
+	_col.set_deferred("disabled", true)
+	velocity = Vector2.ZERO
+	if is_multiplayer_authority():
+		set_physics_process(false)
+		throw_arc.clear_points()
 
 
 func _burst_fx(dir: Vector2) -> void:
@@ -803,35 +822,6 @@ func _hit_stop() -> void:
 	# El temporizador ignora la escala de tiempo (4º parámetro)
 	await get_tree().create_timer(hit_stop_time, true, false, true).timeout
 	Engine.time_scale = 1.0
-
-
-@rpc("any_peer", "call_local", "reliable")
-func respawn_rpc() -> void:
-	# Al reaparecer se vuelve al arma por defecto con la munición llena
-	if default_weapon:
-		equip_weapon(default_weapon, -1)
-	current_item = null
-
-	if is_multiplayer_authority():
-		_aim_up = 0.0
-		stance = Stance.STAND
-		_flip_t = -1.0
-		visual.rotation = 0.0
-		_kb_sprint_dir = 0
-		global_position = GameManager.get_spawn_position()
-		velocity = Vector2.ZERO
-
-
-@rpc("any_peer", "call_local", "reliable")
-func game_over_rpc(winner_id: int) -> void:
-	var level := get_tree().current_scene
-	if level.has_method("end_game_sequence"):
-		level.end_game_sequence(winner_id)
-
-	if multiplayer.is_server():
-		get_tree().create_timer(5.0).timeout.connect(func():
-			multiplayer.multiplayer_peer.close()
-		)
 
 
 # --- OBJETO: LANZAR CON CARGA Y ARCO ---

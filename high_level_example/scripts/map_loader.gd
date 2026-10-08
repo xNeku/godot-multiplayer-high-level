@@ -457,8 +457,6 @@ static func _item_pool() -> Array:
 			if not f.ends_with(".tres"):
 				continue
 			var base := f.get_basename().to_lower()
-			if base == "pistola": # el arma inicial no se reparte por el mapa
-				continue
 			var res := load("%s/%s" % [dir_path, f])
 			if res is WeaponData or res is ItemData:
 				pool.append([base, res])

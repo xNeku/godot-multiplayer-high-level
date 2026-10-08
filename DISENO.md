@@ -25,7 +25,7 @@ juego los construye al vuelo con `scripts/map_loader.gd`, sin importar nada ni a
 - Mapas antiguos de escena que siguen: Edificio y Pruebas de armas. Los 12 mapas generados por `tools/mapgen` se han borrado
   (el generador y su validador siguen en `tools/mapgen`, ya sin uso directo).
 
-## Sistema de rondas (diseño, **aún sin implementar**)
+## Sistema de rondas (implementado: `scripts/round_manager.gd`)
 Flujo de una ronda:
 1. Apareces **sin nada en la mano**, solo con la linterna.
 2. Hay armas y objetos repartidos por el mapa: los coges y a jugar.
@@ -41,6 +41,13 @@ Reglas:
 - Los ajustes personalizados de partida llegan mucho más adelante.
 - Objetivo: partidas pulidas y rápidas.
 
-Pendiente de decidir: qué pasa si todos mueren a la vez (empate: nadie suma) y si una ronda tiene límite de tiempo.
+Decidido:
+- Sin límite de tiempo.
+- Cuando queda uno vivo la ronda no acaba al instante: hay **3 s** de margen. Si el último muere dentro de ese margen, o mueren dos a la vez, nadie suma.
+- Las kills ya no dan puntos: solo se puntúa ganando la ronda.
+- La muerte es definitiva hasta la siguiente ronda (no hay reaparición). Con un solo jugador (pruebas) la ronda nunca acaba.
+- Cada ronda recarga la escena de juego y el servidor manda el JSON del mapa nuevo. La primera ronda se elige en el lobby ("Aleatorio" o un mapa); las siguientes son aleatorias sin repetir hasta agotar la lista.
+- Parámetros en `round_manager.gd`: `POINTS_TO_WIN` (5), `END_GRACE` (3 s), `BETWEEN_TIME` (3 s), `PENALTY_MIN_PLAYERS` (4).
+- Sin hacer: votación de saltar la repetición (la repetición aún no existe), pausa de recuento cada 10 rondas, entrar a mitad de partida.
 
 Ver `ROADMAP.md` para el orden de trabajo.

@@ -25,6 +25,14 @@ func _sync_score(id: String, points: int) -> void:
 	score_updated.emit(id, points)
 
 
+# Solo el servidor. Resta un punto (nunca baja de 0).
+func remove_point(player_id) -> int:
+	var id := str(player_id)
+	var points: int = maxi(scores.get(id, 0) - 1, 0)
+	_sync_score.rpc(id, points)
+	return points
+
+
 # Se llama en todos los peers al empezar partida
 func reset_scores() -> void:
 	scores.clear()

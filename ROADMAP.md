@@ -8,7 +8,7 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
   sprint / agacharse / slide / backflip (pendiente de balancear).
 
 ## Ahora
-1. **Sistema de rondas** (flujo en `DISENO.md`). Primero la versión mínima: ronda, ganador, +1, siguiente mapa, 5 puntos.
+1. ~~Sistema de rondas~~ (hecho en versión mínima, ver `DISENO.md`; falta probar con gente y el −1 con 4+ jugadores).
 2. **Pulido de game feel** (Neku prueba y apunta en `GAMEFEEL.md`).
 3. **Mapas** (FlashMapMaker). Hacen falta unos 10-12 para que no se repitan.
 

@@ -61,8 +61,14 @@ func _on_start_pressed():
 	# Iniciar juego para todos. Los mapas JSON viajan por la red (el cliente no
 	# tiene por qué tener el archivo).
 	var i := map_selector.selected
-	if i >= 0 and i < _entries.size() and _entries[i].has("json"):
-		var text := MapLoader.read_text(_entries[i]["json"])
+	if i >= 0 and i < _entries.size() and _entries[i].has("random"):
+		var text := RoundManager.pick_first_map("")
+		if text == "":
+			push_warning("No hay mapas JSON para el modo aleatorio")
+			return
+		rpc("start_game_rpc", "", text)
+	elif i >= 0 and i < _entries.size() and _entries[i].has("json"):
+		var text := RoundManager.pick_first_map(_entries[i]["json"])
 		if text == "" or MapLoader.parse(text).is_empty():
 			push_warning("Mapa JSON no válido: " + str(_entries[i]["json"]))
 			return
@@ -78,6 +84,8 @@ func _on_start_pressed():
 func _rebuild_map_list(select_path: String = "") -> void:
 	map_selector.clear()
 	_entries.clear()
+	map_selector.add_item("Aleatorio (todos los mapas)")
+	_entries.append({"random": true})
 	for m in MapLoader.list_maps():
 		var tag := "" if m["official"] else "(custom) "
 		map_selector.add_item(tag + m["name"])
@@ -152,6 +160,7 @@ func update_player_list():
 @rpc("call_local", "reliable")
 func start_game_rpc(scene_path: String, map_json: String = ""):
 	GameManager.reset_scores()
+	RoundManager.begin_match()
 	GameManager.selected_map_json = map_json
 	# Mapa de escena antiguo (solo si es uno de los del menú) o JSON recibido por red
 	GameManager.selected_map_path = ""

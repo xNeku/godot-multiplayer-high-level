@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 HighLevelNetworkHandler="*res://high_level_example/scripts/high_level_network_handler.gd"
 GameManager="*res://high_level_example/scripts/GameManager.gd"
+RoundManager="*res://high_level_example/scripts/round_manager.gd"
 
 [display]
 

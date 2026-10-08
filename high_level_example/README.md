@@ -15,9 +15,9 @@ Proyecto de Godot 4.5 (se edita con 4.7.2). Un solo peer por jugador, sin juego 
   instanciar `scenes/Spawner.tscn` y arrastrar el `.tres` al campo `Weapon`.
 - **Objeto nuevo:** igual con `Objetos/` y el campo `Item` del spawner. Si es un proyectil con
   trayectoria, su escena usa `thrown_projectile.gd` (modos: granada, tomahawk, semtex, humo, translocator, betty, pem, cohete).
-- **Mapa nuevo:** escena con suelo/plataformas (capa 1 suelo, capa 4 plataformas atravesables),
-  nodos en el grupo `spawn_points` y, si quieres, un script `map_settings.gd` en la raíz.
-  Añadirlo al `MapSelector` de `Menu.tscn` y al array `maps` de `menu.gd`.
+- **Mapa nuevo:** hacerlo en FlashMapMaker y guardar el `.json` en `maps/` (aparece solo en el lobby).
+  Los mapas de escena antiguos (`MapaEdificio`, `MapaPruebas`) están en el array `maps` de `Lobby.tscn`.
+- **Autoloads:** `HighLevelNetworkHandler` (conexión), `GameManager` (puntos, mapa elegido), `RoundManager` (rondas, lobby), `Settings` (opciones guardadas).
 
 ## Controles
 Teclado: A/D mover, Shift correr, W/Espacio saltar (mantener = apuntar arriba), S abajo,

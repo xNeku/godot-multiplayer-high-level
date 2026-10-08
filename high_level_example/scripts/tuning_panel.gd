@@ -56,7 +56,6 @@ var _player: Node
 var _weapon: WeaponData
 var _defaults := {}
 var _weapon_defaults := {}
-var _built_for: WeaponData
 var _player_applied := false
 
 
@@ -177,7 +176,6 @@ func _save() -> void:
 				_cfg.set_value("arma:" + path, def[0], w.get(def[0]))
 	_cfg.save(FILE)
 	print("[Ajustes] guardados en ", ProjectSettings.globalize_path(FILE))
-	print(_cfg.encode_to_text())
 
 
 func _reset() -> void:

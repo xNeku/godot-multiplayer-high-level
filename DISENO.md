@@ -13,7 +13,7 @@
 ## Mapas (JSON de FlashMapMaker)
 Los mapas se hacen en el editor web (https://xneku.github.io/FlashMapMaker/, repo `xNeku/FlashMapMaker`) y el
 juego los construye al vuelo con `scripts/map_loader.gd`, sin importar nada ni abrir el editor de Godot.
-- **Oficiales:** `maps/*.json` (en el repo). **Custom:** `user://maps/*.json`. Aparecen solos en el selector del lobby.
+- **Oficiales:** `maps/*.json` (en el repo). **Custom:** `user://maps/*.json`. Aparecen solos en el selector del lobby (solo lo ve el host).
 - **Importar JSON** (botón del lobby, solo host): copia el archivo a `user://maps/` y lo selecciona.
 - **Multijugador:** el host manda el texto del JSON a los clientes al empezar; no necesitan tener el archivo.
 - Formato: ver el README del editor. Todo en bloques (1 bloque = 11 px), esquina superior izquierda, Y hacia abajo.
@@ -22,8 +22,8 @@ juego los construye al vuelo con `scripts/map_loader.gd`, sin importar nada ni a
   Con `item` ("Bazooka", "Granada"...) se busca por nombre de archivo en `Weapons/` y `Objetos/`; si no existe, la base queda vacía.
 - Límites (mapas de fuera): 512 KB de texto, rejilla máx. 512×512, 5000 rectángulos, 2000 entidades; lo que cae fuera de la rejilla se descarta.
 - En un export hay que añadir `*.json` a los filtros de recursos no importados para que `res://maps/` viaje en el build.
-- Mapas antiguos de escena que siguen: Edificio y Pruebas de armas. Los 12 mapas generados por `tools/mapgen` se han borrado
-  (el generador y su validador siguen en `tools/mapgen`, ya sin uso directo).
+- Mapas antiguos de escena que siguen: Edificio y Pruebas de armas. Los mapas generados a mano con script se borraron
+  y el generador (`tools/mapgen`) se eliminó: el editor web lo sustituye.
 
 ## Sistema de rondas (implementado: `scripts/round_manager.gd`)
 Flujo de una ronda:
@@ -51,3 +51,9 @@ Decidido:
 - Sin hacer: votación de saltar la repetición (la repetición aún no existe), pausa de recuento cada 10 rondas, entrar a mitad de partida.
 
 Ver `ROADMAP.md` para el orden de trabajo.
+
+## Lobby (implementado: `scenes/Lobby.tscn`, `scripts/lobby.gd`)
+- Al crear o unirse se entra al lobby (mapa `lobby/lobby.json`, sin oscuridad). Los jugadores se mueven y llevan la **pistola de juguete** (empuja, no mata).
+- Color elegido (8 colores, se guarda en `user://opciones.cfg`) y replicado; pecho y cara quedan para cuando haya arte.
+- **Listo** lo gestiona el servidor. Con todos listos y todos ya spawneados: cuenta atrás de 3 s y `RoundManager.start_match`. Si alguien cancela, se aborta.
+- Durante una partida no se puede entrar (se rechaza la conexión). Al terminar la partida, todos vuelven al lobby.

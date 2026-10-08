@@ -167,6 +167,7 @@ Notas sonido (qué falta, qué suena mal, qué no se oye a la distancia justa):
 | `remote_smoothing` | 30 | Suavizado de los otros jugadores. Más = más pegado a la posición recibida, menos = más suave pero con retraso visual | |
 | `remote_snap_distance` | 120 | Si la copia remota se desvía más, salta directa | |
 | Disparo propio | – | Sonido, fogonazo y trazador al instante; la bala real llega del servidor | |
+| Autoridad de disparo | – | El cliente solo manda posición y ángulo; velocidad, dispersión y nº de balas salen del arma que tiene el servidor | Evita trampas y duplicados |
 
 Notas red (latencia, tirones, cosas que no cuadran entre jugadores):
 -
@@ -195,7 +196,8 @@ Notas animación:
 | Parámetro | Valor | Dónde | Notas |
 |---|---|---|---|
 | `respawn_time` de armas | 5.0 | `scripts/weapon_spawner.gd` | |
-| Puntos para ganar | 10 | `hit()` en el script del jugador | |
+| Puntos para ganar | 5 | `POINTS_TO_WIN` en `scripts/round_manager.gd` | Ver `DISENO.md` |
+| Pistola de juguete (lobby) | knockback 280 | `scenes/BalaJuguete.tscn` (`knockback`) y `Weapons/PistolaJuguete.tres` | Empuja, no mata. Impulso horizontal + salto pequeño (-90) |
 | Duración vida de bala | 10 | `scripts/bullet.gd` | |
 
 ---

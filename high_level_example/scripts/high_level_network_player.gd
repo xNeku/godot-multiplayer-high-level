@@ -585,13 +585,7 @@ func shoot() -> void:
 
 	# El ángulo va en global (aim_angle). hand_pivot.rotation es local y este nodo
 	# tiene escala no uniforme, así que con él las balas se desviaban.
-	request_shoot.rpc_id(1,
-		muzzle.global_position,
-		aim_angle,
-		current_weapon_data.bullet_speed,
-		current_weapon_data.spread,
-		current_weapon_data.bullet_count
-	)
+	request_shoot.rpc_id(1, muzzle.global_position, aim_angle)
 
 	# Efectos inmediatos en el tirador (sin esperar al servidor)
 	shake(shake_per_shot * (1.0 + current_weapon_data.recoil_per_shot_deg * 0.15))
@@ -606,7 +600,7 @@ func shoot() -> void:
 
 
 @rpc("any_peer", "call_local", "reliable")
-func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count: int) -> void:
+func request_shoot(pos: Vector2, rot: float) -> void:
 	if not multiplayer.is_server():
 		return
 	if current_weapon_data == null or current_weapon_data.bullet_scene == null:
@@ -620,21 +614,21 @@ func request_shoot(pos: Vector2, rot: float, speed: float, spread: float, count:
 		current_ammo -= 1
 	_shot_fx.rpc(not current_weapon_data.silenced)
 
-	for _i in count:
-		var bullet = current_weapon_data.bullet_scene.instantiate()
+	var wd := current_weapon_data
+	for _i in wd.bullet_count:
+		var bullet = wd.bullet_scene.instantiate()
 		# Antes de añadirla: así viaja en el spawn y el cliente tirador la oculta
 		if "shooter_id" in bullet: bullet.shooter_id = shooter
 		get_parent().add_child(bullet, true)
 		bullet.global_position = pos
 
-		var final_angle: float = rot + deg_to_rad(randf_range(-spread, spread))
+		var final_angle: float = rot + deg_to_rad(randf_range(-wd.spread, wd.spread))
 		bullet.rotation = final_angle
 
 		if bullet.has_method("launch"):
-			bullet.launch(Vector2.RIGHT.rotated(final_angle) * speed, shooter, current_weapon_data.projectile_gravity)
-		if "speed" in bullet: bullet.speed = speed
+			bullet.launch(Vector2.RIGHT.rotated(final_angle) * wd.bullet_speed, shooter, wd.projectile_gravity)
+		if "speed" in bullet: bullet.speed = wd.bullet_speed
 		if "direction" in bullet: bullet.direction = Vector2.RIGHT.rotated(final_angle)
-		if "shooter_id" in bullet: bullet.shooter_id = shooter
 
 
 # Sonido (con alcance según el arma) y, si no lleva silenciador, fogonazo de luz.

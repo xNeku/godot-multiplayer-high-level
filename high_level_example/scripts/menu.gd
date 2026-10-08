@@ -56,12 +56,14 @@ func _show_options(on: bool) -> void:
 
 func _on_host_pressed() -> void:
 	message.text = ""
-	HighLevelNetworkHandler.start_host()
+	if HighLevelNetworkHandler.start_host() != OK:
+		message.text = "No se pudo crear la sala (¿puerto ocupado?)."
 
 
 func _on_join_pressed() -> void:
 	message.text = "Conectando..."
-	HighLevelNetworkHandler.start_client(ip_input.text.strip_edges())
+	if HighLevelNetworkHandler.start_client(ip_input.text.strip_edges()) != OK:
+		message.text = "IP no válida."
 
 
 func _on_connection_failed() -> void:

@@ -44,10 +44,3 @@ func remove_player(id: int) -> void:
 	var player := get_node(spawn_path).get_node_or_null(str(id))
 	if player:
 		player.queue_free()
-
-
-# In this function, which is connected to the "host_started" signal in the high_level_network_handler
-# class, we spawn the server player. Easy right?
-func spawn_host_player() -> void:
-	if !multiplayer.is_server(): return
-	spawn_player(multiplayer.get_unique_id())

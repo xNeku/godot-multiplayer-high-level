@@ -20,7 +20,6 @@ func _on_target_entered(body):
 		explode(body)
 
 func explode(victim):
-	print("¡BOOM! Claymore explotó en ", victim.name)
 	if victim.has_method("hit"):
 		victim.hit(shooter_id)
 	

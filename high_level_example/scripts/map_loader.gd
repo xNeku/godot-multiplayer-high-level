@@ -111,12 +111,6 @@ static func parse(text: String) -> Dictionary:
 	return out
 
 
-# Nombre del mapa sin construirlo ("" si no vale)
-static func map_name(text: String) -> String:
-	var m := parse(text)
-	return m.get("name", "") if not m.is_empty() else ""
-
-
 # Construye el mapa. null si el JSON no vale.
 static func build(text: String) -> Node2D:
 	var m := parse(text)

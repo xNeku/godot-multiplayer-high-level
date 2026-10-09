@@ -13,6 +13,8 @@
 [ext_resource type="Texture2D" path="res://high_level_example/assets/fx/linterna_cono.png" id="11_cono"]
 [ext_resource type="Texture2D" path="res://high_level_example/assets/fx/punto_suave.png" id="12_punto"]
 
+[ext_resource type="Script" path="res://high_level_example/scripts/raccoon_visual.gd" id="21_mapache"]
+
 [ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_idle_sheet.png" id="20_idle"]
 [ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_walk_sheet.png" id="20_walk"]
 [ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_run_sheet.png" id="20_run"]
@@ -20,7 +22,24 @@
 [ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_backflip_sheet.png" id="20_backflip"]
 [ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_crouch_sheet.png" id="20_crouch"]
 [ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_slide_sheet.png" id="20_slide"]
-[ext_resource type="Script" path="res://high_level_example/scripts/raccoon_visual.gd" id="21_mapache"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_die_sheet.png" id="20_die"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_corpse_sheet.png" id="20_corpse"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_shoot_sheet.png" id="20_shoot"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_hang_sheet.png" id="20_hang"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_land_sheet.png" id="20_land"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_idle_tint_sheet.png" id="20t_idle"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_walk_tint_sheet.png" id="20t_walk"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_run_tint_sheet.png" id="20t_run"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_jump_tint_sheet.png" id="20t_jump"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_backflip_tint_sheet.png" id="20t_backflip"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_crouch_tint_sheet.png" id="20t_crouch"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_slide_tint_sheet.png" id="20t_slide"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_die_tint_sheet.png" id="20t_die"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_corpse_tint_sheet.png" id="20t_corpse"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_shoot_tint_sheet.png" id="20t_shoot"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_hang_tint_sheet.png" id="20t_hang"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_land_tint_sheet.png" id="20t_land"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_arm_sheet.png" id="22_brazo"]
 
 [sub_resource type="AtlasTexture" id="At_idle_0"]
 atlas = ExtResource("20_idle")
@@ -133,6 +152,54 @@ region = Rect2(66, 0, 33, 33)
 [sub_resource type="AtlasTexture" id="At_slide_3"]
 atlas = ExtResource("20_slide")
 region = Rect2(99, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_die_0"]
+atlas = ExtResource("20_die")
+region = Rect2(0, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_die_1"]
+atlas = ExtResource("20_die")
+region = Rect2(33, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_die_2"]
+atlas = ExtResource("20_die")
+region = Rect2(66, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_die_3"]
+atlas = ExtResource("20_die")
+region = Rect2(99, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_corpse_0"]
+atlas = ExtResource("20_corpse")
+region = Rect2(0, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_corpse_1"]
+atlas = ExtResource("20_corpse")
+region = Rect2(33, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_shoot_0"]
+atlas = ExtResource("20_shoot")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_shoot_1"]
+atlas = ExtResource("20_shoot")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_hang_0"]
+atlas = ExtResource("20_hang")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_hang_1"]
+atlas = ExtResource("20_hang")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_land_0"]
+atlas = ExtResource("20_land")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_land_1"]
+atlas = ExtResource("20_land")
+region = Rect2(19, 0, 19, 27)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_mapache"]
 animations = [{
@@ -253,6 +320,410 @@ animations = [{
 }],
 "loop": false,
 "name": &"slide",
+"speed": 9.1
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_die_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_die_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_die_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_die_3")
+}],
+"loop": false,
+"name": &"die",
+"speed": 9.1
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_corpse_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_corpse_1")
+}],
+"loop": true,
+"name": &"corpse",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_shoot_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_shoot_1")
+}],
+"loop": false,
+"name": &"shoot",
+"speed": 14.3
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_hang_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_hang_1")
+}],
+"loop": true,
+"name": &"hang",
+"speed": 3.3
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_land_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_land_1")
+}],
+"loop": false,
+"name": &"land",
+"speed": 9.1
+}]
+
+[sub_resource type="AtlasTexture" id="Att_idle_0"]
+atlas = ExtResource("20t_idle")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_idle_1"]
+atlas = ExtResource("20t_idle")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_idle_2"]
+atlas = ExtResource("20t_idle")
+region = Rect2(38, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_idle_3"]
+atlas = ExtResource("20t_idle")
+region = Rect2(57, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_walk_0"]
+atlas = ExtResource("20t_walk")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_walk_1"]
+atlas = ExtResource("20t_walk")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_walk_2"]
+atlas = ExtResource("20t_walk")
+region = Rect2(38, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_walk_3"]
+atlas = ExtResource("20t_walk")
+region = Rect2(57, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_run_0"]
+atlas = ExtResource("20t_run")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_run_1"]
+atlas = ExtResource("20t_run")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_run_2"]
+atlas = ExtResource("20t_run")
+region = Rect2(38, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_run_3"]
+atlas = ExtResource("20t_run")
+region = Rect2(57, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_jump_0"]
+atlas = ExtResource("20t_jump")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_jump_1"]
+atlas = ExtResource("20t_jump")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_jump_2"]
+atlas = ExtResource("20t_jump")
+region = Rect2(38, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_jump_3"]
+atlas = ExtResource("20t_jump")
+region = Rect2(57, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_backflip_0"]
+atlas = ExtResource("20t_backflip")
+region = Rect2(0, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_backflip_1"]
+atlas = ExtResource("20t_backflip")
+region = Rect2(33, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_backflip_2"]
+atlas = ExtResource("20t_backflip")
+region = Rect2(66, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_backflip_3"]
+atlas = ExtResource("20t_backflip")
+region = Rect2(99, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_crouch_0"]
+atlas = ExtResource("20t_crouch")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_crouch_1"]
+atlas = ExtResource("20t_crouch")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_crouch_2"]
+atlas = ExtResource("20t_crouch")
+region = Rect2(38, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_crouch_3"]
+atlas = ExtResource("20t_crouch")
+region = Rect2(57, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_slide_0"]
+atlas = ExtResource("20t_slide")
+region = Rect2(0, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_slide_1"]
+atlas = ExtResource("20t_slide")
+region = Rect2(33, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_slide_2"]
+atlas = ExtResource("20t_slide")
+region = Rect2(66, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_slide_3"]
+atlas = ExtResource("20t_slide")
+region = Rect2(99, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_die_0"]
+atlas = ExtResource("20t_die")
+region = Rect2(0, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_die_1"]
+atlas = ExtResource("20t_die")
+region = Rect2(33, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_die_2"]
+atlas = ExtResource("20t_die")
+region = Rect2(66, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_die_3"]
+atlas = ExtResource("20t_die")
+region = Rect2(99, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_corpse_0"]
+atlas = ExtResource("20t_corpse")
+region = Rect2(0, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_corpse_1"]
+atlas = ExtResource("20t_corpse")
+region = Rect2(33, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="Att_shoot_0"]
+atlas = ExtResource("20t_shoot")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_shoot_1"]
+atlas = ExtResource("20t_shoot")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_hang_0"]
+atlas = ExtResource("20t_hang")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_hang_1"]
+atlas = ExtResource("20t_hang")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_land_0"]
+atlas = ExtResource("20t_land")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="Att_land_1"]
+atlas = ExtResource("20t_land")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_mapache_tinte"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_idle_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_idle_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_idle_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_idle_3")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 2.9
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_walk_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_walk_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_walk_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_walk_3")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 5.9
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_run_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_run_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_run_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_run_3")
+}],
+"loop": true,
+"name": &"run",
+"speed": 11.1
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_jump_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_jump_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_jump_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_jump_3")
+}],
+"loop": false,
+"name": &"jump",
+"speed": 7.7
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_backflip_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_backflip_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_backflip_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_backflip_3")
+}],
+"loop": false,
+"name": &"backflip",
+"speed": 11.1
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_crouch_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_crouch_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_crouch_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_crouch_3")
+}],
+"loop": false,
+"name": &"crouch",
+"speed": 8.3
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_slide_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_slide_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_slide_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_slide_3")
+}],
+"loop": false,
+"name": &"slide",
+"speed": 9.1
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_die_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_die_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_die_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_die_3")
+}],
+"loop": false,
+"name": &"die",
+"speed": 9.1
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_corpse_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_corpse_1")
+}],
+"loop": true,
+"name": &"corpse",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_shoot_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_shoot_1")
+}],
+"loop": false,
+"name": &"shoot",
+"speed": 14.3
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_hang_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_hang_1")
+}],
+"loop": true,
+"name": &"hang",
+"speed": 3.3
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Att_land_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Att_land_1")
+}],
+"loop": false,
+"name": &"land",
 "speed": 9.1
 }]
 
@@ -380,6 +851,11 @@ animation = &"idle"
 autoplay = "idle"
 script = ExtResource("21_mapache")
 
+[node name="Tinte" type="AnimatedSprite2D" parent="Mapache"]
+texture_filter = 1
+sprite_frames = SubResource("SpriteFrames_mapache_tinte")
+animation = &"idle"
+
 [node name="HandPivot" type="Node2D" parent="."]
 
 [node name="PointLight2D" type="PointLight2D" parent="HandPivot"]
@@ -391,6 +867,14 @@ shadow_filter = 1
 shadow_filter_smooth = 1.5
 texture = ExtResource("11_cono")
 offset = Vector2(160, 0)
+
+[node name="Brazo" type="Sprite2D" parent="HandPivot"]
+z_index = 2
+texture_filter = 1
+texture = ExtResource("22_brazo")
+centered = false
+offset = Vector2(-1, -3)
+hframes = 2
 
 [node name="Sprite2D" type="Sprite2D" parent="HandPivot"]
 z_index = 3

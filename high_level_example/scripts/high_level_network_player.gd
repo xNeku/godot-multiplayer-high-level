@@ -950,6 +950,9 @@ func _play_shot_fx(with_flash: bool) -> void:
 		shot_audio.play()
 	if wd == null:
 		return
+	var mapache := get_node_or_null("Mapache")
+	if mapache and mapache.has_method("on_shot"):
+		mapache.on_shot()
 	var flash_size: float = 0.0 if wd.silenced else wd.muzzle_flash
 	Fx.muzzle(muzzle.global_position, aim_angle, flash_size)
 	if wd.eject_casing:
@@ -1096,7 +1099,7 @@ func death_fx_rpc(shooter_id: int) -> void:
 	var corpse := CORPSE_SCENE.instantiate()
 	get_tree().current_scene.add_child(corpse)
 	corpse.global_position = global_position
-	corpse.setup(visual, dir * corpse_force)
+	corpse.setup(visual, dir * corpse_force, get_node_or_null("Mapache"))
 	_burst_fx(dir)
 	_play_sfx(sfx_death, step_range_run + 200.0, 0.0)
 

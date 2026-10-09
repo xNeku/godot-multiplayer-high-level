@@ -6,9 +6,18 @@ extends Node2D
 var speed: float = 2000.0
 var direction: Vector2 = Vector2.RIGHT
 var shooter_node: CollisionObject2D
+var tracer: bool = false
 @export var max_life: float = 2.0
 
 var _age: float = 0.0
+
+
+func _ready() -> void:
+	var line := $Linea as Line2D
+	if tracer:
+		line.default_color = Color(1.0, 0.75, 0.35)
+		line.width = 1.2
+		$Luz.enabled = true
 
 
 func _physics_process(delta: float) -> void:

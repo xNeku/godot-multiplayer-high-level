@@ -43,3 +43,16 @@ enum FireMode {
 @export var shot_sound: AudioStream
 # A cuántos píxeles se oye el disparo (el volumen baja con la distancia)
 @export var hearing_range: float = 1400.0
+
+@export_group("Efectos")
+# Tamaño del fogonazo (0 = sin fogonazo; con silenciador se fuerza a 0)
+@export var muzzle_flash: float = 1.0
+# Cada cuántas balas sale una trazadora (brilla en vuelo). 0 = nunca, 1 = todas
+@export var tracer_every: int = 0
+# Tamaño del impacto (chispas, polvo, agujero)
+@export var impact_size: float = 1.0
+# Estela brillante desde el cañón hasta el impacto (francotirador)
+@export var impact_trail: bool = false
+# Expulsa casquillo al disparar
+@export var eject_casing: bool = true
+@export var casing_color: Color = Color(0.85, 0.65, 0.3)

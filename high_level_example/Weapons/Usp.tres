@@ -21,3 +21,6 @@ recoil_pause = 0.3
 recoil_recovery_deg_per_sec = 60.0
 silenced = true
 hearing_range = 380.0
+muzzle_flash = 0.0
+tracer_every = 0
+impact_size = 0.8

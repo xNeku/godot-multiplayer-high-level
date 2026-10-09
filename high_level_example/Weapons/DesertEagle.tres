@@ -21,3 +21,6 @@ recoil_max_deg = 50.0
 recoil_pause = 0.7
 recoil_recovery_deg_per_sec = 50.0
 hearing_range = 2620.0
+muzzle_flash = 1.7
+tracer_every = 0
+impact_size = 1.7

@@ -11,7 +11,7 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
 ## Ahora
 1. ~~Sistema de rondas~~ (hecho; falta probarlo con gente y el −1 con 4+ jugadores).
 2. **Pulido de game feel** (Neku prueba y apunta en `GAMEFEEL.md`).
-3. **Mapas** (FlashMapMaker). Hacen falta unos 10-12 para que no se repitan.
+3. **Mapas** (FlashMapMaker). Hacen falta unos 10-12 para que no se repitan. Hecho: `fabrica` (grande, 8 jugadores).
 
 ## Alpha jugable
 4. **Menú principal** ✅: crear partida, unirse, opciones (volumen, pantalla completa, resolución; controles solo en lectura, falta reasignarlos).

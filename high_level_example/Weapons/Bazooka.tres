@@ -17,3 +17,5 @@ max_ammo = 1
 bullet_speed = 900.0
 projectile_gravity = 500.0
 hearing_range = 3500.0
+muzzle_flash = 2.5
+eject_casing = false

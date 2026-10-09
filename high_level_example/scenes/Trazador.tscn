@@ -1,15 +1,28 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/tracer.gd" id="1_tr"]
 
-[sub_resource type="Gradient" id="Gradient_tr"]
-colors = PackedColorArray(1, 0.9, 0.4, 0, 1, 0.95, 0.5, 1)
+[sub_resource type="Gradient" id="Gradient_l"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_l"]
+gradient = SubResource("Gradient_l")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
 
 [node name="Trazador" type="Node2D"]
 script = ExtResource("1_tr")
 
 [node name="Linea" type="Line2D" parent="."]
-points = PackedVector2Array(-14, 0, 0, 0)
-width = 2.0
-default_color = Color(1, 0.95, 0.5, 1)
-gradient = SubResource("Gradient_tr")
+points = PackedVector2Array(-12, 0, 0, 0)
+width = 1.0
+default_color = Color(0.55, 0.5, 0.42, 1)
+
+[node name="Luz" type="PointLight2D" parent="."]
+enabled = false
+color = Color(1, 0.65, 0.3, 1)
+energy = 0.7
+texture = SubResource("GradientTexture2D_l")
+texture_scale = 0.35

@@ -1,7 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://ldk5hvdqjjr"]
+[gd_scene load_steps=6 format=3 uid="uid://ldk5hvdqjjr"]
 
 [ext_resource type="Script" uid="uid://sk5k5y7ue8lc" path="res://high_level_example/scripts/bullet.gd" id="1_n5ecu"]
-[ext_resource type="Texture2D" uid="uid://ddqb6lbtbeeo8" path="res://high_level_example/assets/weapons/guns_v1.png" id="1_qc014"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_qc014"]
 radius = 2.0
@@ -17,6 +16,9 @@ properties/1/replication_mode = 2
 properties/2/path = NodePath(".:shooter_id")
 properties/2/spawn = true
 properties/2/replication_mode = 0
+properties/3/path = NodePath(".:tracer")
+properties/3/spawn = true
+properties/3/replication_mode = 0
 
 [sub_resource type="Gradient" id="Gradient_n5ecu"]
 offsets = PackedFloat32Array(0.04310345, 1)
@@ -33,12 +35,10 @@ collision_layer = 4
 collision_mask = 0
 script = ExtResource("1_n5ecu")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture_filter = 1
-scale = Vector2(1.2855072, 1.1684576)
-texture = ExtResource("1_qc014")
-region_enabled = true
-region_rect = Rect2(30.620554, 72.270164, 7.8357944, 4.091255)
+[node name="Estela" type="Line2D" parent="."]
+points = PackedVector2Array(-12, 0, 0, 0)
+width = 1.0
+default_color = Color(0.55, 0.5, 0.42, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 scale = Vector2(1.6621811, 0.9385423)
@@ -47,7 +47,9 @@ shape = SubResource("CapsuleShape2D_qc014")
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_qc014")
 
-[node name="PointLight2D" type="PointLight2D" parent="."]
-color = Color(0.8239412, 0.8161464, 0, 1)
-energy = 1.5
+[node name="LuzTrazadora" type="PointLight2D" parent="."]
+enabled = false
+color = Color(1, 0.65, 0.3, 1)
+energy = 0.7
 texture = SubResource("GradientTexture2D_7jpj8")
+texture_scale = 0.35

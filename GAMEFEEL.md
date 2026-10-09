@@ -198,6 +198,28 @@ Parámetros en el material de `PostFX.tscn` (inspector): brillo alrededor de luc
 grano 0,045, líneas 0,06, viñeta 0,45, desaturación 0,12, parpadeo 0,012, tinte cálido.
 Interferencia: franja que baja en 1,4 s cada 12-30 s (`post_fx.gd`), desplaza filas 2 px y aclara 0,09.
 
+## 5c. Balística, impactos y explosiones (`scripts/fx.gd`, autoload `Fx`)
+Las balas ya no brillan: estela corta y oscura que solo se ve con luz. Lo que brilla va en una capa que no oscurece
+la noche: fogonazo, trazadoras, chispas, fuego. Humo, polvo, casquillos, agujeros y quemaduras van al mundo (solo con luz).
+Por arma (`WeaponData`, grupo *Efectos*):
+
+| Arma | `muzzle_flash` | `tracer_every` | `impact_size` | Otros |
+|---|---|---|---|---|
+| Pistola | 1.0 | 0 | 1.0 | |
+| Desert Eagle | 1.7 | 0 | 1.7 | |
+| Escopeta | 2.1 | 0 | 0.7 por perdigón | cartucho rojo |
+| Mp7 / Usp / Sniper silenciosa | 0 (silenciador: solo humo) | 0 | 0.8 / 0.8 / 1.8 | |
+| Sniper | 2.4 | 1 (todas) | 2.2 | `impact_trail`: estela brillante del cañón al impacto + humo |
+| Pistola de juguete | 0.5 | 1 | 0.5 | sin casquillo, chispas rosas |
+
+- Impacto en pared: chispas, destello de luz real 0,06 s, polvo y agujero (dura 10 s, máx. 80). En jugador: sangre.
+- Casquillos con rebote (`scripts/casing.gd`), 3 s.
+- Explosión (`Fx.explosion`): destello, bola de fuego, metralla, onda expansiva, humo y quemadura en el suelo (18 s). PEM: anillos, rayos y chispas azules.
+
+## 5d. Luces
+- Linterna: textura de cono real (`assets/fx/linterna_cono.png`) con sombras suaves, haz visible tenue y brillo en el foco (solo la tuya, como antes).
+- Bombillas: alcance mayor (`texture_scale` 1,9), sombras suaves, pantalla metálica y halo que sigue el parpadeo.
+
 ## 6. Sonido
 Todos los sonidos son **placeholders generados**. En un juego de sigilo el sonido es clave, así que aquí van las distancias.
 

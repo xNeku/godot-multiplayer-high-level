@@ -25,6 +25,19 @@ juego los construye al vuelo con `scripts/map_loader.gd`, sin importar nada ni a
 - Mapas antiguos de escena que siguen: Edificio y Pruebas de armas. Los mapas generados a mano con script se borraron
   y el generador (`tools/mapgen`) se eliminó: el editor web lo sustituye.
 
+## Mapa "fabrica" (`maps/fabrica.json`, 150 × 48 bloques)
+Hecho por script y comprobado (todas las bases y spawns alcanzables desde cualquier spawn con salto de 4 bloques).
+- **Patio oeste:** andamio de plataformas hasta una caseta y la ventana de la 2ª planta. Sniper silenciosa arriba del andamio, translocador en la caseta, pistola en el suelo.
+- **Edificio (4 niveles):** nave abierta en planta baja con vigas y cajas (Usp, granada); sótano bajo trampillas (bazooka en el centro, claymore e hilo en las bajadas); 1ª planta con tres despachos y puertas (escopeta, betty, pistola); 2ª planta con pasillo, entreplanta (Mp7, humo) y cámara acorazada tras puerta (Desert Eagle).
+- **Azotea:** caseta de ascensor, depósito de agua con PEM arriba, semtex. Pasarela hacia el este.
+- **Este:** cobertizo (tomahawk en el tejado), patio hundido (escopeta) y torre de francotirador (sniper arriba, a la vista de todos).
+- Escaleras: rellano de plataforma a 4 bloques + trampilla atravesable en el forjado. 8 spawns repartidos por zonas.
+
+## Aspecto de los mapas JSON (provisional hasta tener tiles dibujados)
+`shaders/tiles.gdshader`: muros de ladrillo, losas de hormigón (piezas anchas), plataformas de tablón con escuadras,
+cajas de madera, pared de ladrillo al fondo en los interiores (casillas con techo y suelo cerca) y cielo con estrellas fuera.
+Las bombillas tienen pantalla, halo y sombras suaves. Los mapas de escena antiguos (Edificio, Pruebas) siguen con colores planos.
+
 ## Sistema de rondas (implementado: `scripts/round_manager.gd`)
 Flujo de una ronda:
 1. Apareces **sin nada en la mano**, solo con la linterna.

@@ -17,3 +17,6 @@ max_ammo = 5
 bullet_speed = 4000.0
 silenced = true
 hearing_range = 610.0
+muzzle_flash = 0.0
+tracer_every = 0
+impact_size = 1.8

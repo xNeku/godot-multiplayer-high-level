@@ -22,3 +22,7 @@ bullet_count = 3
 shot_sound = ExtResource("9_snd")
 hearing_range = 2450.0
 metadata/_custom_type_script = "uid://1e258mb4p2cj"
+muzzle_flash = 2.1
+tracer_every = 0
+impact_size = 0.7
+casing_color = Color(0.75, 0.15, 0.12, 1)

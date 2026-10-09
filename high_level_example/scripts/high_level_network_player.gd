@@ -162,6 +162,9 @@ var _drop_until_msec: int = 0
 @onready var rope_line: Line2D = $Soga
 # Copia de la soga en una capa sin oscuridad: tú siempre ves la tuya; los demás solo si la ilumina una luz
 @onready var rope_line_own: Line2D = $CapaSogaPropia/SogaPropia
+# Haz visible de la linterna y brillo del foco (capa sin oscuridad). Solo el tuyo.
+@onready var beam: Sprite2D = $CapaBrillo/Haz
+@onready var lens: Sprite2D = $CapaBrillo/Lente
 
 const CORPSE_SCENE: PackedScene = preload("res://high_level_example/scenes/Cadaver.tscn")
 const TRACER_SCENE: PackedScene = preload("res://high_level_example/scenes/Trazador.tscn")
@@ -174,6 +177,9 @@ var net_position: Vector2 = Vector2.ZERO
 
 
 var _shake: float = 0.0
+# Balas disparadas (para decidir cuáles son trazadoras)
+var _shots_fired: int = 0
+var _local_shots: int = 0
 var _shake_t: float = 0.0
 var _shake_noise := FastNoiseLite.new()
 var _fx_last_pos: Vector2 = Vector2.ZERO
@@ -341,6 +347,7 @@ func _process(delta: float) -> void:
 		else:
 			global_position = global_position.lerp(net_position, 1.0 - exp(-remote_smoothing * delta))
 	_movement_sfx(delta)
+	_update_beam()
 	var missing: bool = rope_anchor == Vector2.ZERO and Time.get_ticks_msec() < _rope_miss_until
 	var shown: bool = rope_anchor != Vector2.ZERO or missing
 	var pts := PackedVector2Array([global_position, _rope_miss_end if missing else rope_anchor])
@@ -349,6 +356,19 @@ func _process(delta: float) -> void:
 	if shown:
 		rope_line.points = pts
 		rope_line_own.points = pts
+
+
+func _update_beam() -> void:
+	var on: bool = flashlight != null and flashlight.enabled and visible and hand_pivot.visible
+	beam.visible = on
+	lens.visible = on
+	if on:
+		var t: Transform2D = flashlight.global_transform
+		beam.global_position = t.origin
+		beam.global_rotation = t.get_rotation()
+		lens.global_position = t.origin
+		# El foco parpadea un pelín, como una linterna barata
+		lens.modulate.a = 0.5 + randf() * 0.08
 
 
 # Pasos, salto y aterrizaje deducidos del movimiento, así suenan igual para todos
@@ -768,6 +788,11 @@ func request_shoot(pos: Vector2, rot: float) -> void:
 		var bullet = wd.bullet_scene.instantiate()
 		# Antes de añadirla: así viaja en el spawn y el cliente tirador la oculta
 		if "shooter_id" in bullet: bullet.shooter_id = shooter
+		_shots_fired += 1
+		if "tracer" in bullet:
+			bullet.tracer = wd.tracer_every > 0 and _shots_fired % wd.tracer_every == 0
+			bullet.impact_size = wd.impact_size
+			bullet.impact_trail = wd.impact_trail
 		get_parent().add_child(bullet, true)
 		bullet.global_position = pos
 
@@ -796,9 +821,17 @@ func _play_shot_fx(with_flash: bool) -> void:
 		shot_audio.stream = wd.shot_sound
 		shot_audio.max_distance = wd.hearing_range
 		shot_audio.play()
-	if with_flash:
+	if wd == null:
+		return
+	var flash_size: float = 0.0 if wd.silenced else wd.muzzle_flash
+	Fx.muzzle(muzzle.global_position, aim_angle, flash_size)
+	if wd.eject_casing:
+		Fx.casing(hand_pivot.global_position + Vector2(facing * 6.0, -3.0), facing, wd.casing_color)
+	if with_flash and flash_size > 0.0:
+		muzzle_flash.energy = 1.2 + flash_size * 0.6
+		muzzle_flash.texture_scale = 0.6 + flash_size * 0.25
 		muzzle_flash.enabled = true
-		await get_tree().create_timer(0.06).timeout
+		await get_tree().create_timer(0.05).timeout
 		muzzle_flash.enabled = false
 
 
@@ -808,6 +841,8 @@ func _spawn_local_tracers() -> void:
 	var wd := current_weapon_data
 	for _i in wd.bullet_count:
 		var t = TRACER_SCENE.instantiate()
+		_local_shots += 1
+		t.tracer = wd.tracer_every > 0 and _local_shots % wd.tracer_every == 0
 		get_tree().current_scene.add_child(t)
 		var ang: float = aim_angle + deg_to_rad(randf_range(-wd.spread, wd.spread))
 		t.global_position = muzzle.global_position

@@ -21,6 +21,7 @@ HighLevelNetworkHandler="*res://high_level_example/scripts/high_level_network_ha
 GameManager="*res://high_level_example/scripts/GameManager.gd"
 RoundManager="*res://high_level_example/scripts/round_manager.gd"
 Settings="*res://high_level_example/scripts/settings.gd"
+Fx="*res://high_level_example/scripts/fx.gd"
 PostFX="*res://high_level_example/scenes/PostFX.tscn"
 
 [display]

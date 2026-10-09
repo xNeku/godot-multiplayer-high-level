@@ -18,3 +18,7 @@ bullet_speed = 3000.0
 shot_sound = ExtResource("9_snd")
 hearing_range = 3850.0
 metadata/_custom_type_script = "uid://1e258mb4p2cj"
+muzzle_flash = 2.4
+tracer_every = 1
+impact_size = 2.2
+impact_trail = true

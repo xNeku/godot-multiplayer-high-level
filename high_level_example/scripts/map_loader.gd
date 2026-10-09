@@ -22,15 +22,22 @@ const MAX_RECTS: int = 5000
 const MAX_ENTITIES: int = 2000
 
 const MAP_SETTINGS: Script = preload("res://high_level_example/scripts/map_settings.gd")
-const GRID_BG: Script = preload("res://high_level_example/scripts/grid_background.gd")
+const TILE_SHADER: Shader = preload("res://high_level_example/shaders/tiles.gdshader")
 const LIGHT_FLICKER: Script = preload("res://high_level_example/scripts/light_flicker.gd")
 const DOOR_SCENE: PackedScene = preload("res://high_level_example/scenes/Puerta.tscn")
 const SPAWNER_SCENE: PackedScene = preload("res://high_level_example/scenes/Spawner.tscn")
+const SOFT_TEX: Texture2D = preload("res://high_level_example/assets/fx/punto_suave.png")
+const GLOW_FOLLOW: Script = preload("res://high_level_example/scripts/glow_follow.gd")
 const LIGHT_TEX: Texture2D = preload("res://high_level_example/assets/lights/2d_lights_and_shadows_neutral_point_light.webp")
 
-const COL_SOLID := Color(0.62, 0.68, 0.8)
-const COL_PLATFORM := Color(0.96, 0.74, 0.55)
-const COL_BOX := Color(0.9, 0.8, 0.58)
+# Estilos de tiles.gdshader
+enum Style { BRICK, SLAB, PLATFORM, CRATE, BACKWALL, SKY }
+const COL_BRICK := Color(0.46, 0.40, 0.40)
+const COL_SLAB := Color(0.45, 0.46, 0.48)
+const COL_BACKWALL := Color(0.16, 0.15, 0.17)
+const COL_SKY := Color(0.07, 0.08, 0.13)
+# Una casilla es "interior" si tiene muro/techo encima y suelo debajo a menos de esto
+const INTERIOR_REACH: int = 8
 const COL_BASE := Color(0.5, 0.85, 0.6, 0.55)
 
 const PLATFORM_LAYER_BIT: int = 8 # capa 4 "Plataformas"
@@ -127,16 +134,24 @@ static func build(text: String) -> Node2D:
 	root.show_city_background = false
 	root.camera_limits = Rect2(0.0, 0.0, gw * bp, gh * bp)
 
-	var bg := Node2D.new()
-	bg.name = "Fondo"
-	bg.z_index = -10
-	bg.set_script(GRID_BG)
-	bg.area = Rect2(0.0, 0.0, gw * bp, gh * bp)
-	bg.base_color = Color(0.2, 0.22, 0.27)
-	bg.minor_step = bp * 2.0
-	bg.major_step = bp * 10.0
-	bg.ruler_y = gh * bp + 12.0
-	root.add_child(bg)
+	var mat_cache := {}
+	# Fondo: cielo nocturno en todo el mapa y pared de ladrillo solo en los interiores
+	var sky := ColorRect.new()
+	sky.name = "Cielo"
+	sky.z_index = -11
+	sky.size = Vector2(gw * bp, gh * bp)
+	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sky.material = _tile_mat(Style.SKY, sky.size, COL_SKY, mat_cache)
+	root.add_child(sky)
+	var walls := _node(root, "ParedFondo")
+	walls.z_index = -10
+	for r in _merge(_interior_cells(m["solid"], gw, gh), gw, gh, true):
+		var wr := ColorRect.new()
+		wr.position = Vector2(r.position) * bp
+		wr.size = Vector2(r.size) * bp
+		wr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wr.material = _tile_mat(Style.BACKWALL, wr.size, COL_BACKWALL, mat_cache)
+		walls.add_child(wr)
 
 	var occ_cache := {}
 
@@ -144,18 +159,29 @@ static func build(text: String) -> Node2D:
 	var solids := _node(root, "Estructura")
 	var i := 0
 	for r in _merge(m["solid"], gw, gh, true):
-		_add_body(solids, "Suelo%d" % i, r, bp, COL_SOLID, SOLID_LAYER_BIT, false, true, occ_cache)
+		# Piezas anchas = losas (suelos y techos); el resto, muros de ladrillo
+		var slab: bool = r.size.x > r.size.y * 2
+		var st: int = Style.SLAB if slab else Style.BRICK
+		var mat := _tile_mat(st, Vector2(r.size) * bp, COL_SLAB if slab else COL_BRICK, mat_cache)
+		_add_body(solids, "Suelo%d" % i, r, bp, mat, SOLID_LAYER_BIT, false, true, occ_cache)
 		i += 1
 	var plats := _node(root, "Plataformas")
 	i = 0
 	for r in _merge(m["platform"], gw, gh, false):
-		_add_body(plats, "Plataforma%d" % i, r, bp, COL_PLATFORM, PLATFORM_LAYER_BIT, true, false, occ_cache)
+		var pmat := _tile_mat(Style.PLATFORM, Vector2(r.size) * bp, Color.WHITE, mat_cache)
+		_add_body(plats, "Plataforma%d" % i, r, bp, pmat, PLATFORM_LAYER_BIT, true, false, occ_cache)
 		i += 1
 
 	# Entidades
 	var boxes := _node(root, "Cajas")
 	var doors := _node(root, "Puertas")
 	var lights := _node(root, "Bombillas")
+	# Halos de las bombillas: capa que no oscurece el CanvasModulate
+	var glows := CanvasLayer.new()
+	glows.name = "Brillos"
+	glows.follow_viewport_enabled = true
+	root.add_child(glows)
+	lights.set_meta("glows", glows)
 	var bases := _node(root, "Armas")
 	var spawns := _node(root, "SpawnPoints")
 	var pool := _item_pool()
@@ -174,7 +200,8 @@ static func build(text: String) -> Node2D:
 				spawns.add_child(mk)
 			"box_big", "box_small":
 				var sz := BOX_BIG if type == "box_big" else BOX_SMALL
-				_add_body(boxes, "Caja%d" % idx, Rect2i(ex, ey, sz.x, sz.y), bp, COL_BOX, SOLID_LAYER_BIT, false, true, occ_cache)
+				var cmat := _tile_mat(Style.CRATE, Vector2(sz) * bp, Color.WHITE, mat_cache)
+				_add_body(boxes, "Caja%d" % idx, Rect2i(ex, ey, sz.x, sz.y), bp, cmat, SOLID_LAYER_BIT, false, true, occ_cache)
 			"light":
 				_add_light(lights, "Bombilla%d" % idx, ex, ey, bp, bool(e.get("on", true)))
 			"door":
@@ -333,7 +360,49 @@ static func _merge(rects: Array, gw: int, gh: int, vertical: bool) -> Array:
 	return out
 
 
-static func _add_body(parent: Node, node_name: String, r: Rect2i, bp: float, color: Color,
+# Casillas libres cubiertas (techo encima y suelo debajo cerca): ahí va la pared del fondo.
+# Devuelve rectángulos de 1x1 en el mismo formato que el JSON, para fusionarlos con _merge.
+static func _interior_cells(solid_rects: Array, gw: int, gh: int) -> Array:
+	var grid := PackedByteArray()
+	grid.resize(gw * gh)
+	for r in solid_rects:
+		for y in range(r.position.y, r.end.y):
+			for x in range(r.position.x, r.end.x):
+				grid[y * gw + x] = 1
+	var out: Array = []
+	for x in gw:
+		for y in gh:
+			if grid[y * gw + x] == 1:
+				continue
+			var up := false
+			for k in range(1, INTERIOR_REACH + 1):
+				if y - k >= 0 and grid[(y - k) * gw + x] == 1:
+					up = true
+					break
+			if not up:
+				continue
+			for k in range(1, INTERIOR_REACH + 1):
+				if y + k < gh and grid[(y + k) * gw + x] == 1:
+					out.append(Rect2i(x, y, 1, 1))
+					break
+	return out
+
+
+# Un material por estilo y tamaño (se comparte entre piezas iguales)
+static func _tile_mat(style: int, size: Vector2, color: Color, cache: Dictionary) -> ShaderMaterial:
+	var key := "%d:%d,%d" % [style, int(size.x), int(size.y)]
+	if not cache.has(key):
+		var mat := ShaderMaterial.new()
+		mat.shader = TILE_SHADER
+		mat.set_shader_parameter("style", style)
+		mat.set_shader_parameter("rect_size", size)
+		mat.set_shader_parameter("base_color", color)
+		mat.set_shader_parameter("seed", float(cache.size()) * 3.7)
+		cache[key] = mat
+	return cache[key]
+
+
+static func _add_body(parent: Node, node_name: String, r: Rect2i, bp: float, mat: ShaderMaterial,
 		layer: int, one_way: bool, occluder: bool, occ_cache: Dictionary) -> void:
 	var size := Vector2(r.size.x * bp, r.size.y * bp)
 	var body := StaticBody2D.new()
@@ -345,7 +414,7 @@ static func _add_body(parent: Node, node_name: String, r: Rect2i, bp: float, col
 	vis.name = "ColorRect"
 	vis.position = -size * 0.5
 	vis.size = size
-	vis.color = color
+	vis.material = mat
 	vis.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body.add_child(vis)
 	var cs := CollisionShape2D.new()
@@ -379,29 +448,53 @@ static func _add_light(parent: Node, node_name: String, ex: int, ey: int, bp: fl
 	cable.offset_bottom = 8.0
 	cable.color = Color(0.05, 0.05, 0.05)
 	n.add_child(cable)
+	# Pantalla de la lámpara (metal oscuro) y bombilla
+	var shade := Polygon2D.new()
+	shade.name = "Pantalla"
+	shade.z_index = 3
+	shade.polygon = PackedVector2Array([Vector2(-2, 7), Vector2(2, 7), Vector2(5, 11), Vector2(-5, 11)])
+	shade.color = Color(0.22, 0.24, 0.22)
+	n.add_child(shade)
 	var foco := ColorRect.new()
 	foco.name = "Foco"
 	foco.z_index = 2
-	foco.offset_left = -3.0
-	foco.offset_top = 7.0
-	foco.offset_right = 3.0
+	foco.offset_left = -2.0
+	foco.offset_top = 10.0
+	foco.offset_right = 2.0
 	foco.offset_bottom = 13.0
-	foco.color = Color(1.0, 0.9, 0.6) if on else Color(0.3, 0.28, 0.22)
+	foco.color = Color(1.0, 0.92, 0.7) if on else Color(0.3, 0.28, 0.22)
 	n.add_child(foco)
 	var luz := PointLight2D.new()
 	luz.name = "Luz"
 	luz.position = Vector2(0, 11)
 	luz.color = Color(1.0, 0.82, 0.5)
-	luz.energy = 1.1
+	luz.energy = 1.25
 	luz.shadow_enabled = true
+	luz.shadow_filter = Light2D.SHADOW_FILTER_PCF5
+	luz.shadow_filter_smooth = 2.0
 	luz.texture = LIGHT_TEX
-	luz.texture_scale = 1.2
+	luz.texture_scale = 1.9
 	if on:
 		luz.set_script(LIGHT_FLICKER)
 	else:
 		luz.enabled = false
 	n.add_child(luz)
 	parent.add_child(n)
+	var glows: CanvasLayer = parent.get_meta("glows", null)
+	if glows:
+		var add := CanvasItemMaterial.new()
+		add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		for spec in [[0.9, 0.35], [0.22, 0.8]]: # halo grande suave + núcleo
+			var g := Sprite2D.new()
+			g.texture = SOFT_TEX
+			g.material = add
+			g.self_modulate = Color(1.0, 0.85, 0.55)
+			g.scale = Vector2.ONE * spec[0]
+			g.position = n.position + Vector2(0, 12)
+			g.set_script(GLOW_FOLLOW)
+			g.light = luz
+			g.base_alpha = spec[1]
+			glows.add_child(g)
 
 
 static func _add_base(parent: Node, node_name: String, ex: int, ey: int, bp: float,

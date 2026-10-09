@@ -33,9 +33,17 @@ raccoon_jump_sheet.png            4     19x27        130      7.7   no
 raccoon_backflip_sheet.png        4     33x33         90     11.1   no
 raccoon_crouch_sheet.png          4     19x27        120      8.3   ver abajo
 raccoon_slide_sheet.png           4     33x33        110      9.1   ver abajo
+raccoon_die_sheet.png             4     33x33        110      9.1   no
+raccoon_corpse_sheet.png          2     33x33          -        -     no
+raccoon_shoot_sheet.png           2     19x27         70     14.3   no
+raccoon_hang_sheet.png            2     19x27        300      3.3   si
+raccoon_land_sheet.png            2     19x27        110      9.1   no
+raccoon_arm_sheet.png             2     11x6           -        -     no   (brazo suelto, ver "Brazo delantero")
 raccoon_base_19x25.png            -     19x25          -        -     -   (sprite quieto, sin margen superior)
 
-Tamano de cada hoja: 76x27 las de 19x27 (4 x 19) y 132x33 las de 33x33 (4 x 33).
+Tamano de cada hoja: 76x27 las de 4 frames de 19x27, 38x27 las de 2 frames de 19x27
+(shoot, hang, land), 132x33 las de 4 frames de 33x33, 66x33 corpse y 22x6 el brazo.
+Cada hoja (menos el brazo) tiene ademas una gemela *_tint_sheet.png (ver "Capa de tinte").
 
 Detalle de cada animacion
 -------------------------
@@ -61,6 +69,46 @@ slide     Shift mientras corre. Frames 0-1 = entrada (inclinado hacia atras),
           Reproducir 0->1 una vez y mantener alternando 2<->3 mientras dure el
           deslizamiento. Hacia la izquierda, flip_h. El disparo va mas bajo
           mientras se desliza (eso lo gestiona el codigo, no el sprite).
+die       Morir, una sola vez. Frames 0-1 = el golpe y la caida hacia atras,
+          frames 2-3 = cadaver tumbado (cabeza a la izquierda, pies a la derecha).
+          Dejar el ultimo frame fijo. Hacia la izquierda, flip_h.
+corpse    Solo los frames 2-3 de die (2 frames), para el cadaver que se queda en el
+          mapa: se puede dejar fijo en un frame o alternar los dos.
+shoot     Retroceso al disparar, 2 frames rapidos (70 ms): 0 = cuerpo echado hacia
+          atras, 1 = recuperandose. Una sola vez; pensado para ponerlo un instante
+          encima del estado actual (idle, walk...), no para sustituirlo mucho rato.
+hang      Colgado de una soga, 2 frames, bucle lento. Cuerpo estirado y pies que se
+          balancean 1 px. La soga NO esta dibujada (es del escenario) y los brazos no
+          se levantan: provisional.
+land      Aterrizaje fuerte, 2 frames, una vez: 0 = aplastado, 1 = recuperandose.
+          Para caidas altas; el aterrizaje normal puede usar el frame 0 de jump.
+
+Brazo delantero (raccoon_arm_sheet.png)
+---------------------------------------
+Brazo suelto para sujetar el arma y girarlo con la punteria. 2 frames de 11x6
+(hoja de 22x6): 0 = normal, 1 = retroceso (la mano sube 1 px).
+- Apunta hacia la DERECHA a 0 grados: rotar el sprite = angulo de la punteria. Si el
+  jugador mira a la izquierda, espejar (escala x = -1) y usar el angulo espejado.
+- Pivote: el extremo izquierdo (hombro), pixel (1,3) del frame de 11x6.
+- Colocacion: en el hombro del cuerpo, aprox. (14,18) en los frames de 19x27 (a ojo,
+  hay que ajustarlo). El arma va en la mano (extremo derecho del brazo).
+- El cuerpo sigue teniendo los dos brazos dibujados pegados a los lados (el sprite es
+  de frente), asi que con este brazo se veria uno de mas. Se arreglara con el
+  mapache de perfil, con el cuerpo ya sin brazo delantero.
+
+Capa de tinte (color del jugador)
+---------------------------------
+Cada hoja tiene su gemela *_tint_sheet.png (ej. raccoon_walk_sheet.png ->
+raccoon_walk_tint_sheet.png): mismo tamano, mismos frames, fondo transparente y
+SOLO el pecho (el parche claro de la barriga) en BLANCO. Sirve para colorear el
+pecho con el color del jugador:
+- Un segundo AnimatedSprite2D hijo del cuerpo, con la misma animacion y el mismo
+  frame, dibujado encima, con self_modulate = color del jugador. O un shader que
+  multiplique el blanco por el color.
+- La mascara es blanca y opaca, asi que el pecho sale en el color plano del jugador.
+- Solo hay mascara de pecho; no hay bufanda (el sprite no tiene).
+- Hay mascara para idle, walk, run, jump, backflip, crouch, slide, die, corpse,
+  shoot, hang y land. El brazo no lleva.
 
 Como cargarlas en Godot 4
 -------------------------
@@ -88,6 +136,12 @@ Opcion codigo (una funcion y listo):
     # add_anim(sf, &"backflip", preload("res://high_level_example/assets/players/raccoon/raccoon_backflip_sheet.png"), 4, 33, 33, 11.1, false)
     # add_anim(sf, &"crouch",   preload("res://high_level_example/assets/players/raccoon/raccoon_crouch_sheet.png"),   4, 19, 27, 8.3, false)
     # add_anim(sf, &"slide",    preload("res://high_level_example/assets/players/raccoon/raccoon_slide_sheet.png"),    4, 33, 33, 9.1, false)
+    # add_anim(sf, &"die",      preload("res://high_level_example/assets/players/raccoon/raccoon_die_sheet.png"),      4, 33, 33, 9.1, false)
+    # add_anim(sf, &"shoot",    preload("res://high_level_example/assets/players/raccoon/raccoon_shoot_sheet.png"),    2, 19, 27, 14.3, false)
+    # add_anim(sf, &"hang",     preload("res://high_level_example/assets/players/raccoon/raccoon_hang_sheet.png"),     2, 19, 27, 3.3, true)
+    # add_anim(sf, &"land",     preload("res://high_level_example/assets/players/raccoon/raccoon_land_sheet.png"),     2, 19, 27, 9.1, false)
+
+    # La capa de tinte se carga igual, con la hoja *_tint_sheet.png de la misma animacion.
 
 Notas para quien lo implemente
 ------------------------------
@@ -95,6 +149,6 @@ Notas para quien lo implemente
 - Las animaciones estan hechas para encajar con las mecanicas planeadas: sprint con
   doble toque, Shift = agacharse, Shift corriendo = deslizarse, doble salto = backflip.
   Que animacion se reproduce en cada estado lo decide el codigo del jugador.
-- No hay animaciones de disparar, morir ni coger/soltar arma todavia.
-- El sprite NO tiene brazos separados del cuerpo. Para que el arma se vea sujeta
-  hara falta el mapache de perfil con los brazos aparte.
+- Todavia no hay animacion de coger/soltar arma.
+- El brazo suelto esta en raccoon_arm_sheet.png (ver "Brazo delantero"), pero para que
+  quede bien hace falta el mapache de perfil con el cuerpo sin brazo delantero.

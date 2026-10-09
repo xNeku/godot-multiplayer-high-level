@@ -31,6 +31,9 @@ var item_data: ItemData
 # Segundos hasta explotar (Granada: desde que se lanza. Semtex: desde que se pega). 0 = no explota
 @export var fuse_time: float = 2.5
 @export var explosion_radius: float = 70.0
+# Rompe muros y suelos de los mapas JSON en este radio (× explosion_radius)
+@export var break_terrain: bool = true
+@export var terrain_radius_mult: float = 0.55
 # Grados/segundo que gira mientras vuela
 @export var spin_deg: float = 600.0
 # ROCKET: el sprite mira hacia donde va
@@ -276,14 +279,22 @@ func _explode() -> void:
 		if not space.intersect_ray(los).is_empty():
 			continue
 		body.hit(shooter_id)
-	_explode_fx.rpc()
+	_explode_fx.rpc(global_position)
 	await get_tree().create_timer(1.3).timeout
 	queue_free()
 
 
 @rpc("authority", "call_local", "reliable")
-func _explode_fx() -> void:
+func _explode_fx(pos: Vector2) -> void:
 	_state = State.GONE
+	global_position = pos
+	# Rompe el terreno (mapas JSON). Misma posición en todos los peers = mismo agujero.
+	if break_terrain:
+		var map := get_tree().get_first_node_in_group("map_settings") as Node2D
+		var loader: GDScript = load("res://high_level_example/scripts/map_loader.gd")
+		var broken: PackedVector2Array = loader.carve(map, pos, explosion_radius * terrain_radius_mult)
+		if not broken.is_empty():
+			Fx.debris(broken)
 	sprite.visible = false
 	var rocket_light := get_node_or_null("Luz") as Node2D
 	if rocket_light:

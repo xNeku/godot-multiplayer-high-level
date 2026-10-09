@@ -28,7 +28,7 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
 ## Después
 7. **Soga** (primera versión en la rama `soga`, siempre disponible para probar; falta que sea objeto que se coge y balancearla): se consigue en un sitio del mapa y se queda toda la ronda. Colgarse, balancearse, subir y bajar despacio.
 8. ~~Escondites~~ (hecho: armario, rejilla, arbusto).
-9. **Explosiones que rompen terreno.**
+9. ~~Explosiones que rompen terreno~~ (hecho en mapas JSON).
 10. **Eventos de luz**: zonas que se iluminan, te iluminas si no te mueves, etc.
 11. ~~Shader de película antigua~~ (hecho: filtro de tele antigua con interferencia ocasional, se puede quitar en Opciones).
 

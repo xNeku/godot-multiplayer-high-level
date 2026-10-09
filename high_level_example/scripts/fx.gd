@@ -262,6 +262,34 @@ func _soft_sprite(pos: Vector2, color: Color, scale_: float) -> Sprite2D:
 	return s
 
 
+# Cascotes al romperse el terreno (en el mundo: se ven con la luz de la explosión)
+func debris(points: PackedVector2Array) -> void:
+	var step: int = maxi(1, points.size() / 14)
+	for i in range(0, points.size(), step):
+		var p := CPUParticles2D.new()
+		p.position = points[i]
+		p.one_shot = true
+		p.explosiveness = 1.0
+		p.amount = 5
+		p.lifetime = 1.1
+		p.direction = (points[i] - points[0]).normalized() if i > 0 else Vector2.UP
+		p.spread = 120.0
+		p.initial_velocity_min = 60.0
+		p.initial_velocity_max = 200.0
+		p.gravity = Vector2(0, 700)
+		p.scale_amount_min = 1.5
+		p.scale_amount_max = 3.0
+		p.color = Color(0.45, 0.38, 0.34)
+		var ramp := Gradient.new()
+		ramp.offsets = PackedFloat32Array([0.0, 0.8, 1.0])
+		ramp.colors = PackedColorArray([Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)])
+		p.color_ramp = ramp
+		_world().add_child(p)
+		p.emitting = true
+		p.finished.connect(p.queue_free)
+		_dust(points[i], Vector2.UP, 1.5)
+
+
 # --- EXPLOSIONES ---
 
 # kind: 0 explosión normal, 1 PEM (eléctrica, sin fuego)

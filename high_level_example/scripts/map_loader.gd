@@ -42,6 +42,11 @@ const COL_SKY := Color(0.07, 0.08, 0.13)
 const INTERIOR_REACH: int = 8
 const COL_BASE := Color(0.5, 0.85, 0.6, 0.55)
 
+const TILE_SOLID: int = 1
+const TILE_PLATFORM: int = 2
+# Filas de abajo que no se rompen nunca (el suelo del mundo)
+const UNBREAKABLE_BOTTOM: int = 2
+
 const PLATFORM_LAYER_BIT: int = 8 # capa 4 "Plataformas"
 const SOLID_LAYER_BIT: int = 1 # capa 1 "Suelo"
 
@@ -159,22 +164,22 @@ static func build(text: String) -> Node2D:
 
 	var occ_cache := {}
 
-	# Tiles: se fusionan en rectángulos grandes (sin costuras entre piezas)
-	var solids := _node(root, "Estructura")
-	var i := 0
-	for r in _merge(m["solid"], gw, gh, true):
-		# Piezas anchas = losas (suelos y techos); el resto, muros de ladrillo
-		var slab: bool = r.size.x > r.size.y * 2
-		var st: int = Style.SLAB if slab else Style.BRICK
-		var mat := _tile_mat(st, Vector2(r.size) * bp, COL_SLAB if slab else COL_BRICK, mat_cache)
-		_add_body(solids, "Suelo%d" % i, r, bp, mat, SOLID_LAYER_BIT, false, true, occ_cache)
-		i += 1
-	var plats := _node(root, "Plataformas")
-	i = 0
-	for r in _merge(m["platform"], gw, gh, false):
-		var pmat := _tile_mat(Style.PLATFORM, Vector2(r.size) * bp, Color.WHITE, mat_cache)
-		_add_body(plats, "Plataforma%d" % i, r, bp, pmat, PLATFORM_LAYER_BIT, true, false, occ_cache)
-		i += 1
+	# Rejilla de tiles en memoria (para poder romperla con explosiones)
+	var grid := PackedByteArray()
+	grid.resize(gw * gh)
+	for r in m["solid"]:
+		for y in range(r.position.y, r.end.y):
+			for x in range(r.position.x, r.end.x):
+				grid[y * gw + x] = TILE_SOLID
+	for r in m["platform"]:
+		for y in range(r.position.y, r.end.y):
+			for x in range(r.position.x, r.end.x):
+				if grid[y * gw + x] == 0:
+					grid[y * gw + x] = TILE_PLATFORM
+	root.set_meta("tiles", {"grid": grid, "w": gw, "h": gh, "bp": bp, "mats": mat_cache, "occ": occ_cache})
+	_node(root, "Estructura")
+	_node(root, "Plataformas")
+	_build_tiles(root)
 
 	# Entidades
 	var boxes := _node(root, "Cajas")
@@ -245,6 +250,80 @@ static func build(text: String) -> Node2D:
 		spawns.add_child(mk)
 		push_warning("MapLoader: el mapa no tiene spawns, uso el centro")
 	return root
+
+
+# (Re)construye los cuerpos de muros y plataformas a partir de la rejilla.
+# Los tiles se fusionan en rectángulos grandes (sin costuras entre piezas).
+static func _build_tiles(root: Node2D) -> void:
+	var t: Dictionary = root.get_meta("tiles")
+	var grid: PackedByteArray = t["grid"]
+	var gw: int = t["w"]
+	var gh: int = t["h"]
+	var bp: float = float(t["bp"])
+	var solids: Node = root.get_node("Estructura")
+	var plats: Node = root.get_node("Plataformas")
+	for c in solids.get_children():
+		solids.remove_child(c)
+		c.queue_free()
+	for c in plats.get_children():
+		plats.remove_child(c)
+		c.queue_free()
+	var solid_cells: Array = []
+	var plat_cells: Array = []
+	for y in gh:
+		for x in gw:
+			var v: int = grid[y * gw + x]
+			if v == TILE_SOLID:
+				solid_cells.append(Rect2i(x, y, 1, 1))
+			elif v == TILE_PLATFORM:
+				plat_cells.append(Rect2i(x, y, 1, 1))
+	var i := 0
+	for r in _merge(solid_cells, gw, gh, true):
+		# Piezas anchas = losas (suelos y techos); el resto, muros de ladrillo
+		var slab: bool = r.size.x > r.size.y * 2
+		var st: int = Style.SLAB if slab else Style.BRICK
+		var mat := _tile_mat(st, Vector2(r.size) * bp, COL_SLAB if slab else COL_BRICK, t["mats"])
+		_add_body(solids, "Suelo%d" % i, r, bp, mat, SOLID_LAYER_BIT, false, true, t["occ"])
+		i += 1
+	i = 0
+	for r in _merge(plat_cells, gw, gh, false):
+		var pmat := _tile_mat(Style.PLATFORM, Vector2(r.size) * bp, Color.WHITE, t["mats"])
+		_add_body(plats, "Plataforma%d" % i, r, bp, pmat, PLATFORM_LAYER_BIT, true, false, t["occ"])
+		i += 1
+
+
+# Explosión que rompe el terreno: quita los tiles dentro del radio (menos el borde del
+# mapa y el suelo del fondo) y las cajas. Lo hace cada peer con la misma posición,
+# así el resultado es idéntico en todos. Devuelve los centros (px) de lo que se rompió.
+static func carve(root: Node2D, center: Vector2, radius: float) -> PackedVector2Array:
+	var broken := PackedVector2Array()
+	if root == null or not root.has_meta("tiles"):
+		return broken
+	var t: Dictionary = root.get_meta("tiles")
+	var grid: PackedByteArray = t["grid"]
+	var gw: int = t["w"]
+	var gh: int = t["h"]
+	var bp: float = float(t["bp"])
+	var c := center / bp
+	var rb: float = radius / bp
+	for y in range(maxi(1, int(c.y - rb) - 1), mini(gh - 1 - UNBREAKABLE_BOTTOM, int(c.y + rb) + 2)):
+		for x in range(maxi(1, int(c.x - rb) - 1), mini(gw - 1, int(c.x + rb) + 2)):
+			if grid[y * gw + x] == 0:
+				continue
+			if Vector2(x + 0.5, y + 0.5).distance_to(c) <= rb:
+				grid[y * gw + x] = 0
+				broken.append(Vector2(x + 0.5, y + 0.5) * bp)
+	t["grid"] = grid
+	# Cajas
+	var boxes := root.get_node_or_null("Cajas")
+	if boxes:
+		for b in boxes.get_children():
+			if (b as Node2D).global_position.distance_to(center) <= radius + bp:
+				broken.append(b.global_position)
+				b.queue_free()
+	if not broken.is_empty():
+		_build_tiles(root)
+	return broken
 
 
 # Mapas disponibles: [{name, path, official}]

@@ -91,6 +91,8 @@ func _toggle() -> void:
 
 
 func _process(_delta: float) -> void:
+	if not is_inside_tree() or multiplayer == null or not multiplayer.has_multiplayer_peer():
+		return
 	var p := get_node_or_null("../PlayerSpawnContainer/" + str(multiplayer.get_unique_id()))
 	if p == null:
 		return

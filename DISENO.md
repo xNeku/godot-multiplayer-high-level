@@ -52,6 +52,13 @@ translocador), mar con salida por plataforma (PEM en el fondo) y barco: cubierta
 cajas de madera, pared de ladrillo al fondo en los interiores (casillas con techo y suelo cerca) y cielo con estrellas fuera.
 Las bombillas tienen pantalla, halo y sombras suaves. Los mapas de escena antiguos (Edificio, Pruebas) siguen con colores planos.
 
+## Terreno destructible (mapas JSON)
+- Granada, semtex, betty y cohete del bazooka rompen muros, suelos, plataformas y cajas en `explosion_radius × terrain_radius_mult`
+  (0,55 ≈ 3,5 bloques). Ajustable por escena de proyectil (`break_terrain`, `terrain_radius_mult`).
+- No se rompen: el borde del mapa ni las 2 filas de abajo del todo.
+- Cada peer rompe lo mismo con la misma posición (la manda el servidor): el agujero es idéntico para todos. Salen cascotes y polvo.
+- Lo hace `MapLoader.carve()` sobre la rejilla del mapa y reconstruye los cuerpos. Los mapas de escena antiguos no se rompen.
+
 ## Escondites (implementado: `scenes/Escondite.tscn`, `scripts/hide_spot.gd`)
 - Tipos: **armario** (2×4 bloques), **rejilla** de ventilación (2×2) y **arbusto** (3×2). Dibujo provisional hecho a código.
 - Te acercas y aparece encima un aviso sutil "**Q** · Esconderse" (**Y** con mando). La misma tecla te saca (sin aviso).

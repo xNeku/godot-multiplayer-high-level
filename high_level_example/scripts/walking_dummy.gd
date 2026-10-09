@@ -52,7 +52,7 @@ func hit(shooter_id: int = 0) -> void:
 	_dead = true
 	shape.set_deferred("disabled", true)
 	var side: float = [-1.0, 1.0].pick_random()
-	var shooter := get_tree().root.find_child(str(shooter_id), true, false) as Node2D
+	var shooter := GameManager.player_node(shooter_id)
 	if shooter:
 		side = signf(global_position.x - shooter.global_position.x)
 		if side == 0.0:

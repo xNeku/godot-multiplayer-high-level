@@ -1,7 +1,8 @@
 extends CanvasLayer
 # Panel de ajuste en vivo (F1, o el botón ⚙). Cambia los valores del jugador local y
 # del arma que lleva mientras juegas. "Guardar" los deja en user://ajustes.cfg y se
-# cargan solos la próxima vez. Solo afecta a TU copia: sirve para afinar el tacto.
+# cargan solos la próxima vez. Los valores del jugador solo afectan a TU copia; los del
+# arma cambian el recurso (.tres) compartido, así que en el host afectan también a los bots.
 
 const FILE := "user://ajustes.cfg"
 

@@ -139,7 +139,7 @@ func _controls_text() -> String:
 		"MOVERSE: A D / STICK IZQ",
 		"SALTAR: W ESPACIO / A",
 		"AGACHARSE: SHIFT / LB",
-		"APUNTAR: RATON / STICK DER",
+		"APUNTAR ARRIBA: MANTENER SALTO",
 		"DISPARAR: J / X / RT",
 		"COGER USAR: E / RB",
 		"LANZAR: G / B",

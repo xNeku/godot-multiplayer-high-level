@@ -141,6 +141,12 @@ func key_pos(k: int) -> Vector2:
 
 
 # Camino (lista de [key, tipo de arista para llegar]) con BFS. Vacío si no hay.
+# Identificador de una arista (para la lista de tramos a evitar de los bots)
+func edge_id(from_key: int, to_key: int) -> int:
+	return from_key * (w * h) + to_key
+
+
+# avoid: edge_id -> instante (msec) hasta el que esa arista no se usa
 func path(from_key: int, to_key: int, avoid: Dictionary = {}, max_nodes: int = 6000) -> Array:
 	if from_key < 0 or to_key < 0 or not adj.has(from_key):
 		return []
@@ -148,6 +154,7 @@ func path(from_key: int, to_key: int, avoid: Dictionary = {}, max_nodes: int = 6
 		return []
 	var prev := {from_key: [-1, Edge.WALK]}
 	var queue: Array = [from_key]
+	var now: int = Time.get_ticks_msec()
 	var i := 0
 	while i < queue.size() and i < max_nodes:
 		var k: int = queue[i]
@@ -155,7 +162,7 @@ func path(from_key: int, to_key: int, avoid: Dictionary = {}, max_nodes: int = 6
 		if k == to_key:
 			break
 		for e in adj.get(k, []):
-			if not avoid.is_empty() and int(avoid.get("%d>%d" % [k, e[0]], 0)) > Time.get_ticks_msec():
+			if not avoid.is_empty() and int(avoid.get(edge_id(k, e[0]), 0)) > now:
 				continue
 			if not prev.has(e[0]):
 				prev[e[0]] = [k, e[1]]

@@ -238,7 +238,7 @@ static func build(text: String) -> Node2D:
 			"weapon_base":
 				_add_base(bases, "Base%d" % idx, ex, ey, bp, str(e.get("item", "")), pool, idx)
 			_:
-				print("MapLoader: tipo desconocido '%s', ignorado" % type)
+				push_warning("MapLoader: tipo desconocido '%s', ignorado" % type)
 		idx += 1
 
 	if spawns.get_child_count() == 0:
@@ -306,6 +306,7 @@ static func carve(root: Node2D, center: Vector2, radius: float) -> PackedVector2
 	var bp: float = float(t["bp"])
 	var c := center / bp
 	var rb: float = radius / bp
+	var tiles_changed: bool = false
 	for y in range(maxi(1, int(c.y - rb) - 1), mini(gh - 1 - UNBREAKABLE_BOTTOM, int(c.y + rb) + 2)):
 		for x in range(maxi(1, int(c.x - rb) - 1), mini(gw - 1, int(c.x + rb) + 2)):
 			if grid[y * gw + x] == 0:
@@ -313,8 +314,10 @@ static func carve(root: Node2D, center: Vector2, radius: float) -> PackedVector2
 			if Vector2(x + 0.5, y + 0.5).distance_to(c) <= rb:
 				grid[y * gw + x] = 0
 				broken.append(Vector2(x + 0.5, y + 0.5) * bp)
-	t["grid"] = grid
-	t["ver"] = int(t.get("ver", 0)) + 1
+				tiles_changed = true
+	if tiles_changed:
+		t["grid"] = grid
+		t["ver"] = int(t.get("ver", 0)) + 1 # los bots rehacen su grafo de caminos
 	# Cajas
 	var boxes := root.get_node_or_null("Cajas")
 	if boxes:
@@ -322,7 +325,8 @@ static func carve(root: Node2D, center: Vector2, radius: float) -> PackedVector2
 			if (b as Node2D).global_position.distance_to(center) <= radius + bp:
 				broken.append(b.global_position)
 				b.queue_free()
-	if not broken.is_empty():
+	# Solo se rehacen los cuerpos de colisión si ha cambiado el terreno (no por las cajas)
+	if tiles_changed:
 		_build_tiles(root)
 	return broken
 
@@ -435,7 +439,7 @@ static func _merge(rects: Array, gw: int, gh: int, vertical: bool) -> Array:
 			var x0 := x
 			while x < gw and cells[y * gw + x] == 1:
 				x += 1
-			var key := "%d,%d" % [x0, x - x0]
+			var key := Vector2i(x0, x - x0)
 			seen[key] = true
 			if vertical and open.has(key):
 				var o: Rect2i = open[key]
@@ -520,7 +524,7 @@ static func _add_body(parent: Node, node_name: String, r: Rect2i, bp: float, mat
 	cs.one_way_collision = one_way
 	body.add_child(cs)
 	if occluder:
-		var key := "%d,%d" % [r.size.x, r.size.y]
+		var key := r.size
 		if not occ_cache.has(key):
 			var poly := OccluderPolygon2D.new()
 			var h := size * 0.5
@@ -584,7 +588,7 @@ static func _add_light(parent: Node, node_name: String, ex: int, ey: int, bp: fl
 		luz.enabled = false
 	n.add_child(luz)
 	parent.add_child(n)
-	var glows: CanvasLayer = parent.get_meta("glows", null)
+	var glows: CanvasLayer = parent.get_meta("glows") if parent.has_meta("glows") else null
 	if glows:
 		var add := CanvasItemMaterial.new()
 		add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD

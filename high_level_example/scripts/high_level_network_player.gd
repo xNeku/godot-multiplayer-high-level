@@ -1,10 +1,20 @@
 extends CharacterBody2D
 # Jugador en red. Cada peer controla SOLO su jugador (la autoridad es el id que
 # lleva el nombre del nodo). Los demás jugadores se ven por el
-# MultiplayerSynchronizer (posición, animación y puntería) y no simulan nada.
+# MultiplayerSynchronizer (posición, postura, giro y puntería) y no simulan nada.
+# Los bots son jugadores con entrada virtual (PlayerInput) cuya autoridad es el servidor.
 # Todos empiezan con default_weapon (pistola infinita).
 
 const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
+const HIDDEN_LAYER: int = 32 # capa 6 "Escondidos": las balas no la tocan, las explosiones sí
+const MASK_WORLD: int = 1 # suelo y paredes
+const MASK_WORLD_PLATFORMS: int = 1 | 8 # + plataformas atravesables
+const CORPSE_SCENE: PackedScene = preload("res://high_level_example/scenes/Cadaver.tscn")
+const TRACER_SCENE: PackedScene = preload("res://high_level_example/scenes/Trazador.tscn")
+const DROPPED_WEAPON_SCENE: PackedScene = preload("res://high_level_example/scenes/ArmaSuelta.tscn")
+const BOT_BRAIN := preload("res://high_level_example/scripts/bot_brain.gd")
+
+enum Stance { STAND, CROUCH, SLIDE }
 
 @export_group("Movimiento")
 @export var walk_speed: float = 120.0
@@ -167,11 +177,9 @@ var _drop_until_msec: int = 0
 # Haz visible de la linterna y brillo del foco (capa sin oscuridad). Solo el tuyo.
 @onready var beam: Sprite2D = $CapaBrillo/Haz
 @onready var lens: Sprite2D = $CapaBrillo/Lente
-
-const CORPSE_SCENE: PackedScene = preload("res://high_level_example/scenes/Cadaver.tscn")
-const TRACER_SCENE: PackedScene = preload("res://high_level_example/scenes/Trazador.tscn")
-const DROPPED_WEAPON_SCENE: PackedScene = preload("res://high_level_example/scenes/ArmaSuelta.tscn")
-
+@onready var mapache: Node2D = $Mapache
+@onready var dust_trail: CPUParticles2D = $Polvo
+@onready var _col: CollisionShape2D = $CollisionShape2D
 
 # Posición que se replica (global). El dueño la escribe cada frame de física;
 # las copias remotas se deslizan hacia ella en _process.
@@ -191,10 +199,7 @@ var _fx_peak_fall: float = 0.0
 var _fx_step_acc: float = 0.0
 var _coyote_left: float = 0.0
 var _jump_buffer_left: float = 0.0
-var _was_on_floor: bool = false
-var _prev_fall_speed: float = 0.0
 
-enum Stance { STAND, CROUCH, SLIDE }
 # Postura (se replica; mueve la hitbox en todos los peers para que los disparos acierten)
 var stance: int = Stance.STAND:
 	set(v):
@@ -205,7 +210,6 @@ var stance: int = Stance.STAND:
 			_apply_stance_shape()
 			if v == Stance.SLIDE:
 				_play_sfx(sfx_slide, step_range_run, -4.0)
-var _col: CollisionShape2D
 var _col_base_y: float = 0.0
 var _col_base_h: float = 22.0
 var _hand_base: Vector2 = Vector2.ZERO
@@ -219,7 +223,6 @@ var rope_anchor: Vector2 = Vector2.ZERO
 var _rope_len: float = 0.0
 var _rope_ready_at: int = 0
 # Escondites
-const HIDDEN_LAYER: int = 32 # capa 6 "Escondidos": las balas no la tocan, las explosiones sí
 var escondido: bool = false
 var _hide_spot: Node2D = null
 var _near_spot: Node2D = null
@@ -233,6 +236,7 @@ var _dead: bool = false
 # Color del jugador (índice de Settings.PLAYER_COLORS). Lo decide el servidor (únicos)
 # y se replica; el mapache tiñe el pecho con él.
 var color_index: int = 0
+var _base_layer: int = 2
 var _jump_start_y: float = 0.0
 # Bots: los mueve el servidor (es su autoridad) con entrada virtual
 var is_bot: bool = false
@@ -242,27 +246,6 @@ var input := PlayerInput.new()
 # El jugador que controla esta máquina con teclado/mando (ni remotos ni bots)
 func is_local_human() -> bool:
 	return is_multiplayer_authority() and not is_bot
-
-
-# Polvo al aterrizar (solo visual, local; los demás no lo ven por ahora)
-func _land_fx(speed: float) -> void:
-	var p := CPUParticles2D.new()
-	p.one_shot = true
-	p.emitting = true
-	p.amount = clampi(int(speed / 60.0), 4, 14)
-	p.lifetime = 0.35
-	p.explosiveness = 1.0
-	p.direction = Vector2.UP
-	p.spread = 80.0
-	p.initial_velocity_min = 30.0
-	p.initial_velocity_max = 90.0
-	p.gravity = Vector2(0, 200)
-	p.scale_amount_min = 1.5
-	p.scale_amount_max = 3.0
-	p.color = Color(0.75, 0.72, 0.65, 0.8)
-	get_parent().add_child(p)
-	p.global_position = global_position + Vector2(0, 14)
-	get_tree().create_timer(0.8).timeout.connect(p.queue_free)
 
 
 func _enter_tree() -> void:
@@ -279,6 +262,8 @@ func _exit_tree() -> void:
 
 func _ready() -> void:
 	add_to_group("emp_affected")
+	add_to_group("players")
+	_base_layer = collision_layer
 	var is_mine: bool = is_local_human()
 	camera.enabled = is_mine
 	if flashlight:
@@ -287,7 +272,6 @@ func _ready() -> void:
 	throw_arc.clear_points()
 
 	# La hitbox cambia con la postura: cada instancia necesita su propia copia
-	_col = $CollisionShape2D
 	_col.shape = _col.shape.duplicate()
 	_col_base_y = _col.position.y
 	_col_base_h = (_col.shape as CapsuleShape2D).height
@@ -304,7 +288,7 @@ func _ready() -> void:
 		if is_bot and multiplayer.is_server():
 			var brain := Node.new()
 			brain.name = "Cerebro"
-			brain.set_script(load("res://high_level_example/scripts/bot_brain.gd"))
+			brain.set_script(BOT_BRAIN)
 			add_child(brain)
 	else:
 		# Los jugadores de los demás no corren física ni input aquí.
@@ -349,11 +333,8 @@ func _apply_camera_limits() -> void:
 
 
 func _process(delta: float) -> void:
-	if is_multiplayer_authority():
-		# El color lo decide el servidor (GameManager.colors); el dueño lo aplica y se replica
-		var c: int = GameManager.color_of(name.to_int())
-		if c != color_index:
-			color_index = c
+	# El color lo decide el servidor y todos tienen la tabla (GameManager.colors)
+	color_index = GameManager.color_of(name.to_int())
 	if is_local_human():
 		if _shake > 0.0:
 			_shake = maxf(0.0, _shake - shake_decay * delta)
@@ -374,10 +355,10 @@ func _process(delta: float) -> void:
 	_update_beam()
 	var missing: bool = rope_anchor == Vector2.ZERO and Time.get_ticks_msec() < _rope_miss_until
 	var shown: bool = rope_anchor != Vector2.ZERO or missing
-	var pts := PackedVector2Array([global_position, _rope_miss_end if missing else rope_anchor])
 	rope_line.visible = shown
 	rope_line_own.visible = shown and is_local_human()
 	if shown:
+		var pts := PackedVector2Array([global_position, _rope_miss_end if missing else rope_anchor])
 		rope_line.points = pts
 		rope_line_own.points = pts
 
@@ -416,7 +397,7 @@ func _movement_sfx(delta: float) -> void:
 	elif _fx_airborne:
 		if _fx_peak_fall > 250.0:
 			_play_sfx(sfx_land, step_range_run, -2.0)
-			_land_fx(_fx_peak_fall)
+			Fx.land_dust(global_position + Vector2(0, 14), _fx_peak_fall)
 		_fx_peak_fall = 0.0
 	_fx_airborne = airborne
 	var flipping: bool = absf(visual.rotation) > 0.05
@@ -470,7 +451,6 @@ func _physics_process(delta: float) -> void:
 		velocity.y += g * delta
 		var cap: float = fast_fall_speed if input.pressed("ui_down") else max_fall_speed
 		velocity.y = minf(velocity.y, cap)
-	_was_on_floor = on_floor
 
 	# Plataformas atravesables: se recuperan al acabar el tiempo de caída
 	if _drop_until_msec > 0 and Time.get_ticks_msec() >= _drop_until_msec:
@@ -552,7 +532,6 @@ func _physics_process(delta: float) -> void:
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, friction * ctrl * delta)
 
-	_prev_fall_speed = velocity.y
 	move_and_slide()
 	# Atascado sobre una esquina (la cápsula se apoya en el borde sin contar como suelo):
 	# empujón hacia fuera para que caiga o suba
@@ -584,18 +563,20 @@ func _physics_process(delta: float) -> void:
 # Aviso del escondite cercano y tecla de esconderse/salir. Devuelve true si estás
 # escondido (entonces no te mueves ni haces nada más).
 func _update_hiding() -> bool:
-	var near: Node2D = null
-	if not escondido and is_on_floor() and stance != Stance.SLIDE:
-		for spot in get_tree().get_nodes_in_group("hide_spots"):
-			if spot.covers(global_position):
-				near = spot
-				break
-	if near != _near_spot:
-		if _near_spot and is_instance_valid(_near_spot) and is_local_human():
-			_near_spot.show_prompt(false)
-		_near_spot = near
-	if _near_spot and is_local_human():
-		_near_spot.show_prompt(true, "%s: ESCONDERSE" % Settings.key_for("hide"))
+	# Los bots no se esconden: solo busca escondites el jugador de esta máquina
+	if is_local_human():
+		var near: Node2D = null
+		if not escondido and is_on_floor() and stance != Stance.SLIDE:
+			for spot in get_tree().get_nodes_in_group("hide_spots"):
+				if spot.covers(global_position):
+					near = spot
+					break
+		if near != _near_spot:
+			if _near_spot and is_instance_valid(_near_spot):
+				_near_spot.show_prompt(false)
+			_near_spot = near
+			if near:
+				near.show_prompt(true, "%s: ESCONDERSE" % Settings.key_for("hide"))
 	if input.just("hide") and (is_bot or not GameManager.input_blocked):
 		if escondido:
 			request_unhide.rpc_id(1)
@@ -637,10 +618,15 @@ func _sender() -> int:
 	return multiplayer.get_unique_id() if id == 0 else id
 
 
+# RPCs que solo puede mandar el servidor
+func _from_server() -> bool:
+	return _sender() == 1
+
+
 # Lo manda el servidor a todos
 @rpc("any_peer", "call_local", "reliable")
 func _set_hidden(on: bool, spot_path: NodePath) -> void:
-	if _sender() != 1 or _dead:
+	if not _from_server() or _dead:
 		return
 	escondido = on
 	var spot := get_node_or_null(spot_path) if not spot_path.is_empty() else null
@@ -659,7 +645,7 @@ func _set_hidden(on: bool, spot_path: NodePath) -> void:
 				net_position = global_position
 	else:
 		_hide_spot = null
-		collision_layer = 2
+		collision_layer = _base_layer
 	_apply_hidden_visual()
 
 
@@ -670,12 +656,14 @@ func _apply_hidden_visual() -> void:
 		# Tú te ves en transparente; la linterna se apaga (te delataría)
 		visual.modulate.a = 0.35 if escondido else 1.0
 		hand_pivot.visible = not escondido
-		if flashlight and Time.get_ticks_msec() >= _emp_until_msec:
+		var powered: bool = Time.get_ticks_msec() >= _emp_until_msec
+		if flashlight and powered:
 			flashlight.enabled = not escondido
+		aura.enabled = powered
 	else:
 		visual.visible = not escondido
 		hand_pivot.visible = not escondido
-	$Polvo.emitting = not escondido
+	dust_trail.emitting = not escondido
 
 
 # Menú abierto en el lobby: el personaje se queda quieto (sin leer controles)
@@ -716,7 +704,7 @@ func _update_rope(delta: float) -> bool:
 func _try_attach() -> void:
 	var dir := Vector2.RIGHT.rotated(aim_angle)
 	# Capa 1 (suelo/paredes) + capa 4 (plataformas atravesables)
-	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + dir * rope_range, 1 | 8)
+	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + dir * rope_range, MASK_WORLD_PLATFORMS)
 	query.hit_from_inside = false
 	var result := get_world_2d().direct_space_state.intersect_ray(query)
 	if result.is_empty():
@@ -735,7 +723,7 @@ func _rope_blocked() -> bool:
 	if to_anchor.length() < 4.0:
 		return false
 	var end: Vector2 = rope_anchor - to_anchor.normalized() * 3.0
-	var query := PhysicsRayQueryParameters2D.create(global_position, end, 1)
+	var query := PhysicsRayQueryParameters2D.create(global_position, end, MASK_WORLD)
 	return not get_world_2d().direct_space_state.intersect_ray(query).is_empty()
 
 
@@ -919,7 +907,7 @@ func shoot() -> void:
 
 	# Efectos inmediatos en el tirador (sin esperar al servidor)
 	shake(shake_per_shot * (1.0 + current_weapon_data.recoil_per_shot_deg * 0.15))
-	_play_shot_fx(not current_weapon_data.silenced)
+	_play_shot_fx()
 	if not multiplayer.is_server() and current_weapon_data.projectile_gravity <= 0.0:
 		_spawn_local_tracers()
 
@@ -942,7 +930,7 @@ func request_shoot(pos: Vector2, rot: float) -> void:
 	# La copia del servidor también cuenta la munición (el dueño ya descontó la suya)
 	if not is_multiplayer_authority() and current_ammo > 0:
 		current_ammo -= 1
-	_shot_fx.rpc(not current_weapon_data.silenced)
+	_shot_fx.rpc()
 
 	var wd := current_weapon_data
 	for _i in wd.bullet_count:
@@ -969,14 +957,14 @@ func request_shoot(pos: Vector2, rot: float) -> void:
 # Sonido (con alcance según el arma) y, si no lleva silenciador, fogonazo de luz.
 # Cada peer usa el arma que tiene equipada este jugador.
 @rpc("any_peer", "call_local", "unreliable")
-func _shot_fx(with_flash: bool) -> void:
+func _shot_fx() -> void:
 	# El tirador ya lo reprodujo al disparar
-	if is_multiplayer_authority():
+	if is_multiplayer_authority() or not _from_server():
 		return
-	_play_shot_fx(with_flash)
+	_play_shot_fx()
 
 
-func _play_shot_fx(with_flash: bool) -> void:
+func _play_shot_fx() -> void:
 	var wd := current_weapon_data
 	if wd and wd.shot_sound:
 		shot_audio.stream = wd.shot_sound
@@ -984,14 +972,12 @@ func _play_shot_fx(with_flash: bool) -> void:
 		shot_audio.play()
 	if wd == null:
 		return
-	var mapache := get_node_or_null("Mapache")
-	if mapache and mapache.has_method("on_shot"):
-		mapache.on_shot()
+	mapache.on_shot()
 	var flash_size: float = 0.0 if wd.silenced else wd.muzzle_flash
 	Fx.muzzle(muzzle.global_position, aim_angle, flash_size)
 	if wd.eject_casing:
 		Fx.casing(hand_pivot.global_position + Vector2(facing * 6.0, -3.0), facing, wd.casing_color)
-	if with_flash and flash_size > 0.0:
+	if flash_size > 0.0:
 		muzzle_flash.energy = 1.2 + flash_size * 0.6
 		muzzle_flash.texture_scale = 0.6 + flash_size * 0.25
 		muzzle_flash.enabled = true
@@ -1024,20 +1010,9 @@ func _spawn_local_tracers() -> void:
 func request_interact() -> void:
 	if not multiplayer.is_server():
 		return
-	var sender: int = multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != get_multiplayer_authority():
+	if _sender() != get_multiplayer_authority():
 		return
-
-	var best: Node2D = null
-	var best_dist: float = interact_range
-	for pickup in get_tree().get_nodes_in_group("pickups"):
-		if not pickup.is_available():
-			continue
-		var d: float = global_position.distance_to(pickup.global_position)
-		if d < best_dist:
-			best = pickup
-			best_dist = d
-
+	var best: Node2D = nearest_pickup(interact_range)
 	if best and best.pickup_kind() == "item":
 		var picked: ItemData = best.get_item()
 		best.take()
@@ -1054,11 +1029,24 @@ func request_interact() -> void:
 		equip_rpc.rpc("", 0)
 
 
+# Lo más cercano que se puede coger (armas u objetos). kind: "" = cualquiera.
+func nearest_pickup(max_dist: float, kind: String = "") -> Node2D:
+	var best: Node2D = null
+	var best_dist: float = max_dist
+	for pickup in get_tree().get_nodes_in_group("pickups"):
+		if not pickup.is_available() or (kind != "" and pickup.pickup_kind() != kind):
+			continue
+		var d: float = global_position.distance_to(pickup.global_position)
+		if d < best_dist:
+			best = pickup
+			best_dist = d
+	return best
+
+
 # path vacío = quedarse sin arma
 @rpc("any_peer", "call_local", "reliable")
 func equip_rpc(path: String, ammo: int) -> void:
-	var sender: int = multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != 1:
+	if not _from_server():
 		return
 	if path == "":
 		equip_weapon(null)
@@ -1071,20 +1059,20 @@ func equip_rpc(path: String, ammo: int) -> void:
 func _drop_current_weapon(toss: Vector2) -> void:
 	if current_weapon_data == null or current_ammo == -1:
 		return
-	var drop := DROPPED_WEAPON_SCENE.instantiate()
-	drop.weapon_path = current_weapon_data.resource_path
-	drop.ammo = current_ammo
-	get_parent().add_child(drop, true)
-	drop.global_position = global_position + Vector2(0, -6)
-	drop.linear_velocity = toss
+	_spawn_drop({"weapon_path": current_weapon_data.resource_path, "ammo": current_ammo}, toss)
 
 
 # Solo servidor: deja en el suelo el objeto que lleva
 func _drop_current_item(toss: Vector2) -> void:
 	if current_item == null:
 		return
+	_spawn_drop({"item_path": current_item.resource_path}, toss)
+
+
+func _spawn_drop(props: Dictionary, toss: Vector2) -> void:
 	var drop := DROPPED_WEAPON_SCENE.instantiate()
-	drop.item_path = current_item.resource_path
+	for k in props:
+		drop.set(k, props[k])
 	get_parent().add_child(drop, true)
 	drop.global_position = global_position + Vector2(0, -6)
 	drop.linear_velocity = toss
@@ -1095,8 +1083,7 @@ func _drop_current_item(toss: Vector2) -> void:
 # Empujón de las balas de juguete del lobby. Lo manda el servidor; lo aplica el dueño.
 @rpc("any_peer", "call_local", "reliable")
 func knockback_rpc(impulse: Vector2) -> void:
-	var sender: int = multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != 1:
+	if not _from_server():
 		return
 	if is_multiplayer_authority():
 		velocity += impulse
@@ -1121,8 +1108,7 @@ func hit(shooter_id: int) -> void:
 # sonido, sacudida, hit-stop y entrada en el feed de muertes.
 @rpc("any_peer", "call_local", "reliable")
 func death_fx_rpc(shooter_id: int) -> void:
-	var sender: int = multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != 1:
+	if not _from_server():
 		return
 	var dir := Vector2.UP
 	var shooter := get_parent().get_node_or_null(str(shooter_id)) as Node2D
@@ -1133,8 +1119,8 @@ func death_fx_rpc(shooter_id: int) -> void:
 	var corpse := CORPSE_SCENE.instantiate()
 	get_tree().current_scene.add_child(corpse)
 	corpse.global_position = global_position
-	corpse.setup($Mapache, dir * corpse_force)
-	_burst_fx(dir)
+	corpse.setup(mapache, dir * corpse_force)
+	Fx.blood_burst(global_position, dir)
 	_play_sfx(sfx_death, step_range_run + 200.0, 0.0)
 
 	var mine: int = multiplayer.get_unique_id()
@@ -1170,27 +1156,10 @@ func _set_dead_local() -> void:
 		throw_arc.clear_points()
 
 
-func _burst_fx(dir: Vector2) -> void:
-	var p := CPUParticles2D.new()
-	p.one_shot = true
-	p.emitting = true
-	p.amount = 18
-	p.lifetime = 0.5
-	p.explosiveness = 1.0
-	p.direction = dir
-	p.spread = 50.0
-	p.initial_velocity_min = 80.0
-	p.initial_velocity_max = 260.0
-	p.gravity = Vector2(0, 700)
-	p.scale_amount_min = 1.5
-	p.scale_amount_max = 3.5
-	p.color = Color(0.85, 0.12, 0.1)
-	get_tree().current_scene.add_child(p)
-	p.global_position = global_position
-	get_tree().create_timer(1.0).timeout.connect(p.queue_free)
-
-
 func _hit_stop() -> void:
+	# En el host con gente conectada no: frenaría el servidor (bots, balas) para todos
+	if multiplayer.is_server() and not multiplayer.get_peers().is_empty():
+		return
 	Engine.time_scale = 0.05
 	# El temporizador ignora la escala de tiempo (4º parámetro)
 	await get_tree().create_timer(hit_stop_time, true, false, true).timeout
@@ -1222,7 +1191,7 @@ func _update_throw(delta: float) -> void:
 
 # Armas con proyectil de caída (Bazooka): arco corto siempre visible al apuntar
 func _update_weapon_arc() -> void:
-	if _charging:
+	if _charging or not is_local_human():
 		return
 	var wd := current_weapon_data
 	if wd == null or wd.projectile_gravity <= 0.0 or current_ammo == 0:
@@ -1256,15 +1225,21 @@ func _update_arc() -> void:
 	_draw_arc(_throw_origin(), _throw_velocity(), current_item.gravity)
 
 
+# Solo lo ve quien lanza (los bots no dibujan nada)
 func _draw_arc(pos: Vector2, vel: Vector2, g: float) -> void:
 	throw_arc.clear_points()
+	if not is_local_human():
+		return
 	var space := get_world_2d().direct_space_state
 	var dt: float = 1.0 / 60.0
+	var q := PhysicsRayQueryParameters2D.new()
+	q.collision_mask = MASK_WORLD
 	throw_arc.add_point(pos)
 	for i in int(arc_preview_time / dt):
 		vel.y += g * dt
 		var next: Vector2 = pos + vel * dt
-		var q := PhysicsRayQueryParameters2D.create(pos, next, 1)
+		q.from = pos
+		q.to = next
 		var r := space.intersect_ray(q)
 		if not r.is_empty():
 			throw_arc.add_point(r.position)
@@ -1286,8 +1261,7 @@ func _do_throw() -> void:
 func request_throw(item_path: String, origin: Vector2, vel: Vector2) -> void:
 	if not multiplayer.is_server():
 		return
-	var sender: int = multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != get_multiplayer_authority():
+	if _sender() != get_multiplayer_authority():
 		return
 	# Tiene que ser el objeto que lleva (la copia del servidor lo sabe)
 	if current_item == null or current_item.resource_path != item_path or current_item.scene == null:
@@ -1301,16 +1275,12 @@ func request_throw(item_path: String, origin: Vector2, vel: Vector2) -> void:
 
 	# Si hay una pared entre el jugador y la mano, sale desde el jugador
 	var space := get_world_2d().direct_space_state
-	var los := PhysicsRayQueryParameters2D.create(global_position, origin, 1)
+	var los := PhysicsRayQueryParameters2D.create(global_position, origin, MASK_WORLD)
 	var block := space.intersect_ray(los)
 	if not block.is_empty():
 		origin = block.position + block.normal * 2.0
 
-	var projectile = item.scene.instantiate()
-	get_parent().add_child(projectile, true)
-	projectile.global_position = origin
-	if "shooter_id" in projectile:
-		projectile.shooter_id = name.to_int()
+	var projectile := _spawn_owned(item.scene, origin)
 	if "item_data" in projectile:
 		projectile.item_data = item
 	if projectile.has_method("launch"):
@@ -1319,7 +1289,16 @@ func request_throw(item_path: String, origin: Vector2, vel: Vector2) -> void:
 		projectile.linear_velocity = vel
 		projectile.angular_velocity = randf_range(-10, 10)
 
+
+# Solo servidor: crea lo que lanza o coloca el jugador (con su id de dueño) y le vacía la mano
+func _spawn_owned(scene: PackedScene, pos: Vector2) -> Node:
+	var n := scene.instantiate()
+	get_parent().add_child(n, true)
+	n.global_position = pos
+	if "shooter_id" in n:
+		n.shooter_id = name.to_int()
 	equip_item_rpc.rpc("")
+	return n
 
 
 # Solo servidor: coloca el objeto en el suelo delante del jugador (Claymore)
@@ -1329,15 +1308,10 @@ func _place_item(item: ItemData) -> void:
 		return
 	var space := get_world_2d().direct_space_state
 	var from: Vector2 = global_position + Vector2(facing * 16.0, -6.0)
-	var q := PhysicsRayQueryParameters2D.create(from, from + Vector2(0, 40), 1 + 8)
+	var q := PhysicsRayQueryParameters2D.create(from, from + Vector2(0, 40), MASK_WORLD_PLATFORMS)
 	var r := space.intersect_ray(q)
 	var pos: Vector2 = (r.position + Vector2(0, -8)) if not r.is_empty() else global_position
-	var placed = item.scene.instantiate()
-	get_parent().add_child(placed, true)
-	placed.global_position = pos
-	if "shooter_id" in placed:
-		placed.shooter_id = name.to_int()
-	equip_item_rpc.rpc("")
+	_spawn_owned(item.scene, pos)
 
 
 # Hilo decapitador: solo si hay una puerta al lado que aún no tenga uno
@@ -1351,12 +1325,7 @@ func _place_in_door(item: ItemData) -> void:
 			best_dist = d
 	if best == null:
 		return
-	var wire = item.scene.instantiate()
-	get_parent().add_child(wire, true)
-	wire.global_position = best.global_position
-	if "shooter_id" in wire:
-		wire.shooter_id = name.to_int()
-	equip_item_rpc.rpc("")
+	_spawn_owned(item.scene, best.global_position)
 
 
 func _door_has_wire(door: Node2D) -> bool:
@@ -1371,29 +1340,29 @@ func emp(duration: float) -> void:
 	_emp_until_msec = Time.get_ticks_msec() + int(duration * 1000.0)
 	if not is_local_human():
 		return
-	flashlight.enabled = false
+	if flashlight:
+		flashlight.enabled = false
 	aura.enabled = false
 	await get_tree().create_timer(duration + 0.05).timeout
-	if Time.get_ticks_msec() >= _emp_until_msec and not escondido and not _dead:
-		flashlight.enabled = true
-		aura.enabled = true
+	if Time.get_ticks_msec() >= _emp_until_msec and not _dead:
+		_apply_hidden_visual() # vuelve la luz (la linterna, solo si no está escondido)
 
 
 # El servidor mueve a este jugador (Translocator). Lo aplica el dueño, que es quien manda su posición.
 @rpc("any_peer", "call_local", "reliable")
 func teleport_to(pos: Vector2) -> void:
-	var sender: int = multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != 1:
+	if not _from_server():
 		return
 	if is_multiplayer_authority():
 		global_position = pos
+		net_position = pos
 		velocity = Vector2.ZERO
+		rope_anchor = Vector2.ZERO
 
 
 @rpc("any_peer", "call_local", "reliable")
 func equip_item_rpc(path: String) -> void:
-	var sender: int = multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != 1:
+	if not _from_server():
 		return
 	current_item = null if path == "" else load(path)
 	if path != "":

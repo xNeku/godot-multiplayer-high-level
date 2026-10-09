@@ -1,17 +1,18 @@
 extends Node
 # Autoload. Los puntos los calcula el servidor y se envían a todos los peers.
 
-signal score_updated(id_jugador, puntos_nuevos)
+signal score_updated(id_jugador: int, puntos_nuevos: int)
 
+# id del jugador (int) -> puntos
 var scores: Dictionary = {}
 
 # Mapa elegido en el menú (ruta de la escena). Vacío = el que tenga la escena de juego.
 var selected_map_path: String = ""
 # Mapa JSON elegido (el texto entero: así viaja por red a los clientes). Tiene prioridad.
 var selected_map_json: String = ""
-# true mientras se está en el lobby (jugadores con pistola de juguete, sin rondas)
 # Menú abierto (lobby con mando): el jugador local no lee los controles
 var input_blocked: bool = false
+# true mientras se está en el lobby (jugadores con pistola de juguete, sin rondas)
 var in_lobby: bool = false
 
 
@@ -31,7 +32,21 @@ var bots: Array = []
 
 func _ready() -> void:
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-	multiplayer.server_disconnected.connect(func(): colors.clear(); bots.clear())
+
+
+# Al salir de la sala (o perder la conexión): se olvida todo lo de la partida
+func clear_session() -> void:
+	in_lobby = false
+	input_blocked = false
+	colors.clear()
+	bots.clear()
+	scores.clear()
+
+
+# Nodo del jugador con ese id en la escena actual (lobby o partida), o null
+func player_node(id: int) -> Node2D:
+	var s := get_tree().current_scene
+	return s.get_node_or_null("PlayerSpawnContainer/%d" % id) as Node2D if s else null
 
 
 static func is_bot_id(id: int) -> bool:
@@ -72,12 +87,12 @@ func _assign_color(id: int, preferred: int) -> void:
 	var n: int = Settings.PLAYER_COLORS.size()
 	for k in n:
 		var c: int = (preferred + k) % n
-		if not _color_taken(c, id):
+		if not is_color_taken(c, id):
 			colors[id] = c
 			return
 
 
-func _color_taken(c: int, except_id: int) -> bool:
+func is_color_taken(c: int, except_id: int) -> bool:
 	for other in colors:
 		if other != except_id and int(colors[other]) == c:
 			return true
@@ -120,22 +135,20 @@ func _sync_roster(c: Dictionary, b: Array) -> void:
 
 
 # Solo se llama en el servidor. Devuelve los puntos del jugador.
-func add_point(player_id) -> int:
-	var id := str(player_id)
+func add_point(id: int) -> int:
 	var points: int = scores.get(id, 0) + 1
 	_sync_score.rpc(id, points)
 	return points
 
 
 @rpc("authority", "call_local", "reliable")
-func _sync_score(id: String, points: int) -> void:
+func _sync_score(id: int, points: int) -> void:
 	scores[id] = points
 	score_updated.emit(id, points)
 
 
 # Solo el servidor. Resta un punto (nunca baja de 0).
-func remove_point(player_id) -> int:
-	var id := str(player_id)
+func remove_point(id: int) -> int:
 	var points: int = maxi(scores.get(id, 0) - 1, 0)
 	_sync_score.rpc(id, points)
 	return points
@@ -146,8 +159,7 @@ func reset_scores() -> void:
 	scores.clear()
 
 
-# Punto de aparición aleatorio. Cada mapa tiene Marker2D en el grupo "spawn_points".
-# Punto de aparición sin repetir: todos los peers calculan lo mismo (misma lista de
+# Cada mapa tiene Marker2D en el grupo "spawn_points". Punto de aparición sin repetir: todos los peers calculan lo mismo (misma lista de
 # jugadores y misma ronda), así nadie aparece encima de otro. Cambia en cada ronda.
 func get_spawn_position(id: int = 0) -> Vector2:
 	var points := get_tree().get_nodes_in_group("spawn_points")

@@ -5,7 +5,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
 size = Vector2(16, 36)
 
-[node name="Interruptor" type="StaticBody2D" groups=["blanco"]]
+[node name="Interruptor" type="StaticBody2D"]
 collision_layer = 1
 collision_mask = 0
 script = ExtResource("1_switch")

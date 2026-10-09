@@ -30,7 +30,7 @@ extends AnimatedSprite2D
 
 enum Mode { LOOP, JUMP, LAND, HARD_LAND, CROUCH_IN, CROUCH_HOLD, CROUCH_OUT, SLIDE, FLIP, HANG }
 
-var _player: Node2D
+var _player # el jugador (high_level_network_player.gd); sin tipo para leer sus variables
 var _body: Node2D
 var _hand: Node2D
 var _last_pos: Vector2
@@ -41,8 +41,10 @@ var _was_air: bool = false
 var _prev_stance: int = 0
 var _peak_fall: float = 0.0
 var _shot_t: float = -1.0
-@onready var tint: AnimatedSprite2D = $Tinte
 var _arm: Sprite2D
+var _tint_idx: int = -1
+
+@onready var tint: AnimatedSprite2D = $Tinte
 
 
 func _ready() -> void:
@@ -65,23 +67,25 @@ func _process(delta: float) -> void:
 	visible = _body.visible
 	modulate.a = _body.modulate.a
 	# Solo el pecho (capa de tinte) lleva el color del jugador
-	var idx: int = clampi(int(_player.get("color_index")), 0, Settings.PLAYER_COLORS.size() - 1)
-	tint.self_modulate = Settings.PLAYER_COLORS[idx]
+	var idx: int = clampi(_player.color_index, 0, Settings.PLAYER_COLORS.size() - 1)
+	if idx != _tint_idx:
+		_tint_idx = idx
+		tint.self_modulate = Settings.PLAYER_COLORS[idx]
 
 	var pos: Vector2 = _player.global_position
 	_vel = _vel.lerp((pos - _last_pos) / delta, 0.35)
 	_last_pos = pos
 	var facing: int = -1 if _body.scale.x < 0.0 else 1
 	var airborne: bool = absf(_vel.y) > air_threshold
-	var stance: int = int(_player.get("stance"))
+	var stance: int = _player.stance
 	var flipping: bool = absf(_body.rotation) > 0.05
-	var roped: bool = _player.get("rope_anchor") != Vector2.ZERO
+	var roped: bool = _player.rope_anchor != Vector2.ZERO
 	_t += delta
 	if airborne:
 		_peak_fall = maxf(_peak_fall, _vel.y)
 	# El brazo sale del hombro (el jugador local lo usa para colocar el arma)
 	if _player.is_multiplayer_authority():
-		_player.set("_hand_base", shoulder if facing > 0 else shoulder_left)
+		_player._hand_base = shoulder if facing > 0 else shoulder_left
 	if _arm:
 		_arm.frame = 1 if _shot_t >= 0.0 and _shot_t < 0.07 else 0
 

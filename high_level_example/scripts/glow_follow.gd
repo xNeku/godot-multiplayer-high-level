@@ -4,12 +4,8 @@ extends Sprite2D
 
 var light: PointLight2D
 var base_alpha: float = 0.5
+# La energía "encendida" se aprende al vuelo (la intermitente empieza apagada)
 var _base_energy: float = 1.0
-
-
-func _ready() -> void:
-	# La energía "encendida" se aprende al vuelo (la intermitente empieza apagada)
-	_base_energy = 1.0
 
 
 func _process(_delta: float) -> void:

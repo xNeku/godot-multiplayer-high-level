@@ -9,8 +9,8 @@ extends CanvasLayer
 
 func add_entry(killer_id: int, victim_id: int) -> void:
 	var l := Label.new()
-	var k: String = _name(killer_id)
-	var v: String = _name(victim_id)
+	var k: String = GameManager.display_name(killer_id)
+	var v: String = GameManager.display_name(victim_id)
 	l.text = ("%s SE MATO" % v) if killer_id == victim_id else ("%s  X  %s" % [k, v])
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	l.theme_type_variation = &"LabelMini"
@@ -28,6 +28,3 @@ func add_entry(killer_id: int, victim_id: int) -> void:
 	tw.tween_property(l, "modulate:a", 0.0, 0.5)
 	tw.tween_callback(l.queue_free)
 
-
-func _name(id: int) -> String:
-	return GameManager.display_name(id)

@@ -17,11 +17,10 @@ enum Mode { GRENADE, TOMAHAWK, SEMTEX, SMOKE, TRANSLOCATOR, BETTY, PEM, ROCKET }
 enum State { FLYING, RESTING, STUCK, GONE, POPPING }
 
 const PLATFORM_LAYER: int = 4
+# map_loader se carga al usarlo: con preload habría un ciclo (map_loader -> Spawner -> objetos -> aquí)
+const MAP_LOADER_PATH := "res://high_level_example/scripts/map_loader.gd"
 
 @export var mode: Mode = Mode.GRENADE
-# Qué objeto es (para poder recogerlo de nuevo: Tomahawk). Lo pone el jugador al lanzarlo
-# (no se asigna en la escena: el .tres del objeto ya referencia esta escena).
-var item_data: ItemData
 # Holgura con la superficie al chocar (px)
 @export var radius: float = 4.0
 # Velocidad que conserva al rebotar (0 a 1)
@@ -38,6 +37,8 @@ var item_data: ItemData
 @export var spin_deg: float = 600.0
 # ROCKET: el sprite mira hacia donde va
 @export var face_velocity: bool = false
+# Segundos que dura en el mapa si nadie la coge
+@export var lifetime: float = 120.0
 @export_group("Mina (Betty)")
 @export var arm_time: float = 1.0
 @export var trigger_radius: float = 26.0
@@ -45,8 +46,10 @@ var item_data: ItemData
 @export_group("Pem")
 @export var emp_radius: float = 260.0
 @export var emp_duration: float = 6.0
-# Segundos que dura en el mapa si nadie la coge
-@export var lifetime: float = 120.0
+
+# Qué objeto es (para poder recogerlo de nuevo: Tomahawk). Lo pone el jugador al lanzarlo
+# (no se asigna en la escena: el .tres del objeto ya referencia esta escena).
+var item_data: ItemData
 
 var velocity: Vector2 = Vector2.ZERO
 var gravity: float = 1400.0
@@ -251,7 +254,7 @@ func _fuse_end() -> void:
 			queue_free()
 		Mode.TRANSLOCATOR:
 			_state = State.GONE
-			var player := get_parent().get_node_or_null(str(shooter_id))
+			var player := GameManager.player_node(shooter_id)
 			if player:
 				player.teleport_to.rpc(global_position)
 			_teleport_fx.rpc()
@@ -291,8 +294,7 @@ func _explode_fx(pos: Vector2) -> void:
 	# Rompe el terreno (mapas JSON). Misma posición en todos los peers = mismo agujero.
 	if break_terrain:
 		var map := get_tree().get_first_node_in_group("map_settings") as Node2D
-		var loader: GDScript = load("res://high_level_example/scripts/map_loader.gd")
-		var broken: PackedVector2Array = loader.carve(map, pos, explosion_radius * terrain_radius_mult)
+		var broken: PackedVector2Array = load(MAP_LOADER_PATH).carve(map, pos, explosion_radius * terrain_radius_mult)
 		if not broken.is_empty():
 			Fx.debris(broken)
 	sprite.visible = false

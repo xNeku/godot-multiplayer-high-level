@@ -38,12 +38,9 @@ properties/5/replication_mode = 2
 properties/6/path = NodePath("HandPivot:position")
 properties/6/spawn = true
 properties/6/replication_mode = 2
-properties/7/path = NodePath(".:color_index")
+properties/7/path = NodePath(".:rope_anchor")
 properties/7/spawn = true
 properties/7/replication_mode = 2
-properties/8/path = NodePath(".:rope_anchor")
-properties/8/spawn = true
-properties/8/replication_mode = 2
 
 [sub_resource type="Gradient" id="Gradient_arc"]
 colors = PackedColorArray(1, 1, 1, 0.9, 1, 1, 1, 0.05)
@@ -59,6 +56,7 @@ script = ExtResource("1_player")
 lobby_weapon = ExtResource("10_juguete")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_interval = 0.016
 replication_config = SubResource("SceneReplicationConfig_player")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

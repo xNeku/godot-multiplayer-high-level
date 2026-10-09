@@ -33,6 +33,9 @@ var _ready_view: Dictionary = {}
 var _entries: Array = []
 var _import_dialog: FileDialog
 var _refresh_left: float = 0.0
+# Firma de la lista de jugadores pintada (solo se rehace si cambia algo)
+var _players_sig: String = ""
+var _spawned_count: int = 0
 # Menú con mando/teclado (Start / Esc): bloquea al personaje y da foco a los botones
 var _menu_open: bool = false
 
@@ -73,6 +76,7 @@ func _process(delta: float) -> void:
 	_refresh_left -= delta
 	if _refresh_left <= 0.0:
 		_refresh_left = 0.25
+		_spawned_count = _player_nodes().size()
 		_refresh_players()
 		_refresh_color_buttons()
 		_update_hint()
@@ -171,8 +175,7 @@ func _server_tick(delta: float) -> void:
 		if not _ready_state.get(id, false):
 			all_ready = false
 	# Todos listos y todos con su jugador ya spawneado
-	var players: int = $PlayerSpawnContainer.get_children().filter(func(n): return "color_index" in n).size()
-	var spawned: bool = players >= ids.size() + GameManager.bots.size()
+	var spawned: bool = _spawned_count >= ids.size() + GameManager.bots.size()
 	if all_ready and spawned and _countdown < 0.0:
 		_countdown = float(COUNTDOWN_SECONDS)
 	elif not all_ready and _countdown >= 0.0:
@@ -246,7 +249,7 @@ func _build_color_buttons() -> void:
 
 
 func _set_color(i: int) -> void:
-	if GameManager._color_taken(i, multiplayer.get_unique_id()):
+	if GameManager.is_color_taken(i, multiplayer.get_unique_id()):
 		return
 	Settings.color_index = i
 	Settings.save()
@@ -258,7 +261,7 @@ func _refresh_color_buttons() -> void:
 	var me: int = multiplayer.get_unique_id()
 	var buttons := colors_box.get_children()
 	for i in buttons.size():
-		var taken: bool = GameManager._color_taken(i, me)
+		var taken: bool = GameManager.is_color_taken(i, me)
 		var b := buttons[i] as Button
 		b.disabled = taken
 		b.modulate.a = 0.25 if taken else 1.0
@@ -279,11 +282,21 @@ func _remove_bot() -> void:
 		$MultiplayerSpawner.remove_player(id)
 
 
+func _player_nodes() -> Array:
+	return get_tree().get_nodes_in_group("players")
+
+
 func _refresh_players() -> void:
+	var nodes: Array = _player_nodes()
+	nodes.sort_custom(func(a, b): return a.name.to_int() < b.name.to_int())
+	var sig := ""
+	for p in nodes:
+		sig += "%s:%d:%s;" % [p.name, p.color_index, _ready_view.get(p.name.to_int(), false)]
+	if sig == _players_sig:
+		return
+	_players_sig = sig
 	for c in players_box.get_children():
 		c.queue_free()
-	var nodes: Array = $PlayerSpawnContainer.get_children().filter(func(n): return "color_index" in n)
-	nodes.sort_custom(func(a, b): return a.name.to_int() < b.name.to_int())
 	for p in nodes:
 		var id: int = p.name.to_int()
 		var row := HBoxContainer.new()
@@ -345,10 +358,5 @@ func _on_import_file(path: String) -> void:
 # --- SALIR ---
 
 func _leave() -> void:
-	if multiplayer.has_multiplayer_peer():
-		multiplayer.multiplayer_peer.close()
-	multiplayer.multiplayer_peer = null
-	GameManager.in_lobby = false
-	GameManager.colors.clear()
-	GameManager.bots.clear()
+	HighLevelNetworkHandler.leave()
 	get_tree().change_scene_to_file(MENU_SCENE)

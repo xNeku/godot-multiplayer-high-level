@@ -36,7 +36,14 @@ func start_client(ip_address: String = "") -> Error:
 	return OK
 
 
-func _on_server_disconnected() -> void:
+# Cierra la conexión y limpia el estado de la partida (salir del lobby o caída del host)
+func leave() -> void:
+	if multiplayer.has_multiplayer_peer():
+		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null
-	GameManager.in_lobby = false
+	GameManager.clear_session()
+
+
+func _on_server_disconnected() -> void:
+	leave()
 	get_tree().change_scene_to_file(MENU_SCENE)

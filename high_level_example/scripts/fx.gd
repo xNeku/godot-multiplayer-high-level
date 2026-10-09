@@ -11,17 +11,28 @@ extends CanvasLayer
 const SOFT: Texture2D = preload("res://high_level_example/assets/fx/punto_suave.png")
 const LIGHT_TEX: Texture2D = preload("res://high_level_example/assets/lights/2d_lights_and_shadows_neutral_point_light.webp")
 const MAX_DECALS: int = 80
+const CASING_SCRIPT := preload("res://high_level_example/scripts/casing.gd")
 
 enum Surface { WALL, FLESH, TOY }
 
 var _decals: Array[Node2D] = []
 var _add_mat := CanvasItemMaterial.new()
+# Rampas de color compartidas (se creaban una por efecto)
+var _fade := Gradient.new()        # blanco -> transparente
+var _spark_fade := Gradient.new()  # blanco -> naranja transparente
+var _late_fade := Gradient.new()   # se mantiene y se apaga al final
 
 
 func _ready() -> void:
 	layer = 0
 	follow_viewport_enabled = true
 	_add_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	_fade.set_color(0, Color(1, 1, 1, 1))
+	_fade.set_color(1, Color(1, 1, 1, 0))
+	_spark_fade.set_color(0, Color(1, 1, 1, 1))
+	_spark_fade.set_color(1, Color(1, 0.4, 0.1, 0))
+	_late_fade.offsets = PackedFloat32Array([0.0, 0.8, 1.0])
+	_late_fade.colors = PackedColorArray([Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)])
 
 
 func _world() -> Node:
@@ -57,7 +68,7 @@ func muzzle(pos: Vector2, angle: float, size: float) -> void:
 
 func casing(pos: Vector2, facing: int, color: Color = Color(0.85, 0.65, 0.3)) -> void:
 	var c := Node2D.new()
-	c.set_script(preload("res://high_level_example/scripts/casing.gd"))
+	c.set_script(CASING_SCRIPT)
 	c.position = pos
 	c.velocity = Vector2(-facing * randf_range(40.0, 90.0), randf_range(-160.0, -110.0))
 	c.color = color
@@ -127,10 +138,7 @@ func _sparks(pos: Vector2, normal: Vector2, amount: int, color: Color, size: flo
 	p.scale_amount_min = 1.0
 	p.scale_amount_max = 1.5
 	p.color = color
-	var ramp := Gradient.new()
-	ramp.set_color(0, Color(1, 1, 1, 1))
-	ramp.set_color(1, Color(1, 0.4, 0.1, 0))
-	p.color_ramp = ramp
+	p.color_ramp = _spark_fade
 	add_child(p)
 	p.emitting = true
 	p.finished.connect(p.queue_free)
@@ -153,10 +161,7 @@ func _dust(pos: Vector2, normal: Vector2, size: float) -> void:
 	p.scale_amount_min = 0.15 * size
 	p.scale_amount_max = 0.3 * size
 	p.color = Color(0.75, 0.72, 0.68, 0.5)
-	var ramp := Gradient.new()
-	ramp.set_color(0, Color(1, 1, 1, 1))
-	ramp.set_color(1, Color(1, 1, 1, 0))
-	p.color_ramp = ramp
+	p.color_ramp = _fade
 	_world().add_child(p)
 	p.emitting = true
 	p.finished.connect(p.queue_free)
@@ -203,10 +208,52 @@ func _decal_hole(pos: Vector2, size: float) -> void:
 
 
 func _trim_decals() -> void:
+	if _decals.size() <= MAX_DECALS:
+		return
 	_decals = _decals.filter(func(n): return is_instance_valid(n))
 	while _decals.size() > MAX_DECALS:
 		var old: Node2D = _decals.pop_front()
 		old.queue_free()
+
+
+# Polvo al aterrizar de una caída larga (más fuerte cuanto más rápido)
+func land_dust(pos: Vector2, fall_speed: float) -> void:
+	var p := _one_shot(pos, clampi(int(fall_speed / 60.0), 4, 14), 0.35)
+	p.direction = Vector2.UP
+	p.spread = 80.0
+	p.initial_velocity_min = 30.0
+	p.initial_velocity_max = 90.0
+	p.gravity = Vector2(0, 200)
+	p.scale_amount_min = 1.5
+	p.scale_amount_max = 3.0
+	p.color = Color(0.75, 0.72, 0.65, 0.8)
+
+
+# Chorro de sangre al morir, hacia donde sale despedido el cuerpo
+func blood_burst(pos: Vector2, dir: Vector2) -> void:
+	var p := _one_shot(pos, 18, 0.5)
+	p.direction = dir
+	p.spread = 50.0
+	p.initial_velocity_min = 80.0
+	p.initial_velocity_max = 260.0
+	p.gravity = Vector2(0, 700)
+	p.scale_amount_min = 1.5
+	p.scale_amount_max = 3.5
+	p.color = Color(0.85, 0.12, 0.1)
+
+
+# Partículas de un solo disparo en el mundo que se borran solas al acabar
+func _one_shot(pos: Vector2, amount: int, lifetime: float) -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.amount = amount
+	p.lifetime = lifetime
+	p.position = pos
+	_world().add_child(p)
+	p.emitting = true
+	p.finished.connect(p.queue_free)
+	return p
 
 
 # Luz real breve (ilumina las paredes de alrededor)
@@ -242,10 +289,7 @@ func _smoke_puff(pos: Vector2, angle: float, amount: int, size: float) -> void:
 	p.scale_amount_min = 0.12 * size
 	p.scale_amount_max = 0.3 * size
 	p.color = Color(0.85, 0.85, 0.85, 0.35)
-	var ramp := Gradient.new()
-	ramp.set_color(0, Color(1, 1, 1, 1))
-	ramp.set_color(1, Color(1, 1, 1, 0))
-	p.color_ramp = ramp
+	p.color_ramp = _fade
 	_world().add_child(p)
 	p.emitting = true
 	p.finished.connect(p.queue_free)
@@ -280,10 +324,7 @@ func debris(points: PackedVector2Array) -> void:
 		p.scale_amount_min = 1.5
 		p.scale_amount_max = 3.0
 		p.color = Color(0.45, 0.38, 0.34)
-		var ramp := Gradient.new()
-		ramp.offsets = PackedFloat32Array([0.0, 0.8, 1.0])
-		ramp.colors = PackedColorArray([Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)])
-		p.color_ramp = ramp
+		p.color_ramp = _late_fade
 		_world().add_child(p)
 		p.emitting = true
 		p.finished.connect(p.queue_free)
@@ -291,6 +332,12 @@ func debris(points: PackedVector2Array) -> void:
 
 
 # --- EXPLOSIONES ---
+
+# La misma explosión en todos los peers (la manda el servidor)
+@rpc("authority", "call_local", "reliable")
+func explosion_rpc(pos: Vector2, radius: float, kind: int = 0) -> void:
+	explosion(pos, radius, kind)
+
 
 # kind: 0 explosión normal, 1 PEM (eléctrica, sin fuego)
 func explosion(pos: Vector2, radius: float, kind: int = 0) -> void:

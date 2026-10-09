@@ -1,27 +1,25 @@
 extends RigidBody2D
+# Claymore: se coloca en el suelo y explota al pisarla otro jugador (el dueño no la activa).
+# Si nadie la pisa, desaparece a los 20 s. Todo lo decide el servidor.
 
-var shooter_id = 0
+var shooter_id: int = 0
 
-func _ready():
-	# Si toca a alguien en el área, explota
+
+func _ready() -> void:
 	$Area2D.body_entered.connect(_on_target_entered)
-	
-	# Destruir tras 20 segundos si nadie la pisa
 	if multiplayer.is_server():
 		get_tree().create_timer(20.0).timeout.connect(queue_free)
 
-func _on_target_entered(body):
-	if !multiplayer.is_server(): return
-	
-	# No explotar con el dueño (opcional, por si la pisas tú mismo)
-	if body.name == str(shooter_id): return 
-	
+
+func _on_target_entered(body: Node) -> void:
+	if not multiplayer.is_server() or body.name == str(shooter_id):
+		return
 	if body is CharacterBody2D:
 		explode(body)
 
-func explode(victim):
+
+func explode(victim: Node) -> void:
 	if victim.has_method("hit"):
 		victim.hit(shooter_id)
-	
-	# Aquí instanciarías partículas de explosión
+	Fx.explosion_rpc.rpc(global_position, 40.0, 0)
 	queue_free()

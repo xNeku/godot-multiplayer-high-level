@@ -2,7 +2,6 @@ extends Control
 ## Pantalla de titulo "FlashRacs": logo (title_logo.gd) + menu con foco verde vision nocturna.
 ## JUGAR y OPCIONES abren Menu.tscn, que tiene el mismo fondo y logo.
 
-const DIR := "res://high_level_example/assets/ui/menu/"
 const GAME_MENU := "res://high_level_example/scenes/Menu.tscn"
 const UiJuice := preload("res://high_level_example/scripts/ui_juice.gd")
 

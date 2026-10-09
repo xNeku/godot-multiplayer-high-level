@@ -34,7 +34,7 @@ var _interact_cd: float = 0.0
 var _jump_hold: float = 0.0
 var _throw_hold: float = 0.0
 var _patrol_key: int = -1
-# Saltos que no le han salido: "desde>hasta" -> instante hasta el que se evitan
+# Saltos que no le han salido: BotNav.edge_id -> instante hasta el que se evitan
 var _bad_edges: Dictionary = {}
 var _from_key: int = -1
 # Armas a las que no sabe llegar: nodo -> instante hasta el que se ignoran
@@ -47,8 +47,7 @@ var _wp_t: float = 0.0
 # Sin camino: deambula en una dirección un rato (saltando si choca) hasta salir del hoyo
 var _wander_dir: int = 1
 var _wander_t: float = 0.0
-# Para depurar: qué está haciendo
-var debug_state: String = ""
+var _map: Node = null
 
 
 func _ready() -> void:
@@ -64,7 +63,9 @@ func _physics_process(delta: float) -> void:
 	if me._dead or not multiplayer.is_server():
 		set_physics_process(false)
 		return
-	_nav = BotNav.for_map(get_tree().get_first_node_in_group("map_settings"))
+	if not is_instance_valid(_map):
+		_map = get_tree().get_first_node_in_group("map_settings")
+	_nav = BotNav.for_map(_map)
 	_interact_cd = maxf(0.0, _interact_cd - delta)
 
 	_enemy = _find_enemy()
@@ -78,15 +79,12 @@ func _physics_process(delta: float) -> void:
 	var goal := Vector2.ZERO
 	var fighting := false
 
-	debug_state = "patrulla"
 	if _enemy and has_gun:
-		debug_state = "pelea con %s" % _enemy.name
 		fighting = true
 		_fight(inp, delta)
 	elif not has_gun:
 		var p := _nearest_pickup()
 		_pickup = p
-		debug_state = "a por arma %s" % (p.name if p else "-")
 		if p:
 			goal = p.global_position
 			if me.global_position.distance_to(p.global_position) < me.interact_range * 0.8 and _interact_cd <= 0.0:
@@ -117,8 +115,8 @@ func _find_enemy() -> Node2D:
 	var best: Node2D = null
 	var best_d: float = INF
 	var space := me.get_world_2d().direct_space_state
-	for p in me.get_parent().get_children():
-		if p == me or not ("_dead" in p) or p._dead or p.get("escondido"):
+	for p in get_tree().get_nodes_in_group("players"):
+		if p == me or p._dead or p.escondido:
 			continue
 		var to: Vector2 = p.global_position - me.global_position
 		var d: float = to.length()
@@ -198,13 +196,13 @@ func _move_to(goal: Vector2, inp: PlayerInput, delta: float) -> void:
 		_stuck_t = 0.0
 		# Ese tramo no sale: se evita un rato y se busca otro camino
 		if _nav and not _path.is_empty() and _from_key >= 0:
-			_bad_edges["%d>%d" % [_from_key, _path[0][0]]] = Time.get_ticks_msec() + 12000
+			_bad_edges[_nav.edge_id(_from_key, _path[0][0])] = Time.get_ticks_msec() + 12000
 		_path.clear()
 		_jump_hold = 0.25
 		_patrol_key = -1
 
 	if _nav == null:
-		_simple_move(goal, inp)
+		_simple_move(goal, inp, delta)
 		return
 
 	_repath_t -= delta
@@ -219,10 +217,8 @@ func _move_to(goal: Vector2, inp: PlayerInput, delta: float) -> void:
 			if _pickup and is_instance_valid(_pickup) and goal == _pickup.global_position:
 				_bad_pickups[_pickup.get_instance_id()] = Time.get_ticks_msec() + 15000
 	if _path.is_empty():
-		debug_state += " (sin camino)"
 		_wander(inp, delta)
 		return
-	debug_state += " (camino %d)" % _path.size()
 
 	# Waypoint alcanzado
 	var wp: Vector2 = _nav.key_pos(_path[0][0])
@@ -247,7 +243,7 @@ func _move_to(goal: Vector2, inp: PlayerInput, delta: float) -> void:
 		if _wp_t > 2.0:
 			_wp_t = 0.0
 			if _from_key >= 0:
-				_bad_edges["%d>%d" % [_from_key, _wp_key]] = Time.get_ticks_msec() + 15000
+				_bad_edges[_nav.edge_id(_from_key, _wp_key)] = Time.get_ticks_msec() + 15000
 			_path.clear()
 			_patrol_key = -1
 			return
@@ -273,7 +269,7 @@ func _move_to(goal: Vector2, inp: PlayerInput, delta: float) -> void:
 
 func _wander(inp: PlayerInput, delta: float) -> void:
 	_wander_t -= delta
-	if _wander_t <= 0.0 or me.is_on_wall() and me.is_on_floor() and randf() < 0.3:
+	if _wander_t <= 0.0 or (me.is_on_wall() and me.is_on_floor() and randf() < 0.3):
 		_wander_t = randf_range(1.5, 3.0)
 		_wander_dir = -_wander_dir if randf() < 0.6 else _wander_dir
 	inp.set_action(&"ui_right" if _wander_dir > 0 else &"ui_left", true)
@@ -285,12 +281,12 @@ func _wander(inp: PlayerInput, delta: float) -> void:
 
 
 # Sin mapa de rejilla (mapas de escena): ir en línea recta y saltar si choca
-func _simple_move(goal: Vector2, inp: PlayerInput) -> void:
+func _simple_move(goal: Vector2, inp: PlayerInput, delta: float) -> void:
 	var dx: float = goal.x - me.global_position.x
 	if absf(dx) > 6.0:
 		inp.set_action(&"ui_right" if dx > 0.0 else &"ui_left", true)
 	if me.is_on_floor() and (me.is_on_wall() or goal.y < me.global_position.y - 30.0):
 		_jump_hold = 0.3
 	if _jump_hold > 0.0:
-		_jump_hold -= 1.0 / 60.0
+		_jump_hold -= delta
 		inp.set_action(&"ui_up", true)

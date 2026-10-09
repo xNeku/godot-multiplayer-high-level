@@ -37,10 +37,11 @@ func set_action(action: StringName, on: bool) -> void:
 
 
 func release_all() -> void:
-	_cur.clear()
+	_cur = {}
 
 
 # El jugador lo llama al final de cada frame de física (para "recién pulsado")
 func end_frame() -> void:
 	if virtual:
-		_prev = _cur.duplicate()
+		_prev = _cur
+		_cur = {}

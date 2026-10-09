@@ -1,46 +1,45 @@
 extends CanvasLayer
-# Muestra el arma (con munición) y el objeto del jugador local.
+# Muestra el arma (con munición) y el objeto del jugador local, y el aviso de coger.
+# Se refresca 15 veces por segundo (no hace falta más para texto).
+
+const REFRESH: float = 1.0 / 15.0
 
 @onready var label: Label = $Label
 @onready var prompt: Label = $Aviso
 
+var _player: Node2D
+var _left: float = 0.0
 
-func _process(_delta: float) -> void:
-	if not is_inside_tree() or multiplayer == null or not multiplayer.has_multiplayer_peer():
+
+func _process(delta: float) -> void:
+	_left -= delta
+	if _left > 0.0:
 		return
-	var player := get_node_or_null("../PlayerSpawnContainer/" + str(multiplayer.get_unique_id()))
-	if player == null:
-		label.text = ""
+	_left = REFRESH
+	if multiplayer == null or not multiplayer.has_multiplayer_peer():
 		return
+	if not is_instance_valid(_player):
+		_player = GameManager.player_node(multiplayer.get_unique_id())
+		if _player == null:
+			label.text = ""
+			prompt.text = ""
+			return
 	var weapon_text := "-"
-	var wd: WeaponData = player.current_weapon_data
+	var wd: WeaponData = _player.current_weapon_data
 	if wd:
-		weapon_text = "%s %d/%d" % [wd.role_name, player.current_ammo, wd.max_ammo] if player.current_ammo >= 0 else wd.role_name
-	var item_text := "-"
-	if player.current_item:
-		item_text = player.current_item.item_name
+		weapon_text = "%s %d/%d" % [wd.role_name, _player.current_ammo, wd.max_ammo] if _player.current_ammo >= 0 else wd.role_name
+	var item_text: String = _player.current_item.item_name if _player.current_item else "-"
 	label.text = "ARMA: %s\nOBJETO: %s" % [weapon_text, item_text]
-	prompt.text = _nearest_pickup_text(player)
+	prompt.text = _pickup_text()
 
 
-# Aviso "E: COGER X" cuando hay algo al alcance
-func _nearest_pickup_text(player: Node2D) -> String:
-	var best: Node2D = null
-	var best_d: float = player.interact_range
-	for p in get_tree().get_nodes_in_group("pickups"):
-		if p.has_method("is_available") and not p.is_available():
-			continue
-		var d: float = player.global_position.distance_to(p.global_position)
-		if d <= best_d:
-			best = p
-			best_d = d
+# Aviso "E: COGER X" cuando hay algo al alcance (lo mismo que cogería el botón)
+func _pickup_text() -> String:
+	var best: Node2D = _player.nearest_pickup(_player.interact_range)
 	if best == null:
 		return ""
+	var thing = best.get_item() if best.pickup_kind() == "item" else best.get_weapon()
 	var nm: String = ""
-	if best.pickup_kind() == "item":
-		var it = best.get_item()
-		nm = it.item_name if it else ""
-	else:
-		var w = best.get_weapon()
-		nm = w.role_name if w else ""
+	if thing:
+		nm = thing.item_name if best.pickup_kind() == "item" else thing.role_name
 	return "%s: COGER %s" % [Settings.key_for("interact"), nm]

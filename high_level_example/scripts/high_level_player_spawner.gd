@@ -5,14 +5,14 @@ extends MultiplayerSpawner
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(remove_player)
-	
+
 	# Si soy el servidor, tengo que spawnear a los que YA están conectados (del Lobby)
 	if multiplayer.is_server():
 		# Margen para que los clientes terminen de cargar la escena (cambio de ronda)
 		await get_tree().create_timer(0.8).timeout
 		# 1. Spawneame a mí (Host)
 		spawn_player(1)
-		
+
 		# 2. Spawnea a los clientes que ya estaban en el lobby
 		for peer_id in multiplayer.get_peers():
 			spawn_player(peer_id)

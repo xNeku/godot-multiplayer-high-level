@@ -41,8 +41,7 @@ func is_free() -> bool:
 	if occupant == 0:
 		return true
 	# El que estaba se fue de la partida
-	var players := get_tree().current_scene.get_node_or_null("PlayerSpawnContainer")
-	if players and players.get_node_or_null(str(occupant)) == null:
+	if GameManager.player_node(occupant) == null:
 		occupant = 0
 		return true
 	return false

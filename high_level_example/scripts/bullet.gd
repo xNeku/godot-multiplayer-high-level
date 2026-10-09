@@ -94,9 +94,7 @@ func _physics_process(delta: float) -> void:
 				collider.knockback_rpc.rpc(push)
 		elif collider.has_method("hit"):
 			collider.hit(shooter_id)
-		queue_free()
-	else:
-		queue_free()
+	queue_free()
 
 
 # Copia local en un cliente: avanza recto y se para (oculta) al tocar pared; el

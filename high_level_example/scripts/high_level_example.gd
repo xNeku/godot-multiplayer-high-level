@@ -34,11 +34,11 @@ func _ready() -> void:
 	if darkness: darkness.visible = with_darkness
 	$Origbig.visible = show_city
 
-# Esta función la llamará el jugador al ganar
+# La llama RoundManager._game_over en todos los peers al acabar la partida
 func end_game_sequence(winner_id: int):
 	# 1. Hágase la luz (Apagamos la oscuridad)
 	if darkness: darkness.visible = false
-	
+
 	# 2. Mostrar la UI de victoria
 	if game_over_ui:
 		game_over_ui.display_results(winner_id)

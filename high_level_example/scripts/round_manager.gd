@@ -87,7 +87,7 @@ func enter_lobby() -> void:
 	_reset_round_state()
 
 
-# Lo llama el menú en TODOS los peers al empezar la partida
+# Lo llama _start_match en TODOS los peers al empezar la partida
 func begin_match() -> void:
 	round_number = 1
 	state = State.IDLE
@@ -109,8 +109,7 @@ func _reset_round_state() -> void:
 	_alive.clear()
 	_peak = 0
 	_first_dead = -1
-	if _end_timer:
-		_end_timer = null
+	_end_timer = null
 
 
 # --- Registro de jugadores (servidor) ---

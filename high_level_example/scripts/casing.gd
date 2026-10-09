@@ -19,10 +19,6 @@ func _physics_process(delta: float) -> void:
 	if _life <= 0.0:
 		queue_free()
 		return
-	if _life < 0.6:
-		modulate.a = _life / 0.6
-	if velocity == Vector2.ZERO:
-		return
 	velocity.y += 700.0 * delta
 	rotation += _spin * delta
 	var target := global_position + velocity * delta
@@ -36,8 +32,14 @@ func _physics_process(delta: float) -> void:
 	_spin *= 0.5
 	_bounces += 1
 	if _bounces >= 3 or velocity.length() < 25.0:
+		# En el suelo: deja de simular y se desvanece al final de su vida
 		velocity = Vector2.ZERO
 		rotation = 0.0
+		set_physics_process(false)
+		var tw := create_tween()
+		tw.tween_interval(maxf(_life - 0.6, 0.0))
+		tw.tween_property(self, "modulate:a", 0.0, minf(_life, 0.6))
+		tw.tween_callback(queue_free)
 
 
 func _draw() -> void:

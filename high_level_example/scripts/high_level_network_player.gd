@@ -177,7 +177,7 @@ var _drop_until_msec: int = 0
 # Haz visible de la linterna y brillo del foco (capa sin oscuridad). Solo el tuyo.
 @onready var beam: Sprite2D = $CapaBrillo/Haz
 @onready var lens: Sprite2D = $CapaBrillo/Lente
-@onready var mapache: Node2D = $Mapache
+@onready var mapache: AnimatedSprite2D = $Mapache
 @onready var dust_trail: CPUParticles2D = $Polvo
 @onready var _col: CollisionShape2D = $CollisionShape2D
 

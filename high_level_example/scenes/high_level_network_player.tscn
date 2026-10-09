@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://dqp3koxevnhjm"]
+[gd_scene load_steps=12 format=3 uid="uid://dqp3koxevnhjm"]
 
 [ext_resource type="Script" uid="uid://c8phw0k238svi" path="res://high_level_example/scripts/high_level_network_player.gd" id="1_player"]
 [ext_resource type="Script" path="res://high_level_example/scripts/player_visual.gd" id="2_visual"]
@@ -41,9 +41,6 @@ properties/8/replication_mode = 1
 properties/9/path = NodePath(".:rope_anchor")
 properties/9/spawn = true
 properties/9/replication_mode = 2
-
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_soga"]
-light_mode = 1
 
 [sub_resource type="Gradient" id="Gradient_arc"]
 colors = PackedColorArray(1, 1, 1, 0.9, 1, 1, 1, 0.05)
@@ -162,6 +159,14 @@ position_smoothing_enabled = true
 top_level = true
 z_index = -1
 visible = false
-material = SubResource("CanvasItemMaterial_soga")
 width = 1.5
 default_color = Color(0.72, 0.55, 0.32, 1)
+
+[node name="CapaSogaPropia" type="CanvasLayer" parent="."]
+layer = 1
+follow_viewport_enabled = true
+
+[node name="SogaPropia" type="Line2D" parent="CapaSogaPropia"]
+visible = false
+width = 1.5
+default_color = Color(0.72, 0.55, 0.32, 0.9)

@@ -139,6 +139,8 @@ var _drop_until_msec: int = 0
 @onready var shot_audio: AudioStreamPlayer2D = $HandPivot/Muzzle/SonidoDisparo
 @onready var throw_arc: Line2D = $ArcoLanzamiento
 @onready var rope_line: Line2D = $Soga
+# Copia de la soga en una capa sin oscuridad: tú siempre ves la tuya; los demás solo si la ilumina una luz
+@onready var rope_line_own: Line2D = $CapaSogaPropia/SogaPropia
 
 const CORPSE_SCENE: PackedScene = preload("res://high_level_example/scenes/Cadaver.tscn")
 const TRACER_SCENE: PackedScene = preload("res://high_level_example/scenes/Trazador.tscn")
@@ -313,9 +315,13 @@ func _process(delta: float) -> void:
 			global_position = global_position.lerp(net_position, 1.0 - exp(-remote_smoothing * delta))
 	_movement_sfx(delta)
 	var missing: bool = rope_anchor == Vector2.ZERO and Time.get_ticks_msec() < _rope_miss_until
-	rope_line.visible = rope_anchor != Vector2.ZERO or missing
-	if rope_line.visible:
-		rope_line.points = PackedVector2Array([global_position, _rope_miss_end if missing else rope_anchor])
+	var shown: bool = rope_anchor != Vector2.ZERO or missing
+	var pts := PackedVector2Array([global_position, _rope_miss_end if missing else rope_anchor])
+	rope_line.visible = shown
+	rope_line_own.visible = shown and is_multiplayer_authority()
+	if shown:
+		rope_line.points = pts
+		rope_line_own.points = pts
 
 
 # Pasos, salto y aterrizaje deducidos del movimiento, así suenan igual para todos
@@ -899,6 +905,7 @@ func _set_dead_local() -> void:
 	collision_layer = 0
 	rope_anchor = Vector2.ZERO
 	rope_line.visible = false
+	rope_line_own.visible = false
 	_col.set_deferred("disabled", true)
 	velocity = Vector2.ZERO
 	if is_multiplayer_authority():

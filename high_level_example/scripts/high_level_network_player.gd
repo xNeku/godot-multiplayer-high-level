@@ -122,6 +122,8 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export var default_weapon: WeaponData
 # Arma de juguete del lobby (empuja, no mata)
 @export var lobby_weapon: WeaponData
+# Empujón al disparar al 100% (cada arma usa su self_knockback_pct de esto)
+@export var self_knockback_ref: float = 800.0
 # Para pruebas: ninguna arma gasta munición. (El arma inicial ya es infinita.)
 @export var debug_unlimited_ammo: bool = false
 # A qué distancia se puede coger un arma con el botón de interactuar
@@ -755,6 +757,13 @@ func shoot() -> void:
 	# El ángulo va en global (aim_angle). hand_pivot.rotation es local y este nodo
 	# tiene escala no uniforme, así que con él las balas se desviaban.
 	request_shoot.rpc_id(1, muzzle.global_position, aim_angle)
+
+	# Retroceso que empuja al tirador (escopeta, francos, bazooka)
+	if current_weapon_data.self_knockback_pct > 0.0:
+		var push: Vector2 = -Vector2.RIGHT.rotated(aim_angle) * self_knockback_ref * current_weapon_data.self_knockback_pct / 100.0
+		velocity += push
+		if push.y < 0.0:
+			_coyote_left = 0.0 # que no cuente como salto pegado al suelo
 
 	# Efectos inmediatos en el tirador (sin esperar al servidor)
 	shake(shake_per_shot * (1.0 + current_weapon_data.recoil_per_shot_deg * 0.15))

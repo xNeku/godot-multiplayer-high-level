@@ -8,13 +8,14 @@ var _base_energy: float = 1.0
 
 
 func _ready() -> void:
-	if light:
-		_base_energy = maxf(light.energy, 0.01)
+	# La energía "encendida" se aprende al vuelo (la intermitente empieza apagada)
+	_base_energy = 1.0
 
 
 func _process(_delta: float) -> void:
 	if light == null or not is_instance_valid(light):
 		queue_free()
 		return
-	visible = light.enabled and light.is_visible_in_tree()
+	_base_energy = maxf(_base_energy, light.energy)
+	visible = light.enabled and light.is_visible_in_tree() and light.energy > 0.01
 	modulate.a = base_alpha * clampf(light.energy / _base_energy, 0.0, 1.5)

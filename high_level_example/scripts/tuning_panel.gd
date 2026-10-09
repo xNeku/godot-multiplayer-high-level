@@ -37,6 +37,7 @@ const PLAYER_PROPS := [
 	["backflip_air_control", 0.0, 1.0, 0.05],
 	["rope_range", 60, 400, 5],
 	["rope_release_boost", 1.0, 1.5, 0.05],
+	["self_knockback_ref", 0, 1200, 25],
 	["rope_climb_speed", 20, 200, 5],
 	["rope_swing_accel", 100, 1000, 10],
 	["rope_max_speed", 150, 900, 10],

@@ -22,3 +22,4 @@ muzzle_flash = 2.4
 tracer_every = 1
 impact_size = 2.2
 impact_trail = true
+self_knockback_pct = 45.0

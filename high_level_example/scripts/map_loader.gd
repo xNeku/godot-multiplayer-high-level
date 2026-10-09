@@ -23,6 +23,7 @@ const MAX_ENTITIES: int = 2000
 
 const MAP_SETTINGS: Script = preload("res://high_level_example/scripts/map_settings.gd")
 const TILE_SHADER: Shader = preload("res://high_level_example/shaders/tiles.gdshader")
+const LIGHT_PULSE: Script = preload("res://high_level_example/scripts/light_pulse.gd")
 const LIGHT_FLICKER: Script = preload("res://high_level_example/scripts/light_flicker.gd")
 const DOOR_SCENE: PackedScene = preload("res://high_level_example/scenes/Puerta.tscn")
 const SPAWNER_SCENE: PackedScene = preload("res://high_level_example/scenes/Spawner.tscn")
@@ -203,7 +204,7 @@ static func build(text: String) -> Node2D:
 				var cmat := _tile_mat(Style.CRATE, Vector2(sz) * bp, Color.WHITE, mat_cache)
 				_add_body(boxes, "Caja%d" % idx, Rect2i(ex, ey, sz.x, sz.y), bp, cmat, SOLID_LAYER_BIT, false, true, occ_cache)
 			"light":
-				_add_light(lights, "Bombilla%d" % idx, ex, ey, bp, bool(e.get("on", true)))
+				_add_light(lights, "Bombilla%d" % idx, ex, ey, bp, bool(e.get("on", true)), e)
 			"door":
 				var dw: int = clampi(_int(e.get("w", DOOR_DEFAULT.x), DOOR_DEFAULT.x), 1, 8)
 				var dh: int = clampi(_int(e.get("h", DOOR_DEFAULT.y), DOOR_DEFAULT.y), 1, 16)
@@ -436,7 +437,9 @@ static func _add_body(parent: Node, node_name: String, r: Rect2i, bp: float, mat
 	parent.add_child(body)
 
 
-static func _add_light(parent: Node, node_name: String, ex: int, ey: int, bp: float, on: bool) -> void:
+# Opcional en el JSON: "pulse": true -> intermitente (apagada; se enciende "on_time" s
+# cada "period" s, con desfase "phase"). Sin "pulse" parpadea al azar como siempre.
+static func _add_light(parent: Node, node_name: String, ex: int, ey: int, bp: float, on: bool, e: Dictionary = {}) -> void:
 	var n := Node2D.new()
 	n.name = node_name
 	# 1x1 bloque: cuelga del centro de la parte de arriba de la casilla
@@ -474,7 +477,13 @@ static func _add_light(parent: Node, node_name: String, ex: int, ey: int, bp: fl
 	luz.shadow_filter_smooth = 2.0
 	luz.texture = LIGHT_TEX
 	luz.texture_scale = 1.9
-	if on:
+	if on and bool(e.get("pulse", false)):
+		luz.set_script(LIGHT_PULSE)
+		luz.set("period", clampf(float(e.get("period", 40.0)), 2.0, 600.0))
+		luz.set("on_time", clampf(float(e.get("on_time", 2.0)), 0.2, 60.0))
+		luz.set("phase", float(e.get("phase", 0.0)))
+		foco.color = Color(0.55, 0.5, 0.4)
+	elif on:
 		luz.set_script(LIGHT_FLICKER)
 	else:
 		luz.enabled = false

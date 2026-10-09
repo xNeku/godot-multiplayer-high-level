@@ -216,8 +216,12 @@ Por arma (`WeaponData`, grupo *Efectos*):
 - Casquillos con rebote (`scripts/casing.gd`), 3 s.
 - Explosión (`Fx.explosion`): destello, bola de fuego, metralla, onda expansiva, humo y quemadura en el suelo (18 s). PEM: anillos, rayos y chispas azules.
 
+- Retroceso que empuja al tirador (`self_knockback_pct` en el arma, % de `self_knockback_ref` = 800 px/s del jugador, en el panel F1):
+  escopeta 25 % (≈13 px en el suelo), francotiradores 45 % (≈43 px), bazooka 60 % (≈78 px). En el aire llega mucho más lejos. Sale en contra de donde apuntas.
+
 ## 5d. Luces
 - Linterna: textura de cono real (`assets/fx/linterna_cono.png`) con sombras suaves, haz visible tenue y brillo en el foco (solo la tuya, como antes).
+- Bombillas intermitentes (`scripts/light_pulse.gd`, en el JSON `"pulse": true, "period", "on_time", "phase"`): apagadas; se encienden 2 s cada 40 s con chispazo. En `fabrica` solo hay 6, desfasadas.
 - Bombillas: alcance mayor (`texture_scale` 1,9), sombras suaves, pantalla metálica y halo que sigue el parpadeo.
 
 ## 6. Sonido

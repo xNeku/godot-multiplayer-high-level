@@ -23,6 +23,7 @@
 [ext_resource type="Resource" path="res://high_level_example/Objetos/Hilo.tres" id="32_hilo"]
 [ext_resource type="Resource" path="res://high_level_example/Weapons/Bazooka.tres" id="33_bazooka"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/Puerta.tscn" id="34_puerta"]
+[ext_resource type="Resource" path="res://high_level_example/Weapons/Escopeta.tres" id="35_escopeta"]
 [sub_resource type="RectangleShape2D" id="Rect_P"]
 size = Vector2(500, 8)
 
@@ -295,6 +296,10 @@ item = ExtResource("32_hilo")
 [node name="SpawnerBazooka" parent="Armas" instance=ExtResource("6_spawner")]
 position = Vector2(1290, 368)
 weapon = ExtResource("33_bazooka")
+
+[node name="SpawnerEscopeta" parent="Armas" instance=ExtResource("6_spawner")]
+position = Vector2(1360, 368)
+weapon = ExtResource("35_escopeta")
 
 [node name="MuroPuerta" type="StaticBody2D" parent="."]
 position = Vector2(2000, 270)

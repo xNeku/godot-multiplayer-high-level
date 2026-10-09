@@ -20,3 +20,4 @@ hearing_range = 610.0
 muzzle_flash = 0.0
 tracer_every = 0
 impact_size = 1.8
+self_knockback_pct = 45.0

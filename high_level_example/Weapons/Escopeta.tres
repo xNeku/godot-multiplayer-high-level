@@ -26,3 +26,4 @@ muzzle_flash = 2.1
 tracer_every = 0
 impact_size = 0.7
 casing_color = Color(0.75, 0.15, 0.12, 1)
+self_knockback_pct = 25.0

@@ -31,6 +31,7 @@ Hecho por script y comprobado (todas las bases y spawns alcanzables desde cualqu
 - **Edificio (4 niveles):** nave abierta en planta baja con vigas y cajas (Usp, granada); sótano bajo trampillas (bazooka en el centro, claymore e hilo en las bajadas); 1ª planta con tres despachos y puertas (escopeta, betty, pistola); 2ª planta con pasillo, entreplanta (Mp7, humo) y cámara acorazada tras puerta (Desert Eagle).
 - **Azotea:** caseta de ascensor, depósito de agua con PEM arriba, semtex. Pasarela hacia el este.
 - **Este:** cobertizo (tomahawk en el tejado), patio hundido (escopeta) y torre de francotirador (sniper arriba, a la vista de todos).
+- Luz: solo 6 bombillas intermitentes (2 s cada 40 s, desfasadas): nave, sótano, despacho central, pasillo, caseta de la azotea y torre. El resto del mapa a oscuras.
 - Escaleras: rellano de plataforma a 4 bloques + trampilla atravesable en el forjado. 8 spawns repartidos por zonas.
 
 ## Aspecto de los mapas JSON (provisional hasta tener tiles dibujados)

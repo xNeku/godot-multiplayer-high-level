@@ -1358,12 +1358,6 @@
  },
  "entities": [
   {
-   "type": "light",
-   "x": 27,
-   "y": 28,
-   "on": true
-  },
-  {
    "type": "box_big",
    "x": 20,
    "y": 38
@@ -1382,12 +1376,6 @@
    "type": "box_small",
    "x": 29,
    "y": 37
-  },
-  {
-   "type": "light",
-   "x": 10,
-   "y": 17,
-   "on": true
   },
   {
    "type": "box_big",
@@ -1423,48 +1411,6 @@
    "type": "box_big",
    "x": 108,
    "y": 38
-  },
-  {
-   "type": "light",
-   "x": 45,
-   "y": 34,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 61,
-   "y": 34,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 80,
-   "y": 34,
-   "on": false
-  },
-  {
-   "type": "light",
-   "x": 95,
-   "y": 34,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 110,
-   "y": 34,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 56,
-   "y": 41,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 88,
-   "y": 41,
-   "on": true
   },
   {
    "type": "box_small",
@@ -1503,30 +1449,6 @@
    "y": 31
   },
   {
-   "type": "light",
-   "x": 46,
-   "y": 27,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 70,
-   "y": 27,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 92,
-   "y": 27,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 110,
-   "y": 27,
-   "on": false
-  },
-  {
    "type": "door",
    "x": 95,
    "y": 21,
@@ -1535,33 +1457,9 @@
    "open": false
   },
   {
-   "type": "light",
-   "x": 50,
-   "y": 20,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 78,
-   "y": 20,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 106,
-   "y": 20,
-   "on": true
-  },
-  {
    "type": "box_small",
    "x": 86,
    "y": 25
-  },
-  {
-   "type": "light",
-   "x": 71,
-   "y": 14,
-   "on": true
   },
   {
    "type": "box_big",
@@ -1582,18 +1480,6 @@
    "type": "box_small",
    "x": 134,
    "y": 42
-  },
-  {
-   "type": "light",
-   "x": 145,
-   "y": 7,
-   "on": true
-  },
-  {
-   "type": "light",
-   "x": 128,
-   "y": 31,
-   "on": true
   },
   {
    "type": "weapon_base",
@@ -1708,6 +1594,66 @@
    "x": 130,
    "y": 42,
    "item": "Escopeta"
+  },
+  {
+   "type": "light",
+   "x": 61,
+   "y": 34,
+   "on": true,
+   "pulse": true,
+   "period": 40,
+   "on_time": 2,
+   "phase": 0
+  },
+  {
+   "type": "light",
+   "x": 56,
+   "y": 41,
+   "on": true,
+   "pulse": true,
+   "period": 40,
+   "on_time": 2,
+   "phase": 7
+  },
+  {
+   "type": "light",
+   "x": 70,
+   "y": 27,
+   "on": true,
+   "pulse": true,
+   "period": 40,
+   "on_time": 2,
+   "phase": 14
+  },
+  {
+   "type": "light",
+   "x": 78,
+   "y": 20,
+   "on": true,
+   "pulse": true,
+   "period": 40,
+   "on_time": 2,
+   "phase": 21
+  },
+  {
+   "type": "light",
+   "x": 71,
+   "y": 14,
+   "on": true,
+   "pulse": true,
+   "period": 40,
+   "on_time": 2,
+   "phase": 28
+  },
+  {
+   "type": "light",
+   "x": 145,
+   "y": 7,
+   "on": true,
+   "pulse": true,
+   "period": 40,
+   "on_time": 2,
+   "phase": 34
   },
   {
    "type": "spawn",

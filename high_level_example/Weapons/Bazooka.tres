@@ -19,3 +19,4 @@ projectile_gravity = 500.0
 hearing_range = 3500.0
 muzzle_flash = 2.5
 eject_casing = false
+self_knockback_pct = 60.0

@@ -37,6 +37,10 @@ enum FireMode {
 # Velocidad a la que baja una vez pasada la pausa
 @export var recoil_recovery_deg_per_sec: float = 60.0
 
+# Empujón hacia atrás al disparar, en % de self_knockback_ref del jugador (800 px/s).
+# Escopeta 25, francotiradores 45, bazooka 60.
+@export_range(0.0, 200.0) var self_knockback_pct: float = 0.0
+
 @export_group("Luz y sonido")
 # Las armas sin silenciador sueltan un fogonazo de luz que delata tu posición
 @export var silenced: bool = false

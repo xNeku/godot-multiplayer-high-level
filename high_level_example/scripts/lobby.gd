@@ -47,11 +47,6 @@ func _ready() -> void:
 		map.with_darkness = false
 		map_container.add_child(map)
 
-	# Tema pequeño para que la interfaz case con la resolución del juego (640x360)
-	var ui_theme := Theme.new()
-	ui_theme.set_default_font_size(11)
-	$UI/Raiz.theme = ui_theme
-
 	_build_color_buttons()
 	# Color único: lo pide al servidor (si el preferido está cogido, le da otro)
 	GameManager.request_color.rpc_id(1, Settings.color_index)
@@ -130,9 +125,9 @@ func _set_menu(on: bool) -> void:
 
 func _update_hint() -> void:
 	if _menu_open:
-		hint_label.text = "%s: volver" % ("B" if Settings.using_pad else "Esc")
+		hint_label.text = "%s: VOLVER" % ("B" if Settings.using_pad else "ESC")
 	else:
-		hint_label.text = "%s: Listo   ·   %s: color   ·   %s: menú" % [Settings.key_for("interact"), Settings.key_for("throw"), "Start" if Settings.using_pad else "Esc"]
+		hint_label.text = "%s: LISTO   /   %s: COLOR   /   %s: MENU" % [Settings.key_for("interact"), Settings.key_for("throw"), "START" if Settings.using_pad else "ESC"]
 
 
 # --- LISTO Y CUENTA ATRÁS ---
@@ -159,7 +154,7 @@ func _request_ready(value: bool) -> void:
 func _sync_ready(state: Dictionary) -> void:
 	_ready_view = state
 	var mine: bool = state.get(multiplayer.get_unique_id(), false)
-	ready_button.text = "Listo ✓ (cancelar)" if mine else "Listo"
+	ready_button.text = "LISTO! (CANCELAR)" if mine else "LISTO"
 	_refresh_players()
 
 
@@ -238,7 +233,6 @@ func _build_color_buttons() -> void:
 		b.focus_mode = Control.FOCUS_NONE
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Settings.PLAYER_COLORS[i]
-		sb.set_corner_radius_all(4)
 		sb.set_border_width_all(2)
 		sb.border_color = Color(0, 0, 0, 0.6)
 		for st in ["normal", "hover", "pressed"]:
@@ -268,7 +262,7 @@ func _refresh_color_buttons() -> void:
 		var b := buttons[i] as Button
 		b.disabled = taken
 		b.modulate.a = 0.25 if taken else 1.0
-		b.text = "×" if taken else ""
+		b.text = "X" if taken else ""
 
 
 # --- BOTS (solo host) ---
@@ -298,11 +292,12 @@ func _refresh_players() -> void:
 		sw.color = Settings.PLAYER_COLORS[clampi(p.color_index, 0, Settings.PLAYER_COLORS.size() - 1)]
 		row.add_child(sw)
 		var l := Label.new()
+		l.theme_type_variation = &"LabelMini"
 		var ok: bool = _ready_view.get(id, false)
 		if GameManager.is_bot_id(id):
 			ok = true
 		l.text = " %s   %s" % [GameManager.display_name(id), "LISTO" if ok else "..."]
-		l.modulate = Color(0.6, 1.0, 0.6) if ok else Color(1, 1, 1, 0.75)
+		l.add_theme_color_override("font_color", Color(0.35, 1.0, 0.5) if ok else Color(0.6, 0.62, 0.61))
 		row.add_child(l)
 		players_box.add_child(row)
 
@@ -312,15 +307,15 @@ func _refresh_players() -> void:
 func _rebuild_map_list(select_path: String = "") -> void:
 	map_selector.clear()
 	_entries.clear()
-	map_selector.add_item("Aleatorio (todos los mapas)")
+	map_selector.add_item("ALEATORIO")
 	_entries.append({"random": true})
 	for m in MapLoader.list_maps():
-		map_selector.add_item(("" if m["official"] else "(custom) ") + m["name"])
+		map_selector.add_item(("" if m["official"] else "* ") + m["name"].to_upper())
 		_entries.append({"json": m["path"]})
 		if m["path"] == select_path:
 			map_selector.select(_entries.size() - 1)
 	for scene in maps:
-		map_selector.add_item("(antiguo) " + scene.resource_path.get_file().get_basename())
+		map_selector.add_item("(VIEJO) " + scene.resource_path.get_file().get_basename().to_upper())
 		_entries.append({"scene": scene})
 
 
@@ -341,9 +336,9 @@ func _on_import_file(path: String) -> void:
 	var saved := MapLoader.save_custom(text, path.get_file().get_basename()) if text != "" else ""
 	if saved == "":
 		push_warning("No se pudo importar " + path + " (JSON no válido o demasiado grande)")
-		import_button.text = "JSON no válido"
+		import_button.text = "JSON NO VALIDO"
 		return
-	import_button.text = "Importar JSON..."
+	import_button.text = "IMPORTAR JSON"
 	_rebuild_map_list(saved)
 
 

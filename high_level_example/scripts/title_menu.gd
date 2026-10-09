@@ -5,8 +5,8 @@ extends Control
 const DIR := "res://high_level_example/assets/ui/menu/"
 const GAME_MENU := "res://high_level_example/scenes/Menu.tscn"
 const TITLE := "FLASHRACS"
-const STEP := 30            # separacion entre letras (px)
-const TITLE_Y := 54
+const STEP := 50            # separacion entre letras (px)
+const TITLE_Y := 16
 const BOB := 5.0            # cuanto sube cada letra al pasar la ola
 const WAVE_DELAY := 0.38    # segundos entre una letra y la siguiente
 const WAVE_PAUSE := 3.2     # pausa entre ola y ola
@@ -21,6 +21,8 @@ const BURN_SEQ := [
 	["ember", 0.06], ["off", 0.08], ["ember", 0.07], ["off", 0.05], ["lit", 0.0],
 ]
 const GLOW_ALPHA := {"lit": 0.42, "ember": 0.12, "off": 0.0}
+
+const UiJuice := preload("res://high_level_example/scripts/ui_juice.gd")
 
 var _tex := {}                       # "F_lit" -> Texture2D
 var _letters: Array[Sprite2D] = []
@@ -60,17 +62,24 @@ func _build_title() -> void:
 		var g := Sprite2D.new()
 		g.texture = glow_tex
 		g.material = add
-		g.scale = Vector2(1.5, 1.4)
+		g.scale = Vector2(2.3, 2.3)
 		g.position = Vector2(x0 + i * STEP + w.x * 0.5, TITLE_Y + w.y * 0.5)
 		$TitleRoot.add_child(g)
 		var s := Sprite2D.new()
 		s.centered = false
 		s.texture = _tex[ch + "_lit"]
-		s.position = Vector2(x0 + i * STEP, TITLE_Y)
+		s.position = Vector2(x0 + i * STEP, TITLE_Y + _jitter_y(i))
+		# Cada letra un pelín torcida: como pegatinas puestas a mano
+		s.rotation = deg_to_rad([-2.0, 1.5, -1.0, 2.0, -1.5, 1.0, -2.0, 1.5, -1.0][i % 9])
 		$TitleRoot.add_child(s)
 		_letters.append(s)
 		_glows.append(g)
 		_state.append("lit")
+
+# Alturas desiguales a propósito (no todas en la misma línea)
+func _jitter_y(i: int) -> float:
+	return [0.0, 3.0, -2.0, 2.0, -1.0, 3.0, -2.0, 1.0, -3.0][i % 9]
+
 
 func _set_state(i: int, st: String) -> void:
 	_state[i] = st
@@ -87,7 +96,7 @@ func _wave_loop() -> void:
 func _hit(i: int) -> void:
 	var s := _letters[i]
 	var g := _glows[i]
-	var y0 := float(TITLE_Y)
+	var y0 := float(TITLE_Y) + _jitter_y(i)
 	var gy0 := g.position.y
 	var tw := create_tween().set_parallel(false)
 	tw.tween_property(s, "position:y", y0 - BOB, 0.42).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
@@ -115,6 +124,7 @@ func _build_menu() -> void:
 		b.mouse_entered.connect(b.grab_focus)
 		box.add_child(b)
 		_buttons.append(b)
+	UiJuice.apply(box)
 	_buttons[0].grab_focus()
 	$Version.add_theme_font_override("font", _font)
 	$Version.add_theme_font_size_override("font_size", 14)
@@ -135,7 +145,8 @@ func _on_play() -> void:
 	get_tree().change_scene_to_file(GAME_MENU)
 
 func _on_options() -> void:
-	print("OPCIONES: pendiente")
+	preload("res://high_level_example/scripts/menu.gd").open_options = true
+	get_tree().change_scene_to_file(GAME_MENU)
 
 func _on_quit() -> void:
 	get_tree().quit()

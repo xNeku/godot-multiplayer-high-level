@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/lobby.gd" id="1_lobby"]
 [ext_resource type="Script" uid="uid://c1g12cc12wuaa" path="res://high_level_example/scripts/high_level_player_spawner.gd" id="2_spawner"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaEdificio.tscn" id="4_edif"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaPruebas.tscn" id="5_prue"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/PanelAjustes.tscn" id="6_aj"]
+[ext_resource type="Theme" path="res://high_level_example/assets/ui/tema_flash.tres" id="7_tema"]
 
 [node name="Lobby" type="Node2D"]
 script = ExtResource("1_lobby")
@@ -31,6 +32,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme = ExtResource("7_tema")
 
 [node name="Velo" type="ColorRect" parent="UI/Raiz"]
 unique_name_in_owner = true
@@ -42,15 +44,14 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0, 0, 0, 0.35)
+color = Color(0, 0.01, 0, 0.5)
 
 [node name="Jugadores" type="PanelContainer" parent="UI/Raiz"]
 layout_mode = 0
 offset_left = 6.0
 offset_top = 6.0
-offset_right = 170.0
+offset_right = 150.0
 offset_bottom = 40.0
-self_modulate = Color(1, 1, 1, 0.8)
 
 [node name="Margen" type="MarginContainer" parent="UI/Raiz/Jugadores"]
 layout_mode = 2
@@ -64,6 +65,7 @@ layout_mode = 2
 
 [node name="Titulo" type="Label" parent="UI/Raiz/Jugadores/Margen/Caja"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)
 text = "SALA"
 
 [node name="JugadoresLista" type="VBoxContainer" parent="UI/Raiz/Jugadores/Margen/Caja"]
@@ -98,7 +100,7 @@ offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 0
 focus_mode = 0
-text = "Listo"
+text = "LISTO"
 
 [node name="CuentaAtras" type="Label" parent="UI/Raiz"]
 unique_name_in_owner = true
@@ -114,7 +116,8 @@ offset_right = 40.0
 offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 48
+theme_type_variation = &"LabelTitulo"
+theme_override_font_sizes/font_size = 56
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -124,12 +127,11 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -190.0
+offset_left = -200.0
 offset_top = 6.0
 offset_right = -6.0
 offset_bottom = 40.0
 grow_horizontal = 0
-self_modulate = Color(1, 1, 1, 0.8)
 
 [node name="Margen" type="MarginContainer" parent="UI/Raiz/PanelHost"]
 layout_mode = 2
@@ -143,7 +145,9 @@ layout_mode = 2
 
 [node name="Titulo" type="Label" parent="UI/Raiz/PanelHost/Margen/Caja"]
 layout_mode = 2
-text = "Mapa (host)"
+theme_type_variation = &"LabelMini"
+theme_override_colors/font_color = Color(0.45, 0.5, 0.47, 1)
+text = "MAPA (HOST)"
 
 [node name="MapSelector" type="OptionButton" parent="UI/Raiz/PanelHost/Margen/Caja"]
 unique_name_in_owner = true
@@ -156,7 +160,7 @@ layout_mode = 2
 [node name="Etiqueta" type="Label" parent="UI/Raiz/PanelHost/Margen/Caja/Bots"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Bots"
+text = "BOTS"
 
 [node name="BotMenos" type="Button" parent="UI/Raiz/PanelHost/Margen/Caja/Bots"]
 unique_name_in_owner = true
@@ -176,7 +180,7 @@ text = "+"
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
-text = "Importar JSON..."
+text = "IMPORTAR JSON"
 
 [node name="SalirButton" type="Button" parent="UI/Raiz"]
 unique_name_in_owner = true
@@ -186,11 +190,11 @@ anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 6.0
 offset_top = -30.0
-offset_right = 66.0
+offset_right = 76.0
 offset_bottom = -6.0
 grow_vertical = 0
 focus_mode = 0
-text = "Salir"
+text = "SALIR"
 
 [node name="Pista" type="Label" parent="UI/Raiz"]
 unique_name_in_owner = true
@@ -199,11 +203,11 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -14.0
+offset_top = -12.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_font_sizes/font_size = 9
+theme_type_variation = &"LabelMini"
+theme_override_colors/font_color = Color(0.45, 0.5, 0.47, 1)
 horizontal_alignment = 1
-modulate = Color(1, 1, 1, 0.6)
 
 [node name="PanelAjustes" parent="." instance=ExtResource("6_aj")]

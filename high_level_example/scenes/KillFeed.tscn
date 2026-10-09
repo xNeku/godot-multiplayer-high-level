@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/kill_feed.gd" id="1_k"]
+[ext_resource type="Theme" path="res://high_level_example/assets/ui/tema_flash.tres" id="9_tema"]
 
 [node name="KillFeed" type="CanvasLayer"]
 layer = 10
@@ -15,3 +16,4 @@ offset_top = 6.0
 offset_right = -8.0
 grow_horizontal = 0
 alignment = 0
+theme = ExtResource("9_tema")

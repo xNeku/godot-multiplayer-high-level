@@ -1,0 +1,163 @@
+extends SceneTree
+# Genera res://high_level_example/assets/ui/tema_flash.tres (estilo del menu de titulo)
+
+const DIR := "res://high_level_example/assets/ui/"
+const GRAY := Color(0.60, 0.62, 0.61)
+const GREEN := Color(0.35, 1.0, 0.50)
+const DIM := Color(0.28, 0.30, 0.29)
+const TEXT := Color(0.80, 0.82, 0.81)
+const LINE := Color(0.14, 0.34, 0.20)
+const BG := Color(0.015, 0.03, 0.02, 0.88)
+
+func _flat(bg: Color, border: Color, bw: int, ml := 6, mt := 3) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.set_border_width_all(bw)
+	s.content_margin_left = ml
+	s.content_margin_right = ml
+	s.content_margin_top = mt
+	s.content_margin_bottom = mt
+	s.anti_aliasing = false
+	return s
+
+func _empty(ml := 4, mt := 1) -> StyleBoxEmpty:
+	var s := StyleBoxEmpty.new()
+	s.content_margin_left = ml
+	s.content_margin_right = ml
+	s.content_margin_top = mt
+	s.content_margin_bottom = mt
+	return s
+
+func _img(rows: Array, pal: Dictionary) -> ImageTexture:
+	var h := rows.size()
+	var w: int = rows[0].length()
+	var im := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	for y in h:
+		for x in w:
+			var c: String = rows[y][x]
+			im.set_pixel(x, y, pal.get(c, Color(0, 0, 0, 0)))
+	return ImageTexture.create_from_image(im)
+
+func _init() -> void:
+	var font: FontFile = load(DIR + "menu/font_menu.fnt")
+	var mini: FontFile = load(DIR + "menu/font_mini.fnt")
+	var t := Theme.new()
+	t.default_font = font
+	t.default_font_size = 14
+
+	# --- Label
+	t.set_color("font_color", "Label", TEXT)
+	t.set_constant("line_spacing", "Label", 1)
+	# Variaciones: texto pequeño (HUD, avisos) y títulos grandes
+	t.set_type_variation("LabelMini", "Label")
+	t.set_font("font", "LabelMini", mini)
+	t.set_font_size("font_size", "LabelMini", 7)
+	t.set_type_variation("LabelTitulo", "Label")
+	t.set_font_size("font_size", "LabelTitulo", 28)
+	t.set_color("font_color", "LabelTitulo", GREEN)
+	t.set_type_variation("LabelAviso", "Label")
+	t.set_color("font_color", "LabelAviso", Color(1.0, 0.55, 0.45))
+
+	# --- Button (plano: gris, verde al pasar/enfocar)
+	t.set_color("font_color", "Button", GRAY)
+	for c in ["font_hover_color", "font_focus_color", "font_pressed_color", "font_hover_pressed_color"]:
+		t.set_color(c, "Button", GREEN)
+	t.set_color("font_disabled_color", "Button", DIM)
+	t.set_color("icon_normal_color", "Button", GRAY)
+	t.set_color("icon_hover_color", "Button", GREEN)
+	t.set_color("icon_focus_color", "Button", GREEN)
+	t.set_color("icon_pressed_color", "Button", GREEN)
+	for sb in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		t.set_stylebox(sb, "Button", _empty())
+
+	# --- LineEdit
+	t.set_stylebox("normal", "LineEdit", _flat(Color(0.02, 0.05, 0.03, 0.85), LINE, 1, 6, 4))
+	var lf := _flat(Color(0, 0, 0, 0), GREEN, 1, 6, 4)
+	lf.draw_center = false
+	t.set_stylebox("focus", "LineEdit", lf)
+	t.set_stylebox("read_only", "LineEdit", _flat(Color(0.02, 0.03, 0.03, 0.6), DIM, 1, 6, 4))
+	t.set_color("font_color", "LineEdit", GREEN)
+	t.set_color("font_placeholder_color", "LineEdit", Color(0.25, 0.42, 0.30))
+	t.set_color("caret_color", "LineEdit", GREEN)
+	t.set_color("selection_color", "LineEdit", Color(0.2, 0.5, 0.28, 0.6))
+	t.set_color("font_selected_color", "LineEdit", Color.WHITE)
+
+	# --- Paneles
+	var panel := _flat(BG, LINE, 1, 10, 8)
+	t.set_stylebox("panel", "PanelContainer", panel)
+	t.set_stylebox("panel", "Panel", panel)
+
+	# --- OptionButton (caja con flecha)
+	var ob := _flat(Color(0.02, 0.05, 0.03, 0.75), LINE, 1, 6, 2)
+	var obh := _flat(Color(0.03, 0.08, 0.05, 0.85), GREEN, 1, 6, 2)
+	t.set_stylebox("normal", "OptionButton", ob)
+	t.set_stylebox("disabled", "OptionButton", ob)
+	t.set_stylebox("hover", "OptionButton", obh)
+	t.set_stylebox("pressed", "OptionButton", obh)
+	t.set_stylebox("hover_pressed", "OptionButton", obh)
+	t.set_stylebox("focus", "OptionButton", _empty())
+	var pal := {"#": Color.WHITE}
+	t.set_icon("arrow", "OptionButton", _img(["#######", ".#####.", "..###..", "...#..."], pal))
+	t.set_constant("arrow_margin", "OptionButton", 4)
+
+	# --- PopupMenu (desplegable)
+	t.set_stylebox("panel", "PopupMenu", _flat(Color(0.02, 0.04, 0.03, 0.97), GREEN.darkened(0.4), 1, 4, 4))
+	t.set_stylebox("hover", "PopupMenu", _flat(Color(0.08, 0.24, 0.12), Color(0, 0, 0, 0), 0, 4, 1))
+	t.set_color("font_color", "PopupMenu", GRAY)
+	t.set_color("font_hover_color", "PopupMenu", GREEN)
+	t.set_color("font_disabled_color", "PopupMenu", DIM)
+	t.set_constant("v_separation", "PopupMenu", 2)
+	var dot := _img(["......", "..##..", ".####.", ".####.", "..##..", "......"], {"#": GREEN})
+	var nodot := _img(["......", "......", "......", "......", "......", "......"], {})
+	for ic in ["radio_checked", "checked"]:
+		t.set_icon(ic, "PopupMenu", dot)
+	for ic in ["radio_unchecked", "unchecked"]:
+		t.set_icon(ic, "PopupMenu", nodot)
+
+	# --- CheckButton (interruptor pixelado)
+	var off := _img([
+		"################",
+		"#.oooo.........#",
+		"#.oooo.........#",
+		"#.oooo.........#",
+		"#.oooo.........#",
+		"#.oooo.........#",
+		"#.oooo.........#",
+		"################"], {"#": DIM, "o": GRAY, ".": Color(0.03, 0.05, 0.04)})
+	var on := _img([
+		"################",
+		"#gggggggggGGGG.#",
+		"#gggggggggGGGG.#",
+		"#gggggggggGGGG.#",
+		"#gggggggggGGGG.#",
+		"#gggggggggGGGG.#",
+		"#gggggggggGGGG.#",
+		"################"], {"#": GREEN.darkened(0.3), "g": Color(0.08, 0.30, 0.14), "G": GREEN, ".": Color(0.08, 0.30, 0.14)})
+	for ic in ["unchecked", "unchecked_mirrored", "unchecked_disabled", "unchecked_disabled_mirrored"]:
+		t.set_icon(ic, "CheckButton", off)
+	for ic in ["checked", "checked_mirrored", "checked_disabled", "checked_disabled_mirrored"]:
+		t.set_icon(ic, "CheckButton", on)
+	t.set_constant("h_separation", "CheckButton", 8)
+
+	# --- HSlider
+	var line := StyleBoxFlat.new()
+	line.bg_color = LINE
+	line.content_margin_top = 1
+	line.content_margin_bottom = 1
+	t.set_stylebox("slider", "HSlider", line)
+	var fill := line.duplicate()
+	fill.bg_color = GREEN.darkened(0.25)
+	t.set_stylebox("grabber_area", "HSlider", fill)
+	var fill2 := line.duplicate()
+	fill2.bg_color = GREEN
+	t.set_stylebox("grabber_area_highlight", "HSlider", fill2)
+	var grab := ["####", "####", "####", "####", "####", "####", "####", "####", "####", "####"]
+	t.set_icon("grabber", "HSlider", _img(grab, {"#": GRAY}))
+	t.set_icon("grabber_highlight", "HSlider", _img(grab, {"#": GREEN}))
+	t.set_icon("grabber_disabled", "HSlider", _img(grab, {"#": DIM}))
+	t.set_stylebox("focus", "HSlider", _empty())
+
+	var err := ResourceSaver.save(t, DIR + "tema_flash.tres")
+	print("tema guardado: ", err)
+	quit()

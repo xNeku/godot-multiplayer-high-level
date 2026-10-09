@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://dytxckecq42lh"]
+[gd_scene load_steps=11 format=3 uid="uid://dytxckecq42lh"]
 
 [ext_resource type="Script" uid="uid://y6bxp4ql7a40" path="res://high_level_example/scripts/high_level_example.gd" id="1_q4tb6"]
 [ext_resource type="Script" uid="uid://c1g12cc12wuaa" path="res://high_level_example/scripts/high_level_player_spawner.gd" id="1_xa5q7"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://b20qpy5kkk3t" path="res://high_level_example/scenes/GameOverUI.tscn" id="8_23wyo"]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/round_hud.gd" id="14_rh"]
+[ext_resource type="Theme" path="res://high_level_example/assets/ui/tema_flash.tres" id="9_tema"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/MapaPruebas.tscn" id="9_mapaneku"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/HudInventario.tscn" id="11_hud"]
 [ext_resource type="PackedScene" path="res://high_level_example/scenes/KillFeed.tscn" id="12_kf"]
@@ -45,6 +46,8 @@ offset_left = 372.0
 offset_top = 80.0
 offset_right = 412.0
 offset_bottom = 103.0
+theme = ExtResource("9_tema")
+theme_type_variation = &"LabelMini"
 script = ExtResource("5_h3rma")
 
 
@@ -52,11 +55,13 @@ script = ExtResource("5_h3rma")
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -250.0
-offset_top = 24.0
-offset_right = 250.0
-offset_bottom = 56.0
+offset_left = -310.0
+offset_top = 30.0
+offset_right = 310.0
+offset_bottom = 66.0
 grow_horizontal = 2
+theme = ExtResource("9_tema")
+theme_type_variation = &"LabelTitulo"
 horizontal_alignment = 1
 script = ExtResource("14_rh")
 

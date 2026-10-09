@@ -6,11 +6,8 @@ var _tween: Tween
 
 func _ready() -> void:
 	text = ""
-	add_theme_font_size_override("font_size", 22)
-	add_theme_constant_override("outline_size", 5)
-	add_theme_color_override("font_outline_color", Color.BLACK)
 	RoundManager.banner.connect(show_banner)
-	show_banner("Ronda %d  ·  primero a %d" % [RoundManager.round_number, RoundManager.POINTS_TO_WIN], 2.5)
+	show_banner("RONDA %d  -  PRIMERO A %d" % [RoundManager.round_number, RoundManager.POINTS_TO_WIN], 2.5)
 
 
 func show_banner(msg: String, seconds: float) -> void:

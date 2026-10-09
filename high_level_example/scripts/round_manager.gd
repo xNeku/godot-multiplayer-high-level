@@ -155,7 +155,7 @@ func _check_round_end() -> void:
 	if _peak < 2:
 		if _alive.is_empty() and state == State.PLAYING:
 			state = State.BETWEEN
-			_banner.rpc("Has muerto. Otra vez...", RETRY_TIME)
+			_banner.rpc("HAS MUERTO. OTRA VEZ...", RETRY_TIME)
 			await get_tree().create_timer(RETRY_TIME).timeout
 			if state == State.BETWEEN:
 				_start_round.rpc("")
@@ -163,12 +163,12 @@ func _check_round_end() -> void:
 	if _alive.size() <= 1 and state == State.PLAYING:
 		state = State.ENDING
 		if _alive.size() == 1:
-			_banner.rpc("¡Último en pie!", END_GRACE)
+			_banner.rpc("ULTIMO EN PIE!", END_GRACE)
 		_end_timer = get_tree().create_timer(END_GRACE)
 		_end_timer.timeout.connect(_resolve_round.bind(_end_timer))
 	elif _alive.size() == 0 and state == State.ENDING:
 		# El último murió dentro del margen: no hay ganador
-		_banner.rpc("Empate, nadie suma", END_GRACE)
+		_banner.rpc("EMPATE. NADIE SUMA", END_GRACE)
 
 
 func _resolve_round(timer: SceneTreeTimer) -> void:
@@ -176,10 +176,10 @@ func _resolve_round(timer: SceneTreeTimer) -> void:
 		return
 	state = State.BETWEEN
 	var winner: int = _alive[0] if _alive.size() == 1 else -1
-	var text := "Empate, nadie suma"
+	var text := "EMPATE. NADIE SUMA"
 	if winner != -1:
 		var pts: int = GameManager.add_point(winner)
-		text = "Gana %s  (+1)" % GameManager.public_name(winner)
+		text = "GANA %s  +1" % GameManager.public_name(winner)
 		if _peak >= PENALTY_MIN_PLAYERS and _first_dead != -1 and _first_dead != winner:
 			GameManager.remove_point(_first_dead)
 		if pts >= POINTS_TO_WIN:

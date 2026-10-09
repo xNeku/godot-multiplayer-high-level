@@ -1,0 +1,128 @@
+# Letras del título FLASHRACS: pixel art grueso, inclinado (velocidad), con contorno de
+# pegatina y arañazos de mapache (3 cortes en diagonal) en algunas letras.
+from PIL import Image
+import sys, math
+G = {
+'F': ["#######","#######","##.....","##.....","######.","######.","##.....","##.....","##....."],
+'L': ["##.....","##.....","##.....","##.....","##.....","##.....","##.....","#######","#######"],
+'A': ["#######","#######","##...##","##...##","#######","#######","##...##","##...##","##...##"],
+'S': [".######","#######","##.....","######.",".######",".....##",".....##","#######","######."],
+'H': ["##...##","##...##","##...##","#######","#######","##...##","##...##","##...##","##...##"],
+'R': ["######.","#######","##...##","##...##","#######","######.","##..##.","##...##","##...##"],
+'C': [".######","#######","##.....","##.....","##.....","##.....","##.....","#######",".######"],
+}
+M = 6            # tamaño del módulo (px)
+SHEAR = 6        # 1 px a la derecha cada SHEAR filas (de abajo arriba)
+PAD = 3
+# Arañazos: letra -> lista de (x0,y0,x1,y1) en px del cuerpo (antes de inclinar)
+CLAWS = {
+
+}
+EXT = (2, 4)     # relieve: copia oscura desplazada (abajo-derecha)
+PAL = {
+ 'lit':   {'deep': (12, 70, 34), 'out': (4, 24, 10), 'dark': (20, 120, 52), 'body': (40, 200, 90), 'hi': (110, 245, 145), 'top': (200, 255, 210)},
+ 'ember': {'deep': (8, 40, 20), 'out': (4, 18, 8),  'dark': (14, 70, 34),  'body': (24, 110, 52), 'hi': (54, 150, 80),  'top': (90, 180, 110)},
+ 'off':   {'deep': (24, 27, 26), 'out': (10, 12, 12), 'dark': (34, 38, 37),  'body': (48, 54, 52), 'hi': (64, 70, 68),   'top': (80, 86, 84)},
+}
+
+def seg_dist(px, py, x0, y0, x1, y1):
+    dx, dy = x1 - x0, y1 - y0
+    t = max(0, min(1, ((px - x0) * dx + (py - y0) * dy) / float(dx * dx + dy * dy)))
+    return math.hypot(px - (x0 + t * dx), py - (y0 + t * dy))
+
+def make(ch, state, tail=False):
+    rows = G[ch]
+    bw, bh = 7 * M, 9 * M
+    W = bw + bh // SHEAR + PAD * 2 + 2 + EXT[0]
+    H = bh + PAD * 2 + 18 + EXT[1]
+    body = {}
+    for my, row in enumerate(rows):
+        for mx, c in enumerate(row):
+            if c != '#':
+                continue
+            for y in range(M):
+                for x in range(M):
+                    X, Y = mx * M + x, my * M + y
+                    # arañazos
+                    cut = any(seg_dist(X, Y, *cl) < 1.25 for cl in CLAWS.get(ch, []))
+                    if cut:
+                        body[(X, Y)] = 'out'
+                        continue
+                    # sombreado del módulo: arriba claro, abajo oscuro
+                    up = my == 0 or rows[my - 1][mx] != '#'
+                    down = my == 8 or rows[my + 1][mx] != '#'
+                    left = mx == 0 or row[mx - 1] != '#'
+                    shade = 'body'
+                    if up and y == 0: shade = 'top'
+                    elif up and y == 1: shade = 'hi'
+                    elif left and x == 0: shade = 'hi'
+                    elif down and y >= M - 2: shade = 'dark'
+                    body[(X, Y)] = shade
+    if ch == 'A':
+        # Orejas de mapache: triángulos apoyados en las esquinas de la A (sin hueco),
+        # con el interior oscuro solo arriba para que no parezcan una diéresis.
+        RX, RY = 8.5, 12.0
+        for cx, lean in ((9, -1), (bw - 10, 1)):
+            for h in range(int(RY) + 1):
+                for w in range(-10, 11):
+                    # elipse redondeada, un poco inclinada hacia fuera
+                    xx = w - lean * h * 0.25
+                    e = (xx / RX) ** 2 + (h / RY) ** 2
+                    if e > 1.0:
+                        continue
+                    X, Y = cx + w, -1 - h
+                    if (X, Y) in body:
+                        continue
+                    ei = (xx / (RX - 3.2)) ** 2 + ((h - 1) / (RY - 3.5)) ** 2
+                    if ei <= 1.0 and h >= 2:
+                        body[(X, Y)] = 'dark'        # interior de la oreja
+                    elif e > 0.72:
+                        body[(X, Y)] = 'top'         # borde claro (como el pelo blanco)
+                    else:
+                        body[(X, Y)] = 'hi' if xx < 0 else 'body'
+    if ch == 'S' and tail:
+        # Última S: anillos de cola de mapache
+        for (X, Y), sh in list(body.items()):
+            if (Y // M) % 2 == 1 and sh in ('body', 'hi'):
+                body[(X, Y)] = 'dark'
+    p = PAL[state]
+    img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    def put(X, Y, col):
+        sx = X + (bh - Y) // SHEAR + PAD
+        img.putpixel((sx, Y + PAD + 18), col + (255,))
+    # relieve
+    deep = set()
+    for (X, Y) in body:
+        for k in range(1, max(EXT) + 1):
+            dx = min(k, EXT[0]); dy = min(k, EXT[1])
+            if (X + dx, Y + dy) not in body:
+                deep.add((X + dx, Y + dy))
+    # contorno de 2 px (pegatina) alrededor de letra + relieve
+    out = set()
+    solid = set(body) | deep
+    for (X, Y) in solid:
+        for dx in range(-2, 3):
+            for dy in range(-2, 3):
+                if abs(dx) + abs(dy) <= 3 and (X + dx, Y + dy) not in solid:
+                    out.add((X + dx, Y + dy))
+    for (X, Y) in out:
+        if 0 <= X + (bh - Y) // SHEAR + PAD < W and 0 <= Y + PAD + 18 < H:
+            put(X, Y, p['out'])
+    for (X, Y) in deep:
+        put(X, Y, p['deep'])
+    for (X, Y), s in body.items():
+        put(X, Y, p[s])
+    return img
+
+for ch in G:
+    for st in PAL:
+        make(ch, st).save(sys.argv[1] + '/title_%s_%s.png' % (ch, st))
+
+# vista previa
+prev = Image.new('RGBA', (60 * 9 + 20, 70), (12, 16, 14, 255))
+prev = Image.new('RGBA', (60 * 9 + 60, 100), (12, 16, 14, 255))
+for i, ch in enumerate("FLASHRACS"):
+    im = Image.open(sys.argv[1] + '/title_%s_lit.png' % ch)
+    prev.paste(im, (10 + i * 52, 8 + [0,3,-2,2,-1,3,-2,1,-3][i] + 4), im)
+prev.resize((prev.width * 2, prev.height * 2), Image.NEAREST).save('preview.png')
+print(make('F', 'lit').size)

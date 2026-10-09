@@ -595,7 +595,7 @@ func _update_hiding() -> bool:
 			_near_spot.show_prompt(false)
 		_near_spot = near
 	if _near_spot and is_local_human():
-		_near_spot.show_prompt(true, "%s · Esconderse" % Settings.key_for("hide"))
+		_near_spot.show_prompt(true, "%s: ESCONDERSE" % Settings.key_for("hide"))
 	if input.just("hide") and (is_bot or not GameManager.input_blocked):
 		if escondido:
 			request_unhide.rpc_id(1)

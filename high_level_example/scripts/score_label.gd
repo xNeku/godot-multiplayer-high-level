@@ -9,5 +9,5 @@ func _ready() -> void:
 func _update_text(_id, _points) -> void:
 	var lines: PackedStringArray = []
 	for pid in GameManager.scores:
-		lines.append("P%s: %d" % [pid, GameManager.scores[pid]])
+		lines.append("%s: %d" % [GameManager.display_name(pid), GameManager.scores[pid]])
 	text = "\n".join(lines)

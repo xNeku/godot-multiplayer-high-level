@@ -1,7 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://b1f217vubxffw"]
+[gd_scene load_steps=5 format=3 uid="uid://b1f217vubxffw"]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/menu.gd" id="1_leprn"]
-[ext_resource type="Texture2D" uid="uid://bp8pdw0prviff" path="res://high_level_example/assets/TileSet/origbig.png" id="2_na366"]
+[ext_resource type="Theme" path="res://high_level_example/assets/ui/tema_flash.tres" id="2_tema"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/ui/menu/bg.png" id="3_bg"]
+
+[sub_resource type="StyleBoxEmpty" id="SinCaja"]
 
 [node name="Menu" type="Control"]
 layout_mode = 3
@@ -10,9 +13,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_tema")
 script = ExtResource("1_leprn")
 
-[node name="Fondo" type="ColorRect" parent="."]
+[node name="Fondo" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,11 +24,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.05, 0.06, 0.09, 1)
+texture = ExtResource("3_bg")
 
-[node name="Imagen" type="TextureRect" parent="."]
-modulate = Color(1, 1, 1, 0.25)
-texture_filter = 1
+[node name="Sombra" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -32,138 +34,175 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("2_na366")
-expand_mode = 1
-stretch_mode = 6
+color = Color(0, 0.01, 0, 0.45)
 
-[node name="Centro" type="CenterContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="PanelPrincipal" type="PanelContainer" parent="Centro"]
+[node name="Cabecera" type="Label" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(230, 0)
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 30.0
+offset_bottom = 66.0
+grow_horizontal = 2
+theme_type_variation = &"LabelTitulo"
+text = "JUGAR"
+horizontal_alignment = 1
 
-[node name="Margen" type="MarginContainer" parent="Centro/PanelPrincipal"]
-layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 12
+[node name="Raya" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -90.0
+offset_top = 70.0
+offset_right = 90.0
+offset_bottom = 71.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.14, 0.34, 0.2, 1)
 
-[node name="Caja" type="VBoxContainer" parent="Centro/PanelPrincipal/Margen"]
+[node name="PanelPrincipal" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 96.0
+offset_right = 100.0
+offset_bottom = 300.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("SinCaja")
+
+[node name="Caja" type="VBoxContainer" parent="PanelPrincipal"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Titulo" type="Label" parent="Centro/PanelPrincipal/Margen/Caja"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "PERO TIOOOOO"
-horizontal_alignment = 1
-
-[node name="HostButton" type="Button" parent="Centro/PanelPrincipal/Margen/Caja"]
+[node name="HostButton" type="Button" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Crear partida"
+text = "CREAR PARTIDA"
+alignment = 0
 
-[node name="IpInput" type="LineEdit" parent="Centro/PanelPrincipal/Margen/Caja"]
+[node name="EtiquetaIp" type="Label" parent="PanelPrincipal/Caja"]
+layout_mode = 2
+theme_type_variation = &"LabelMini"
+theme_override_colors/font_color = Color(0.45, 0.5, 0.47, 1)
+text = "IP DEL HOST (VACIO = ESTE ORDENADOR)"
+
+[node name="IpInput" type="LineEdit" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-placeholder_text = "IP del host (vacío = local)"
+placeholder_text = "127.0.0.1"
 
-[node name="JoinButton" type="Button" parent="Centro/PanelPrincipal/Margen/Caja"]
+[node name="JoinButton" type="Button" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Unirse"
+text = "UNIRSE"
+alignment = 0
 
-[node name="OpcionesButton" type="Button" parent="Centro/PanelPrincipal/Margen/Caja"]
+[node name="OpcionesButton" type="Button" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Opciones"
+text = "OPCIONES"
+alignment = 0
 
-[node name="SalirButton" type="Button" parent="Centro/PanelPrincipal/Margen/Caja"]
+[node name="SalirButton" type="Button" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Salir"
+text = "VOLVER"
+alignment = 0
 
-[node name="Mensaje" type="Label" parent="Centro/PanelPrincipal/Margen/Caja"]
+[node name="Mensaje" type="Label" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-modulate = Color(1, 0.6, 0.5, 1)
-horizontal_alignment = 1
+theme_type_variation = &"LabelAviso"
 autowrap_mode = 3
 
-[node name="PanelOpciones" type="PanelContainer" parent="Centro"]
+[node name="PanelOpciones" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(300, 0)
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -250.0
+offset_top = 86.0
+offset_right = 250.0
+offset_bottom = 330.0
+grow_horizontal = 2
 
-[node name="Margen" type="MarginContainer" parent="Centro/PanelOpciones"]
+[node name="Caja" type="VBoxContainer" parent="PanelOpciones"]
 layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 12
+theme_override_constants/separation = 8
 
-[node name="Caja" type="VBoxContainer" parent="Centro/PanelOpciones/Margen"]
+[node name="Columnas" type="HBoxContainer" parent="PanelOpciones/Caja"]
 layout_mode = 2
-theme_override_constants/separation = 6
+size_flags_vertical = 3
+theme_override_constants/separation = 16
 
-[node name="Titulo" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
+[node name="Ajustes" type="VBoxContainer" parent="PanelOpciones/Caja/Columnas"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "OPCIONES"
-horizontal_alignment = 1
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
 
-[node name="LabelVolumen" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
+[node name="LabelVolumen" type="Label" parent="PanelOpciones/Caja/Columnas/Ajustes"]
 layout_mode = 2
-text = "Volumen"
+text = "VOLUMEN"
 
-[node name="Volumen" type="HSlider" parent="Centro/PanelOpciones/Margen/Caja"]
+[node name="Volumen" type="HSlider" parent="PanelOpciones/Caja/Columnas/Ajustes"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 max_value = 1.0
 step = 0.05
 value = 1.0
 
-[node name="Pantalla" type="CheckButton" parent="Centro/PanelOpciones/Margen/Caja"]
+[node name="Pantalla" type="CheckButton" parent="PanelOpciones/Caja/Columnas/Ajustes"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 2
-text = "Pantalla completa"
+text = "PANTALLA COMPLETA"
 
-[node name="FiltroTV" type="CheckButton" parent="Centro/PanelOpciones/Margen/Caja"]
+[node name="FiltroTV" type="CheckButton" parent="PanelOpciones/Caja/Columnas/Ajustes"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 2
-text = "Filtro de tele antigua"
+text = "FILTRO TELE VIEJA"
 
-[node name="LabelRes" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
+[node name="LabelRes" type="Label" parent="PanelOpciones/Caja/Columnas/Ajustes"]
 layout_mode = 2
-text = "Resolución de ventana"
+text = "VENTANA"
 
-[node name="Resolucion" type="OptionButton" parent="Centro/PanelOpciones/Margen/Caja"]
+[node name="Resolucion" type="OptionButton" parent="PanelOpciones/Caja/Columnas/Ajustes"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 2
 
-[node name="LabelControles" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
+[node name="Separador" type="ColorRect" parent="PanelOpciones/Caja/Columnas"]
+custom_minimum_size = Vector2(1, 0)
 layout_mode = 2
-text = "Controles (cambiarlos, más adelante)"
+mouse_filter = 2
+color = Color(0.14, 0.34, 0.2, 1)
 
-[node name="Controles" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
+[node name="ColControles" type="VBoxContainer" parent="PanelOpciones/Caja/Columnas"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="LabelControles" type="Label" parent="PanelOpciones/Caja/Columnas/ColControles"]
+layout_mode = 2
+text = "CONTROLES"
+
+[node name="Controles" type="Label" parent="PanelOpciones/Caja/Columnas/ColControles"]
 unique_name_in_owner = true
 layout_mode = 2
-modulate = Color(1, 1, 1, 0.75)
-theme_override_font_sizes/font_size = 9
+theme_type_variation = &"LabelMini"
+theme_override_colors/font_color = Color(0.6, 0.62, 0.61, 1)
+theme_override_constants/line_spacing = 4
 
-[node name="VolverButton" type="Button" parent="Centro/PanelOpciones/Margen/Caja"]
+[node name="VolverButton" type="Button" parent="PanelOpciones/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Volver"
+size_flags_horizontal = 4
+text = "VOLVER"

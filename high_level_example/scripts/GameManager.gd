@@ -41,15 +41,15 @@ static func is_bot_id(id: int) -> bool:
 # Nombre para mostrar en esta máquina ("Tú" si es el jugador local)
 func display_name(id: int) -> String:
 	if id == multiplayer.get_unique_id():
-		return "Tú"
+		return "TU"
 	return public_name(id)
 
 
 # Nombre igual para todos (textos que manda el servidor)
 func public_name(id: int) -> String:
 	if is_bot_id(id):
-		return "Bot %d" % (id - BOT_ID_MIN + 1)
-	return "Jugador %d" % (id % 1000)
+		return "BOT %d" % (id - BOT_ID_MIN + 1)
+	return "JUGADOR %d" % (id % 1000)
 
 
 func color_of(id: int) -> int:

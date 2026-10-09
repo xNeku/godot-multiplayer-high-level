@@ -1,23 +1,25 @@
 extends CanvasLayer
+# Pantalla de fin de partida: ganador y puntuaciones. La enseña end_game_sequence
+# hasta que el servidor devuelve a todos al lobby.
 
-@onready var panel = $Panel
-@onready var winner_label = $Panel/WinnerLabel
-@onready var score_label = $Panel/ScoreLabel
+@onready var panel: Control = $Panel
+@onready var winner_label: Label = %WinnerLabel
+@onready var score_label: Label = %ScoreLabel
 
-func _ready():
-	# Nos aseguramos de que empiece oculto
+
+func _ready() -> void:
 	panel.visible = false
 
-func display_results(winner_id: int):
-	# 1. Mostrar el panel
+
+func display_results(winner_id: int) -> void:
+	visible = true
 	panel.visible = true
-	
-	# 2. Poner quién ganó
-	winner_label.text = "¡VICTORIA DEL JUGADOR " + str(winner_id) + "!"
-	
-	# 3. Listar los puntos de todos
-	var texto = "--- PUNTUACIONES ---\n"
-	for pid in GameManager.scores:
-		texto += "Jugador " + str(pid) + ": " + str(GameManager.scores[pid]) + " Ptos\n"
-	
-	score_label.text = texto
+	winner_label.text = "GANA %s!" % GameManager.public_name(winner_id)
+	var ids: Array = GameManager.scores.keys()
+	ids.sort_custom(func(a, b): return GameManager.scores[a] > GameManager.scores[b])
+	var lines: PackedStringArray = []
+	for pid in ids:
+		lines.append("%s   %d" % [GameManager.display_name(pid), GameManager.scores[pid]])
+	score_label.text = "\n".join(lines)
+	panel.modulate.a = 0.0
+	create_tween().tween_property(panel, "modulate:a", 1.0, 0.4)

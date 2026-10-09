@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/hide_spot.gd" id="1_hs"]
+[ext_resource type="Theme" path="res://high_level_example/assets/ui/tema_flash.tres" id="9_tema"]
 
 [node name="Escondite" type="Node2D"]
 z_index = 1
@@ -10,11 +11,10 @@ script = ExtResource("1_hs")
 follow_viewport_enabled = true
 
 [node name="Aviso" type="Label" parent="CapaAviso"]
-offset_right = 60.0
-offset_bottom = 10.0
-theme_override_font_sizes/font_size = 7
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-text = "Q · Esconderse"
+offset_right = 90.0
+offset_bottom = 9.0
+theme = ExtResource("9_tema")
+theme_type_variation = &"LabelMini"
+theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)
+text = "Q: ESCONDERSE"
 horizontal_alignment = 1

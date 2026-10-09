@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/inventory_hud.gd" id="1_hud"]
+[ext_resource type="Theme" path="res://high_level_example/assets/ui/tema_flash.tres" id="9_tema"]
 
 [node name="HudInventario" type="CanvasLayer"]
 layer = 10
@@ -11,9 +12,9 @@ offset_left = 8.0
 offset_top = 6.0
 offset_right = 220.0
 offset_bottom = 40.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 11
+theme = ExtResource("9_tema")
+theme_type_variation = &"LabelMini"
+theme_override_constants/line_spacing = 3
 
 [node name="Aviso" type="Label" parent="."]
 anchors_preset = 7
@@ -28,6 +29,5 @@ offset_bottom = -36.0
 grow_horizontal = 2
 grow_vertical = 0
 horizontal_alignment = 1
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 12
+theme = ExtResource("9_tema")
+theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)

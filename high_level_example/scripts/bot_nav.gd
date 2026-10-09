@@ -24,7 +24,7 @@ static func for_map(map: Node) -> BotNav:
 	if map == null or not map.has_meta("tiles"):
 		return null
 	var t: Dictionary = map.get_meta("tiles")
-	var nav: BotNav = map.get_meta("bot_nav", null)
+	var nav: BotNav = map.get_meta("bot_nav") if map.has_meta("bot_nav") else null
 	if nav == null or nav.version != int(t.get("ver", 0)):
 		nav = BotNav.new()
 		nav._build(t)

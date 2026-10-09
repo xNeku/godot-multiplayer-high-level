@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/weapon_spawner.gd" id="1_spawner"]
+[ext_resource type="Theme" path="res://high_level_example/assets/ui/tema_flash.tres" id="9_tema"]
 
 [node name="ArmaSpawner" type="Node2D" groups=["pickups"]]
 script = ExtResource("1_spawner")
@@ -17,5 +18,7 @@ offset_left = -40.0
 offset_top = 8.0
 offset_right = 40.0
 offset_bottom = 22.0
-theme_override_font_sizes/font_size = 8
+theme = ExtResource("9_tema")
+theme_type_variation = &"LabelMini"
+theme_override_colors/font_color = Color(0.6, 0.62, 0.61, 1)
 horizontal_alignment = 1

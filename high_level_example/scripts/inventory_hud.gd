@@ -12,19 +12,18 @@ func _process(_delta: float) -> void:
 	if player == null:
 		label.text = ""
 		return
-	var weapon_text := "—"
+	var weapon_text := "-"
 	var wd: WeaponData = player.current_weapon_data
 	if wd:
-		var ammo: String = "∞" if player.current_ammo < 0 else str(player.current_ammo)
-		weapon_text = "%s %s/%d" % [wd.role_name, ammo, wd.max_ammo] if player.current_ammo >= 0 else "%s ∞" % wd.role_name
-	var item_text := "—"
+		weapon_text = "%s %d/%d" % [wd.role_name, player.current_ammo, wd.max_ammo] if player.current_ammo >= 0 else wd.role_name
+	var item_text := "-"
 	if player.current_item:
 		item_text = player.current_item.item_name
-	label.text = "Arma: %s\nObjeto: %s" % [weapon_text, item_text]
+	label.text = "ARMA: %s\nOBJETO: %s" % [weapon_text, item_text]
 	prompt.text = _nearest_pickup_text(player)
 
 
-# Aviso "E · Coger X" cuando hay algo al alcance
+# Aviso "E: COGER X" cuando hay algo al alcance
 func _nearest_pickup_text(player: Node2D) -> String:
 	var best: Node2D = null
 	var best_d: float = player.interact_range
@@ -44,4 +43,4 @@ func _nearest_pickup_text(player: Node2D) -> String:
 	else:
 		var w = best.get_weapon()
 		nm = w.role_name if w else ""
-	return "%s · Coger %s" % [Settings.key_for("interact"), nm]
+	return "%s: COGER %s" % [Settings.key_for("interact"), nm]

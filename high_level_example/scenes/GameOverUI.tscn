@@ -1,32 +1,52 @@
-[gd_scene load_steps=2 format=3 uid="uid://b20qpy5kkk3t"]
+[gd_scene load_steps=3 format=3 uid="uid://b20qpy5kkk3t"]
 
 [ext_resource type="Script" uid="uid://bpkwp2glvb4eh" path="res://high_level_example/scripts/game_over_ui.gd" id="1_0il0c"]
+[ext_resource type="Theme" path="res://high_level_example/assets/ui/tema_flash.tres" id="2_tema"]
 
 [node name="GameOverUi" type="CanvasLayer"]
+layer = 20
 script = ExtResource("1_0il0c")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="ColorRect" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(9.040898, 5.642151)
+theme = ExtResource("2_tema")
+color = Color(0, 0.01, 0, 0.75)
 
-[node name="WinnerLabel" type="Label" parent="Panel"]
-layout_mode = 0
-offset_left = 49.441986
-offset_top = 5.6715965
-offset_right = 116.441986
-offset_bottom = 54.671597
-scale = Vector2(0.2106577, 0.3538154)
-text = "Ganador
-"
+[node name="Caja" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -90.0
+offset_right = 260.0
+offset_bottom = 90.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+alignment = 1
 
-[node name="ScoreLabel" type="Label" parent="Panel"]
-layout_mode = 0
-offset_left = 47.561646
-offset_top = 44.132107
-offset_right = 87.561646
-offset_bottom = 67.13211
-scale = Vector2(0.637436, 0.80410767)
+[node name="WinnerLabel" type="Label" parent="Panel/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"LabelTitulo"
+text = "GANA JUGADOR 1!"
+horizontal_alignment = 1
+
+[node name="Raya" type="ColorRect" parent="Panel/Caja"]
+custom_minimum_size = Vector2(180, 1)
+layout_mode = 2
+size_flags_horizontal = 4
+color = Color(0.14, 0.34, 0.2, 1)
+
+[node name="ScoreLabel" type="Label" parent="Panel/Caja"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "JUGADOR 1   10"
+horizontal_alignment = 1

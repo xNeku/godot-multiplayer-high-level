@@ -10,7 +10,7 @@ QUE HACE
 - Opciones JUGAR / OPCIONES / SALIR: gris; con raton encima o foco de teclado (flechas + Enter) se ponen verdes.
 - JUGAR hace change_scene_to_file("res://high_level_example/scenes/Menu.tscn"): el menu de red
   (host / unirse / lobby) NO se ha tocado, solo queda detras de este.
-- OPCIONES de momento solo hace print (pendiente). SALIR cierra el juego.
+- OPCIONES abre Menu.tscn directamente en el panel de opciones; VOLVER regresa al titulo. SALIR cierra el juego.
 
 COMO ACTIVARLO (esto NO esta hecho: la rama no toca project.godot)
 1. Abrir el proyecto en Godot para que importe los PNG y la fuente .fnt (se generan los .import).
@@ -30,3 +30,12 @@ NOTAS TECNICAS
 - Para cambiar el nombre del juego: constante TITLE en title_menu.gd (solo letras F L A S H R C;
   otras letras requieren dibujarlas nuevas en los assets).
 - Ritmo ajustable arriba del script: STEP, BOB, WAVE_DELAY, WAVE_PAUSE, BURN_SEQ.
+
+ESTILO COMUN (todos los menus y el HUD)
+- Tema: high_level_example/assets/ui/tema_flash.tres (se aplica en Menu, Lobby UI/Raiz, HUD,
+  GameOverUI, avisos de escondite y etiquetas de armas). PanelAjustes NO lo usa a proposito.
+  Variaciones: LabelMini (fuente pequena), LabelTitulo (x2 verde), LabelAviso (rojo).
+  Se regenera con assets/ui/gen_tema.gd.txt (godot --headless -s).
+- font_menu.fnt: minusculas y vocales con tilde apuntan a las mayusculas, asi que cualquier
+  texto sale en MAYUSCULAS. Hay Ñ propia. font_mini.fnt es la misma letra a la mitad (7 px).
+- Letras del titulo regeneradas con gen_title.py.txt (mas gordas, relieve, orejas de mapache en las A).

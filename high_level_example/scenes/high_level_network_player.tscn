@@ -13,6 +13,249 @@
 [ext_resource type="Texture2D" path="res://high_level_example/assets/fx/linterna_cono.png" id="11_cono"]
 [ext_resource type="Texture2D" path="res://high_level_example/assets/fx/punto_suave.png" id="12_punto"]
 
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_idle_sheet.png" id="20_idle"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_walk_sheet.png" id="20_walk"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_run_sheet.png" id="20_run"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_jump_sheet.png" id="20_jump"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_backflip_sheet.png" id="20_backflip"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_crouch_sheet.png" id="20_crouch"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/players/raccoon/raccoon_slide_sheet.png" id="20_slide"]
+[ext_resource type="Script" path="res://high_level_example/scripts/raccoon_visual.gd" id="21_mapache"]
+
+[sub_resource type="AtlasTexture" id="At_idle_0"]
+atlas = ExtResource("20_idle")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_idle_1"]
+atlas = ExtResource("20_idle")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_idle_2"]
+atlas = ExtResource("20_idle")
+region = Rect2(38, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_idle_3"]
+atlas = ExtResource("20_idle")
+region = Rect2(57, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_walk_0"]
+atlas = ExtResource("20_walk")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_walk_1"]
+atlas = ExtResource("20_walk")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_walk_2"]
+atlas = ExtResource("20_walk")
+region = Rect2(38, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_walk_3"]
+atlas = ExtResource("20_walk")
+region = Rect2(57, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_run_0"]
+atlas = ExtResource("20_run")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_run_1"]
+atlas = ExtResource("20_run")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_run_2"]
+atlas = ExtResource("20_run")
+region = Rect2(38, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_run_3"]
+atlas = ExtResource("20_run")
+region = Rect2(57, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_jump_0"]
+atlas = ExtResource("20_jump")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_jump_1"]
+atlas = ExtResource("20_jump")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_jump_2"]
+atlas = ExtResource("20_jump")
+region = Rect2(38, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_jump_3"]
+atlas = ExtResource("20_jump")
+region = Rect2(57, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_backflip_0"]
+atlas = ExtResource("20_backflip")
+region = Rect2(0, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_backflip_1"]
+atlas = ExtResource("20_backflip")
+region = Rect2(33, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_backflip_2"]
+atlas = ExtResource("20_backflip")
+region = Rect2(66, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_backflip_3"]
+atlas = ExtResource("20_backflip")
+region = Rect2(99, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_crouch_0"]
+atlas = ExtResource("20_crouch")
+region = Rect2(0, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_crouch_1"]
+atlas = ExtResource("20_crouch")
+region = Rect2(19, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_crouch_2"]
+atlas = ExtResource("20_crouch")
+region = Rect2(38, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_crouch_3"]
+atlas = ExtResource("20_crouch")
+region = Rect2(57, 0, 19, 27)
+
+[sub_resource type="AtlasTexture" id="At_slide_0"]
+atlas = ExtResource("20_slide")
+region = Rect2(0, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_slide_1"]
+atlas = ExtResource("20_slide")
+region = Rect2(33, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_slide_2"]
+atlas = ExtResource("20_slide")
+region = Rect2(66, 0, 33, 33)
+
+[sub_resource type="AtlasTexture" id="At_slide_3"]
+atlas = ExtResource("20_slide")
+region = Rect2(99, 0, 33, 33)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_mapache"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_idle_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_idle_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_idle_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_idle_3")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 2.9
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_walk_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_walk_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_walk_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_walk_3")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 5.9
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_run_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_run_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_run_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_run_3")
+}],
+"loop": true,
+"name": &"run",
+"speed": 11.1
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_jump_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_jump_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_jump_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_jump_3")
+}],
+"loop": false,
+"name": &"jump",
+"speed": 7.7
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_backflip_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_backflip_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_backflip_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_backflip_3")
+}],
+"loop": false,
+"name": &"backflip",
+"speed": 11.1
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_crouch_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_crouch_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_crouch_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_crouch_3")
+}],
+"loop": false,
+"name": &"crouch",
+"speed": 8.3
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("At_slide_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_slide_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_slide_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("At_slide_3")
+}],
+"loop": false,
+"name": &"slide",
+"speed": 9.1
+}]
+
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_add"]
 blend_mode = 1
 
@@ -128,6 +371,14 @@ initial_velocity_max = 6.0
 scale_amount_min = 0.6
 scale_amount_max = 1.2
 color = Color(1, 0.97, 0.88, 0.32)
+
+[node name="Mapache" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0.5, -2.5)
+sprite_frames = SubResource("SpriteFrames_mapache")
+animation = &"idle"
+autoplay = "idle"
+script = ExtResource("21_mapache")
 
 [node name="HandPivot" type="Node2D" parent="."]
 

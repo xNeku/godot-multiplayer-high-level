@@ -1,0 +1,50 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://high_level_example/scripts/title_menu.gd" id="1_title"]
+[ext_resource type="Texture2D" path="res://high_level_example/assets/ui/menu/bg.png" id="2_bg"]
+
+[node name="TitleMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_title")
+
+[node name="Bg" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+stretch_mode = 0
+
+[node name="TitleRoot" type="Node2D" parent="."]
+
+[node name="MenuBox" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 220.0
+offset_top = 188.0
+offset_right = 420.0
+offset_bottom = 300.0
+theme_override_constants/separation = 6
+alignment = 0
+
+[node name="Version" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -24.0
+offset_right = -8.0
+offset_bottom = -6.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "V0.1"
+horizontal_alignment = 2

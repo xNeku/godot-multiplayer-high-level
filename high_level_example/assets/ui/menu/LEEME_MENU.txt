@@ -1,0 +1,32 @@
+MENU DE TITULO "FLASHRACS"
+===========================
+Escena:  high_level_example/scenes/TitleMenu.tscn
+Script:  high_level_example/scripts/title_menu.gd
+Assets:  high_level_example/assets/ui/menu/  (todo generado, pixel art 1x para viewport 640x360)
+
+QUE HACE
+- Titulo FLASHRACS (verde "vision nocturna"). Ola lenta letra a letra: cada letra sube unos px
+  y se "funde" (parpadea, se queda apagada ~1 s, parpadea y se vuelve a encender). Pausa ~3 s y repite.
+- Opciones JUGAR / OPCIONES / SALIR: gris; con raton encima o foco de teclado (flechas + Enter) se ponen verdes.
+- JUGAR hace change_scene_to_file("res://high_level_example/scenes/Menu.tscn"): el menu de red
+  (host / unirse / lobby) NO se ha tocado, solo queda detras de este.
+- OPCIONES de momento solo hace print (pendiente). SALIR cierra el juego.
+
+COMO ACTIVARLO (esto NO esta hecho: la rama no toca project.godot)
+1. Abrir el proyecto en Godot para que importe los PNG y la fuente .fnt (se generan los .import).
+2. Project Settings > Application > Run > Main Scene = TitleMenu.tscn.
+3. Si algo vuelve "al menu" tras desconectarse, high_level_network_handler.gd:76 sigue cargando
+   Menu.tscn (lobby). Si se quiere volver al titulo, cambiar esa ruta a TitleMenu.tscn.
+
+NOTAS TECNICAS
+- Probado en Godot 4.5 (headless + captura): carga sin errores.
+- Escena montada con nodos minimos: TitleMenu(Control) > Bg(TextureRect), TitleRoot(Node2D),
+  MenuBox(VBoxContainer), Version(Label). Botones y letras se crean por codigo.
+- La fuente es un BMFont (font_menu.fnt + font_menu.png) con glifos blancos y contorno negro,
+  asi que se tinta con font_color. Solo tiene A-Z, 0-9 y . : - ! ? < > (sin tildes ni minusculas;
+  usar MAYUSCULAS).
+- Letras del titulo: title_<L>_lit / _ember / _off .png (F L A S H R C). glow.png = halo (blend Add).
+- bg.png = fondo 640x360 (noche, verja, niebla, haz de linterna).
+- Para cambiar el nombre del juego: constante TITLE en title_menu.gd (solo letras F L A S H R C;
+  otras letras requieren dibujarlas nuevas en los assets).
+- Ritmo ajustable arriba del script: STEP, BOB, WAVE_DELAY, WAVE_PAUSE, BURN_SEQ.

@@ -1,0 +1,17 @@
+[remap]
+
+importer="font_data_bmfont"
+type="FontFile"
+uid="uid://bjctl377b2u5w"
+path="res://.godot/imported/font_menu.fnt-58dc4895fca944b277445f63fa505d48.fontdata"
+
+[deps]
+
+source_file="res://high_level_example/assets/ui/menu/font_menu.fnt"
+dest_files=["res://.godot/imported/font_menu.fnt-58dc4895fca944b277445f63fa505d48.fontdata"]
+
+[params]
+
+fallbacks=[]
+compress=true
+scaling_mode=2

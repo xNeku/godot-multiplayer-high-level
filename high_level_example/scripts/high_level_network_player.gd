@@ -185,6 +185,8 @@ var _since_jump: float = 99.0
 var rope_anchor: Vector2 = Vector2.ZERO
 var _rope_len: float = 0.0
 var _rope_ready_at: int = 0
+var _rope_miss_end: Vector2 = Vector2.ZERO
+var _rope_miss_until: int = 0
 var _flip_t: float = -1.0 # <0 = sin backflip; si no, segundos transcurridos
 var _flip_facing: int = 1
 var _fx_flipping: bool = false
@@ -310,9 +312,10 @@ func _process(delta: float) -> void:
 		else:
 			global_position = global_position.lerp(net_position, 1.0 - exp(-remote_smoothing * delta))
 	_movement_sfx(delta)
-	rope_line.visible = rope_anchor != Vector2.ZERO
+	var missing: bool = rope_anchor == Vector2.ZERO and Time.get_ticks_msec() < _rope_miss_until
+	rope_line.visible = rope_anchor != Vector2.ZERO or missing
 	if rope_line.visible:
-		rope_line.points = PackedVector2Array([global_position, rope_anchor])
+		rope_line.points = PackedVector2Array([global_position, _rope_miss_end if missing else rope_anchor])
 
 
 # Pasos, salto y aterrizaje deducidos del movimiento, así suenan igual para todos
@@ -490,11 +493,14 @@ func _try_attach() -> void:
 	var ang: float = deg_to_rad(rope_angle_up_deg if up else rope_angle_deg)
 	var dir := Vector2(facing * cos(ang), -sin(ang))
 	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + dir * rope_range, 1)
-	var hit := get_world_2d().direct_space_state.intersect_ray(query)
-	if hit.is_empty():
+	var result := get_world_2d().direct_space_state.intersect_ray(query)
+	if result.is_empty():
 		_rope_ready_at = Time.get_ticks_msec() + int(rope_miss_cooldown * 1000.0)
+		# Aviso visual de que la soga ha salido pero no ha enganchado nada
+		_rope_miss_end = global_position + dir * rope_range
+		_rope_miss_until = Time.get_ticks_msec() + 150
 		return
-	rope_anchor = hit.position
+	rope_anchor = result.position
 	_rope_len = maxf(global_position.distance_to(rope_anchor), rope_min_length)
 
 

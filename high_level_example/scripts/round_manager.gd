@@ -195,12 +195,12 @@ func _pick_random_map() -> String:
 	var all: Array = MapLoader.list_maps()
 	if all.is_empty():
 		return ""
-	var free: Array = all.filter(func(m): return not _used_maps.has(m["path"]))
+	var free: Array = all.filter(func(x): return not _used_maps.has(x["path"]))
 	if free.is_empty():
 		_used_maps.clear()
 		if _current_map_path != "":
 			_used_maps.append(_current_map_path)
-		free = all.filter(func(m): return not _used_maps.has(m["path"]))
+		free = all.filter(func(x): return not _used_maps.has(x["path"]))
 		if free.is_empty():
 			free = all # solo hay un mapa
 	var m: Dictionary = free.pick_random()

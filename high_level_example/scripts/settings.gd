@@ -46,4 +46,4 @@ func apply() -> void:
 		var size: Vector2i = WINDOW_SIZES[window_size_index]
 		DisplayServer.window_set_size(size)
 		var screen: Vector2i = DisplayServer.screen_get_size()
-		DisplayServer.window_set_position((screen - size) / 2)
+		DisplayServer.window_set_position(Vector2i(Vector2(screen - size) * 0.5))

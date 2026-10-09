@@ -22,10 +22,10 @@ func _ready() -> void:
 	GameManager.in_lobby = false
 
 	# Tema pequeño para que la interfaz case con la resolución del juego (640x360)
-	var theme := Theme.new()
-	theme.set_default_font_size(11)
+	var ui_theme := Theme.new()
+	ui_theme.set_default_font_size(11)
 
-	self.theme = theme
+	theme = ui_theme
 
 	%HostButton.pressed.connect(_on_host_pressed)
 	%JoinButton.pressed.connect(_on_join_pressed)

@@ -45,9 +45,9 @@ func _ready() -> void:
 		map_container.add_child(map)
 
 	# Tema pequeño para que la interfaz case con la resolución del juego (640x360)
-	var theme := Theme.new()
-	theme.set_default_font_size(11)
-	$UI/Raiz.theme = theme
+	var ui_theme := Theme.new()
+	ui_theme.set_default_font_size(11)
+	$UI/Raiz.theme = ui_theme
 
 	_build_color_buttons()
 	ready_button.pressed.connect(_toggle_ready)

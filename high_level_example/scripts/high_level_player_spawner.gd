@@ -16,6 +16,9 @@ func _ready() -> void:
 		# 2. Spawnea a los clientes que ya estaban en el lobby
 		for peer_id in multiplayer.get_peers():
 			spawn_player(peer_id)
+		# 3. Y a los bots
+		for bot_id in GameManager.bots:
+			spawn_player(bot_id)
 
 
 # Margen para que el cliente que entra termine de cargar la escena antes de spawnearlo

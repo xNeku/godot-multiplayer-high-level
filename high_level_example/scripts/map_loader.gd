@@ -314,6 +314,7 @@ static func carve(root: Node2D, center: Vector2, radius: float) -> PackedVector2
 				grid[y * gw + x] = 0
 				broken.append(Vector2(x + 0.5, y + 0.5) * bp)
 	t["grid"] = grid
+	t["ver"] = int(t.get("ver", 0)) + 1
 	# Cajas
 	var boxes := root.get_node_or_null("Cajas")
 	if boxes:
@@ -647,6 +648,8 @@ static func _item_pool() -> Array:
 			if not f.ends_with(".tres"):
 				continue
 			var base := f.get_basename().to_lower()
+			if base == "pistolajuguete":
+				continue # solo para el lobby
 			var res := load("%s/%s" % [dir_path, f])
 			if res is WeaponData or res is ItemData:
 				pool.append([base, res])

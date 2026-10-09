@@ -32,4 +32,4 @@ func add_entry(killer_id: int, victim_id: int) -> void:
 
 
 func _name(id: int) -> String:
-	return "Tú" if id == multiplayer.get_unique_id() else "Jugador %d" % (id % 1000)
+	return GameManager.display_name(id)

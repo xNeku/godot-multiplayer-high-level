@@ -179,7 +179,7 @@ func _resolve_round(timer: SceneTreeTimer) -> void:
 	var text := "Empate, nadie suma"
 	if winner != -1:
 		var pts: int = GameManager.add_point(winner)
-		text = "Gana el jugador %d  (+1)" % winner
+		text = "Gana %s  (+1)" % GameManager.public_name(winner)
 		if _peak >= PENALTY_MIN_PLAYERS and _first_dead != -1 and _first_dead != winner:
 			GameManager.remove_point(_first_dead)
 		if pts >= POINTS_TO_WIN:

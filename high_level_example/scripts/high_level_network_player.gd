@@ -234,6 +234,14 @@ var _dead: bool = false
 # y se replica; el mapache tiñe el pecho con él.
 var color_index: int = 0
 var _jump_start_y: float = 0.0
+# Bots: los mueve el servidor (es su autoridad) con entrada virtual
+var is_bot: bool = false
+var input := PlayerInput.new()
+
+
+# El jugador que controla esta máquina con teclado/mando (ni remotos ni bots)
+func is_local_human() -> bool:
+	return is_multiplayer_authority() and not is_bot
 
 
 # Polvo al aterrizar (solo visual, local; los demás no lo ven por ahora)
@@ -258,7 +266,10 @@ func _land_fx(speed: float) -> void:
 
 
 func _enter_tree() -> void:
-	set_multiplayer_authority(name.to_int())
+	var id: int = name.to_int()
+	is_bot = GameManager.is_bot_id(id)
+	input.virtual = is_bot
+	set_multiplayer_authority(1 if is_bot else id)
 
 
 func _exit_tree() -> void:
@@ -268,7 +279,7 @@ func _exit_tree() -> void:
 
 func _ready() -> void:
 	add_to_group("emp_affected")
-	var is_mine: bool = is_multiplayer_authority()
+	var is_mine: bool = is_local_human()
 	camera.enabled = is_mine
 	if flashlight:
 		flashlight.enabled = is_mine
@@ -284,17 +295,22 @@ func _ready() -> void:
 	_visual_base_y = visual.position.y
 	_apply_stance_shape()
 
-	if is_mine:
-		global_position = GameManager.get_spawn_position()
+	if is_multiplayer_authority():
+		global_position = GameManager.get_spawn_position(name.to_int())
 		net_position = global_position
-		_apply_camera_limits()
-		camera.make_current()
+		if is_mine:
+			_apply_camera_limits()
+			camera.make_current()
+		if is_bot and multiplayer.is_server():
+			var brain := Node.new()
+			brain.name = "Cerebro"
+			brain.set_script(load("res://high_level_example/scripts/bot_brain.gd"))
+			add_child(brain)
 	else:
 		# Los jugadores de los demás no corren física ni input aquí.
 		set_physics_process(false)
 
-	if is_mine:
-		color_index = Settings.color_index
+	color_index = GameManager.color_of(name.to_int())
 	var start_weapon: WeaponData = lobby_weapon if GameManager.in_lobby else default_weapon
 	if start_weapon:
 		equip_weapon(start_weapon, -1)
@@ -334,6 +350,11 @@ func _apply_camera_limits() -> void:
 
 func _process(delta: float) -> void:
 	if is_multiplayer_authority():
+		# El color lo decide el servidor (GameManager.colors); el dueño lo aplica y se replica
+		var c: int = GameManager.color_of(name.to_int())
+		if c != color_index:
+			color_index = c
+	if is_local_human():
 		if _shake > 0.0:
 			_shake = maxf(0.0, _shake - shake_decay * delta)
 			_shake_t += delta * shake_frequency
@@ -343,7 +364,7 @@ func _process(delta: float) -> void:
 		elif camera.offset != Vector2.ZERO or camera.rotation != 0.0:
 			camera.offset = Vector2.ZERO
 			camera.rotation = 0.0
-	elif net_position != Vector2.ZERO:
+	elif not is_multiplayer_authority() and net_position != Vector2.ZERO:
 		# Copias remotas: sin física, solo se acercan a la posición recibida.
 		if global_position.distance_to(net_position) > remote_snap_distance:
 			global_position = net_position
@@ -355,7 +376,7 @@ func _process(delta: float) -> void:
 	var shown: bool = rope_anchor != Vector2.ZERO or missing
 	var pts := PackedVector2Array([global_position, _rope_miss_end if missing else rope_anchor])
 	rope_line.visible = shown
-	rope_line_own.visible = shown and is_multiplayer_authority()
+	rope_line_own.visible = shown and is_local_human()
 	if shown:
 		rope_line.points = pts
 		rope_line_own.points = pts
@@ -425,16 +446,18 @@ func _play_sfx(stream: AudioStream, hearing: float, volume_db: float = 0.0) -> v
 
 
 func shake(amount: float) -> void:
-	if is_multiplayer_authority():
+	if is_local_human():
 		_shake = maxf(_shake, amount)
 
 
 func _physics_process(delta: float) -> void:
 	# Solo llega aquí el jugador local (en _ready se apaga para los demás).
 	if _update_hiding():
+		input.end_frame()
 		return
-	if GameManager.input_blocked:
+	if GameManager.input_blocked and not is_bot:
 		_idle_physics(delta)
+		input.end_frame()
 		return
 	var on_floor: bool = is_on_floor()
 	if on_floor:
@@ -442,10 +465,10 @@ func _physics_process(delta: float) -> void:
 	else:
 		_coyote_left = maxf(0.0, _coyote_left - delta)
 		var g: float = gravity * (fall_gravity_mult if velocity.y > 0.0 else 1.0)
-		if absf(velocity.y) < apex_threshold and Input.is_action_pressed("ui_up"):
+		if absf(velocity.y) < apex_threshold and input.pressed("ui_up"):
 			g *= apex_gravity_mult
 		velocity.y += g * delta
-		var cap: float = fast_fall_speed if Input.is_action_pressed("ui_down") else max_fall_speed
+		var cap: float = fast_fall_speed if input.pressed("ui_down") else max_fall_speed
 		velocity.y = minf(velocity.y, cap)
 	_was_on_floor = on_floor
 
@@ -458,11 +481,11 @@ func _physics_process(delta: float) -> void:
 	_dir = dir
 	_update_sprint(dir)
 	_since_jump += delta
-	var crouch_held: bool = Input.is_action_pressed("crouch")
-	_update_stance(on_floor, dir, crouch_held, Input.is_action_just_pressed("crouch"))
+	var crouch_held: bool = input.pressed("crouch")
+	_update_stance(on_floor, dir, crouch_held, input.just("crouch"))
 
 	var roped: bool = _update_rope(delta)
-	var jump_pressed: bool = Input.is_action_just_pressed("ui_up") and not roped
+	var jump_pressed: bool = input.just("ui_up") and not roped
 	if jump_pressed:
 		_jump_buffer_left = jump_buffer_time
 	else:
@@ -479,7 +502,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = -facing * backflip_speed
 		_jump_buffer_left = 0.0
 		_since_jump = 99.0
-	elif _jump_buffer_left > 0.0 and on_floor and Input.is_action_pressed("ui_down") and _is_on_platform():
+	elif _jump_buffer_left > 0.0 and on_floor and input.pressed("ui_down") and _is_on_platform():
 		# Abajo + salto sobre una plataforma = bajar a través de ella
 		set_collision_mask_value(PLATFORM_LAYER, false)
 		_drop_until_msec = Time.get_ticks_msec() + int(drop_through_time * 1000.0)
@@ -495,7 +518,7 @@ func _physics_process(delta: float) -> void:
 		if stance == Stance.SLIDE:
 			stance = Stance.CROUCH # saltar desde el slide: mantiene el impulso
 	# Soltar el salto en la subida lo acorta (no en el backflip)
-	if Input.is_action_just_released("ui_up") and velocity.y < 0.0 and _flip_t < 0.0 and not roped:
+	if input.released("ui_up") and velocity.y < 0.0 and _flip_t < 0.0 and not roped:
 		velocity.y *= jump_cut
 
 	if roped and not on_floor:
@@ -531,6 +554,12 @@ func _physics_process(delta: float) -> void:
 
 	_prev_fall_speed = velocity.y
 	move_and_slide()
+	# Atascado sobre una esquina (la cápsula se apoya en el borde sin contar como suelo):
+	# empujón hacia fuera para que caiga o suba
+	if not is_on_floor() and get_slide_collision_count() > 0 and absf(velocity.x) < 5.0 and velocity.y >= 0.0:
+		var nrm: Vector2 = get_slide_collision(0).get_normal()
+		if nrm.y < -0.2 and absf(nrm.x) > 0.1:
+			velocity.x = signf(nrm.x) * 60.0
 	if roped:
 		_apply_rope_constraint()
 	net_position = global_position
@@ -540,13 +569,14 @@ func _physics_process(delta: float) -> void:
 
 	if current_weapon_data:
 		var auto: bool = current_weapon_data.fire_mode == WeaponData.FireMode.AUTO
-		var trigger: bool = Input.is_action_pressed("shoot") if auto else Input.is_action_just_pressed("shoot")
+		var trigger: bool = input.pressed("shoot") if auto else input.just("shoot")
 		if trigger:
 			shoot()
-	if Input.is_action_just_pressed("interact"):
+	if input.just("interact"):
 		request_interact.rpc_id(1)
 	_update_weapon_arc()
 	_update_throw(delta)
+	input.end_frame()
 
 
 # --- ESCONDITES ---
@@ -561,12 +591,12 @@ func _update_hiding() -> bool:
 				near = spot
 				break
 	if near != _near_spot:
-		if _near_spot and is_instance_valid(_near_spot):
+		if _near_spot and is_instance_valid(_near_spot) and is_local_human():
 			_near_spot.show_prompt(false)
 		_near_spot = near
-	if _near_spot:
+	if _near_spot and is_local_human():
 		_near_spot.show_prompt(true, "%s · Esconderse" % Settings.key_for("hide"))
-	if Input.is_action_just_pressed("hide") and not GameManager.input_blocked:
+	if input.just("hide") and (is_bot or not GameManager.input_blocked):
 		if escondido:
 			request_unhide.rpc_id(1)
 		elif _near_spot:
@@ -581,7 +611,7 @@ func _update_hiding() -> bool:
 func request_hide(spot_path: NodePath) -> void:
 	if not multiplayer.is_server() or _dead or escondido:
 		return
-	if _sender() != name.to_int():
+	if _sender() != get_multiplayer_authority():
 		return
 	var spot := get_node_or_null(spot_path)
 	if spot == null or not spot.has_method("covers") or not spot.covers(global_position) or not spot.is_free():
@@ -594,7 +624,7 @@ func request_hide(spot_path: NodePath) -> void:
 func request_unhide() -> void:
 	if not multiplayer.is_server() or not escondido:
 		return
-	if _sender() != name.to_int():
+	if _sender() != get_multiplayer_authority():
 		return
 	if _hide_spot and is_instance_valid(_hide_spot):
 		_hide_spot.occupant = 0
@@ -636,7 +666,7 @@ func _set_hidden(on: bool, spot_path: NodePath) -> void:
 func _apply_hidden_visual() -> void:
 	if _dead:
 		return
-	if is_multiplayer_authority():
+	if is_local_human():
 		# Tú te ves en transparente; la linterna se apaga (te delataría)
 		visual.modulate.a = 0.35 if escondido else 1.0
 		hand_pivot.visible = not escondido
@@ -660,19 +690,19 @@ func _idle_physics(delta: float) -> void:
 # Gestiona enganche, escalada y desenganche. Devuelve true si hay soga puesta.
 func _update_rope(delta: float) -> bool:
 	if rope_anchor == Vector2.ZERO:
-		if Input.is_action_just_pressed("rope") and Time.get_ticks_msec() >= _rope_ready_at \
+		if input.just("rope") and Time.get_ticks_msec() >= _rope_ready_at \
 				and stance != Stance.SLIDE and _flip_t < 0.0:
 			_try_attach()
 		return rope_anchor != Vector2.ZERO
-	if not Input.is_action_pressed("rope") or _rope_blocked():
+	if not input.pressed("rope") or _rope_blocked():
 		rope_anchor = Vector2.ZERO
 		if not is_on_floor():
 			velocity *= rope_release_boost
 		return false
 	var old_len: float = _rope_len
-	if Input.is_action_pressed("ui_up"):
+	if input.pressed("ui_up"):
 		_rope_len = maxf(rope_min_length, _rope_len - rope_climb_speed * delta)
-	elif Input.is_action_pressed("ui_down"):
+	elif input.pressed("ui_down"):
 		_rope_len = minf(rope_range, _rope_len + rope_climb_speed * delta)
 	# Conservación del momento angular: al acortar la soga balanceándote, vas más rápido
 	# (y al alargarla, más lento). Es lo que hace un columpio cuando "bombeas".
@@ -724,14 +754,14 @@ func _apply_rope_constraint() -> void:
 
 
 func _read_dir() -> int:
-	return int(signf(Input.get_axis("ui_left", "ui_right")))
+	return int(signf(input.axis("ui_left", "ui_right")))
 
 
 # Sprint: doble toque de dirección (se mantiene mientras no sueltes) o stick a fondo
 func _update_sprint(dir: int) -> void:
 	var now: float = Time.get_ticks_msec() / 1000.0
 	for d in [-1, 1]:
-		if Input.is_action_just_pressed("ui_left" if d < 0 else "ui_right"):
+		if input.just("ui_left" if d < 0 else "ui_right"):
 			if _tap_dir == d and now - _tap_time <= double_tap_time:
 				_kb_sprint_dir = d
 			_tap_dir = d
@@ -745,6 +775,8 @@ func _is_sprinting(dir: int) -> bool:
 		return false
 	if _kb_sprint_dir == dir:
 		return true
+	if input.virtual:
+		return input.pressed(&"sprint")
 	for id in Input.get_connected_joypads():
 		var x: float = Input.get_joy_axis(id, JOY_AXIS_LEFT_X)
 		if absf(x) >= pad_sprint_threshold and int(signf(x)) == dir:
@@ -796,10 +828,15 @@ func _update_flip(delta: float) -> void:
 
 
 # ¿Estoy de pie sobre una plataforma atravesable?
+# (Con un rayo bajo los pies: estando quieto en el suelo no hay colisiones de
+# deslizamiento que mirar.)
 func _is_on_platform() -> bool:
-	for i in get_slide_collision_count():
-		var c := get_slide_collision(i).get_collider()
-		if c is CollisionObject2D and c.get_collision_layer_value(PLATFORM_LAYER):
+	var space := get_world_2d().direct_space_state
+	var feet: float = global_position.y + _col.position.y + (_col.shape as CapsuleShape2D).height * 0.5
+	for ox in [-4.0, 0.0, 4.0]:
+		var from := Vector2(global_position.x + ox, feet - 2.0)
+		var q := PhysicsRayQueryParameters2D.create(from, from + Vector2(0, 6), 1 << (PLATFORM_LAYER - 1))
+		if not space.intersect_ray(q).is_empty():
 			return true
 	return false
 
@@ -809,7 +846,7 @@ func update_aiming(delta: float) -> void:
 		facing = _dir
 
 	# ¿Hay que apuntar arriba? Botón de salto mantenido, o pegado a una pared mirándola
-	var want_up: bool = Input.is_action_pressed("ui_up") and not Input.is_action_pressed("ui_down")
+	var want_up: bool = input.pressed("ui_up") and not input.pressed("ui_down")
 	if aim_up_at_wall and is_on_wall() and get_wall_normal().x * facing < 0.0:
 		want_up = true
 
@@ -988,7 +1025,7 @@ func request_interact() -> void:
 	if not multiplayer.is_server():
 		return
 	var sender: int = multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != name.to_int():
+	if sender != 0 and sender != get_multiplayer_authority():
 		return
 
 	var best: Node2D = null
@@ -1169,17 +1206,17 @@ func _update_throw(delta: float) -> void:
 			_cancel_charge()
 		return
 	if current_item.place_only:
-		if Input.is_action_just_pressed("throw"):
+		if input.just("throw"):
 			request_throw.rpc_id(1, current_item.resource_path, global_position, Vector2.ZERO)
 		return
-	if Input.is_action_just_pressed("throw"):
+	if input.just("throw"):
 		_charging = true
 		_charge_time = 0.0
 	if not _charging:
 		return
 	_charge_time += delta
 	_update_arc()
-	if Input.is_action_just_released("throw") or not Input.is_action_pressed("throw"):
+	if input.released("throw") or not input.pressed("throw"):
 		_do_throw()
 
 
@@ -1250,7 +1287,7 @@ func request_throw(item_path: String, origin: Vector2, vel: Vector2) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender: int = multiplayer.get_remote_sender_id()
-	if sender != 0 and sender != name.to_int():
+	if sender != 0 and sender != get_multiplayer_authority():
 		return
 	# Tiene que ser el objeto que lleva (la copia del servidor lo sabe)
 	if current_item == null or current_item.resource_path != item_path or current_item.scene == null:
@@ -1332,7 +1369,7 @@ func _door_has_wire(door: Node2D) -> bool:
 # Pem: sin luz propia durante unos segundos (la linterna solo la tiene el dueño)
 func emp(duration: float) -> void:
 	_emp_until_msec = Time.get_ticks_msec() + int(duration * 1000.0)
-	if not is_multiplayer_authority():
+	if not is_local_human():
 		return
 	flashlight.enabled = false
 	aura.enabled = false

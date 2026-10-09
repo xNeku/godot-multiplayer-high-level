@@ -59,6 +59,14 @@ Las bombillas tienen pantalla, halo y sombras suaves. Los mapas de escena antigu
 - Cada peer rompe lo mismo con la misma posición (la manda el servidor): el agujero es idéntico para todos. Salen cascotes y polvo.
 - Lo hace `MapLoader.carve()` sobre la rejilla del mapa y reconstruye los cuerpos. Los mapas de escena antiguos no se rompen.
 
+## Bots y colores (implementado)
+- **Colores únicos:** el servidor reparte los colores (`GameManager.colors`). Si pides uno cogido te da el siguiente libre; en el lobby los cogidos salen tachados (×) y no se pueden pulsar.
+- **Bots:** en el lobby, el host tiene "Bots − / +" (hasta 8 jugadores en total). Los bots viven en el servidor (su autoridad es el host), cuentan como jugadores para las rondas y los puntos, y los clientes los ven como a cualquiera.
+- **Entrada abstracta:** el jugador lee `input` (`scripts/player_input.gd`): las personas usan teclado/mando; los bots, teclas virtuales que pulsa su cerebro. Mismo código de movimiento, disparo y red para los dos.
+- **Cerebro** (`scripts/bot_brain.gd`): sin arma va a por la más cercana; si ve a alguien (cono de visión de 300 px y línea de visión, cerca nota a cualquiera) se encara, sube el arma como una persona y dispara tras un tiempo de reacción; si no, patrulla o va a donde lo vio. Lanza el objeto que lleve si hay alguien cerca. Dificultad en exports (`reaction_time`, `aim_tolerance_deg`, `vision_range`...).
+- **Navegación** (`scripts/bot_nav.gd`): grafo de casillas donde se puede estar de pie con aristas de andar, saltar y bajar por plataforma, sacado de la rejilla del mapa JSON y rehecho tras explosiones. Los tramos que no le salen los evita un rato. En mapas de escena (Pruebas) va en línea recta saltando.
+- **Spawns:** ya no se repiten: todos los peers calculan el mismo reparto (misma lista de jugadores y ronda).
+
 ## Escondites (implementado: `scenes/Escondite.tscn`, `scripts/hide_spot.gd`)
 - Tipos: **armario** (2×4 bloques), **rejilla** de ventilación (2×2) y **arbusto** (3×2). Dibujo provisional hecho a código.
 - Te acercas y aparece encima un aviso sutil "**Q** · Esconderse" (**Y** con mando). La misma tecla te saca (sin aviso).

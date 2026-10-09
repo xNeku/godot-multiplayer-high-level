@@ -20,6 +20,7 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
 6. **Votación de repetición** al final de cada ronda (la repetición en sí, más tarde).
 
 ## Pendiente técnico conocido
+- Bots: mejorar subidas por escaleras estrechas (a veces repiten saltos), que usen soga y escondites, y dificultad elegible.
 - ~~Navegación por mando en menú y lobby~~ (hecho).
 - Reasignar controles en Opciones (ahora solo se muestran).
 - Entrar a mitad de partida (ahora se rechaza) y pausa de recuento cada 10 rondas.

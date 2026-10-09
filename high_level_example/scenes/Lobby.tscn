@@ -150,6 +150,28 @@ unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 
+[node name="Bots" type="HBoxContainer" parent="UI/Raiz/PanelHost/Margen/Caja"]
+layout_mode = 2
+
+[node name="Etiqueta" type="Label" parent="UI/Raiz/PanelHost/Margen/Caja/Bots"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Bots"
+
+[node name="BotMenos" type="Button" parent="UI/Raiz/PanelHost/Margen/Caja/Bots"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+focus_mode = 0
+text = "-"
+
+[node name="BotMas" type="Button" parent="UI/Raiz/PanelHost/Margen/Caja/Bots"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+focus_mode = 0
+text = "+"
+
 [node name="ImportButton" type="Button" parent="UI/Raiz/PanelHost/Margen/Caja"]
 unique_name_in_owner = true
 layout_mode = 2

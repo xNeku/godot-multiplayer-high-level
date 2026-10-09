@@ -53,6 +53,10 @@ func _ready() -> void:
 	$UI/Raiz.theme = ui_theme
 
 	_build_color_buttons()
+	# Color único: lo pide al servidor (si el preferido está cogido, le da otro)
+	GameManager.request_color.rpc_id(1, Settings.color_index)
+	%BotMas.pressed.connect(_add_bot)
+	%BotMenos.pressed.connect(_remove_bot)
 	ready_button.pressed.connect(_toggle_ready)
 	leave_button.pressed.connect(_leave)
 	import_button.pressed.connect(_on_import_pressed)
@@ -75,6 +79,7 @@ func _process(delta: float) -> void:
 	if _refresh_left <= 0.0:
 		_refresh_left = 0.25
 		_refresh_players()
+		_refresh_color_buttons()
 		_update_hint()
 	if Input.is_action_just_pressed("menu"):
 		_set_menu(not _menu_open)
@@ -104,6 +109,8 @@ func _menu_controls() -> Array:
 	out.append_array(colors_box.get_children())
 	if host_panel.visible:
 		out.append(map_selector)
+		out.append(%BotMas)
+		out.append(%BotMenos)
 	out.append(leave_button)
 	return out
 
@@ -169,7 +176,8 @@ func _server_tick(delta: float) -> void:
 		if not _ready_state.get(id, false):
 			all_ready = false
 	# Todos listos y todos con su jugador ya spawneado
-	var spawned: bool = $PlayerSpawnContainer.get_child_count() >= ids.size()
+	var players: int = $PlayerSpawnContainer.get_children().filter(func(n): return "color_index" in n).size()
+	var spawned: bool = players >= ids.size() + GameManager.bots.size()
 	if all_ready and spawned and _countdown < 0.0:
 		_countdown = float(COUNTDOWN_SECONDS)
 	elif not all_ready and _countdown >= 0.0:
@@ -244,11 +252,37 @@ func _build_color_buttons() -> void:
 
 
 func _set_color(i: int) -> void:
+	if GameManager._color_taken(i, multiplayer.get_unique_id()):
+		return
 	Settings.color_index = i
 	Settings.save()
-	var me := $PlayerSpawnContainer.get_node_or_null(str(multiplayer.get_unique_id()))
-	if me:
-		me.color_index = i
+	GameManager.request_color.rpc_id(1, i)
+
+
+# Colores cogidos por otros: botón apagado
+func _refresh_color_buttons() -> void:
+	var me: int = multiplayer.get_unique_id()
+	var buttons := colors_box.get_children()
+	for i in buttons.size():
+		var taken: bool = GameManager._color_taken(i, me)
+		var b := buttons[i] as Button
+		b.disabled = taken
+		b.modulate.a = 0.25 if taken else 1.0
+		b.text = "×" if taken else ""
+
+
+# --- BOTS (solo host) ---
+
+func _add_bot() -> void:
+	var id: int = GameManager.add_bot()
+	if id > 0:
+		$MultiplayerSpawner.spawn_player(id)
+
+
+func _remove_bot() -> void:
+	var id: int = GameManager.remove_bot()
+	if id > 0:
+		$MultiplayerSpawner.remove_player(id)
 
 
 func _refresh_players() -> void:
@@ -265,7 +299,9 @@ func _refresh_players() -> void:
 		row.add_child(sw)
 		var l := Label.new()
 		var ok: bool = _ready_view.get(id, false)
-		l.text = " Jugador %d%s   %s" % [id, " (tú)" if id == multiplayer.get_unique_id() else "", "LISTO" if ok else "..."]
+		if GameManager.is_bot_id(id):
+			ok = true
+		l.text = " %s   %s" % [GameManager.display_name(id), "LISTO" if ok else "..."]
 		l.modulate = Color(0.6, 1.0, 0.6) if ok else Color(1, 1, 1, 0.75)
 		row.add_child(l)
 		players_box.add_child(row)
@@ -318,4 +354,6 @@ func _leave() -> void:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null
 	GameManager.in_lobby = false
+	GameManager.colors.clear()
+	GameManager.bots.clear()
 	get_tree().change_scene_to_file(MENU_SCENE)

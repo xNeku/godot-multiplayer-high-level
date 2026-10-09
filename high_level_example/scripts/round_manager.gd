@@ -17,6 +17,7 @@ const POINTS_TO_WIN: int = 5
 # Margen entre que queda uno vivo y que acaba la ronda (segundos)
 const END_GRACE: float = 3.0
 # Pausa mostrando el resultado antes de la siguiente ronda
+const RETRY_TIME: float = 2.0
 const BETWEEN_TIME: float = 3.0
 # Con este número de jugadores o más, el primero en morir pierde 1 punto
 const PENALTY_MIN_PLAYERS: int = 4
@@ -150,8 +151,14 @@ func _remove_alive(id: int, died: bool) -> void:
 func _check_round_end() -> void:
 	if state != State.PLAYING and state != State.ENDING:
 		return
-	# Con un solo jugador (pruebas) la ronda nunca acaba
+	# Con un solo jugador (pruebas): si mueres, se repite la ronda en el mismo mapa
 	if _peak < 2:
+		if _alive.is_empty() and state == State.PLAYING:
+			state = State.BETWEEN
+			_banner.rpc("Has muerto. Otra vez...", RETRY_TIME)
+			await get_tree().create_timer(RETRY_TIME).timeout
+			if state == State.BETWEEN:
+				_start_round.rpc("")
 		return
 	if _alive.size() <= 1 and state == State.PLAYING:
 		state = State.ENDING

@@ -39,6 +39,13 @@ Hecho por script y comprobado (todas las bases y spawns alcanzables desde cualqu
 cajas de madera, pared de ladrillo al fondo en los interiores (casillas con techo y suelo cerca) y cielo con estrellas fuera.
 Las bombillas tienen pantalla, halo y sombras suaves. Los mapas de escena antiguos (Edificio, Pruebas) siguen con colores planos.
 
+## Escondites (implementado: `scenes/Escondite.tscn`, `scripts/hide_spot.gd`)
+- Tipos: **armario** (2×4 bloques), **rejilla** de ventilación (2×2) y **arbusto** (3×2). Dibujo provisional hecho a código.
+- Te acercas y aparece encima un aviso sutil "**Q** · Esconderse" (**Y** con mando). La misma tecla te saca (sin aviso).
+- Dentro: no te mueves, no disparas, tu linterna se apaga; los demás no te ven y **las balas no te dan**, pero **las explosiones sí** (capa de física 6 "Escondidos").
+- Uno por escondite (lo decide el servidor). Al entrar o salir el escondite se menea y suena: delata a quien mire.
+- En el JSON: `{"type": "hide", "kind": "armario" | "rejilla" | "arbusto", "x", "y"}` (esquina superior izquierda, en bloques). Hay que añadirlo a FlashMapMaker.
+
 ## Sistema de rondas (implementado: `scripts/round_manager.gd`)
 Flujo de una ronda:
 1. Apareces **sin nada en la mano**, solo con la linterna.

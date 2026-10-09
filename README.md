@@ -25,6 +25,7 @@ Godot 4.5 (se edita con 4.7.2). ENet, UDP **42069**. Sin juego en local.
 | Coger / soltar / Listo | E | RB |
 | Lanzar objeto | G | B |
 | Soga (mantener) | K | LT |
+| Esconderse / salir | Q | Y |
 | Panel de ajustes (balance) | F1 | – |
 
 ## Probar en red

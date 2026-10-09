@@ -42,4 +42,4 @@ func _nearest_pickup_text(player: Node2D) -> String:
 	else:
 		var w = best.get_weapon()
 		nm = w.role_name if w else ""
-	return "E · Coger %s" % nm
+	return "%s · Coger %s" % [Settings.key_for("interact"), nm]

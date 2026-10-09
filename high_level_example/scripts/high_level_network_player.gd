@@ -218,6 +218,11 @@ var _since_jump: float = 99.0
 var rope_anchor: Vector2 = Vector2.ZERO
 var _rope_len: float = 0.0
 var _rope_ready_at: int = 0
+# Escondites
+const HIDDEN_LAYER: int = 32 # capa 6 "Escondidos": las balas no la tocan, las explosiones sí
+var escondido: bool = false
+var _hide_spot: Node2D = null
+var _near_spot: Node2D = null
 var _rope_miss_end: Vector2 = Vector2.ZERO
 var _rope_miss_until: int = 0
 var _flip_t: float = -1.0 # <0 = sin backflip; si no, segundos transcurridos
@@ -430,6 +435,11 @@ func shake(amount: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	# Solo llega aquí el jugador local (en _ready se apaga para los demás).
+	if _update_hiding():
+		return
+	if GameManager.input_blocked:
+		_idle_physics(delta)
+		return
 	var on_floor: bool = is_on_floor()
 	if on_floor:
 		_coyote_left = coyote_time
@@ -541,6 +551,114 @@ func _physics_process(delta: float) -> void:
 		request_interact.rpc_id(1)
 	_update_weapon_arc()
 	_update_throw(delta)
+
+
+# --- ESCONDITES ---
+
+# Aviso del escondite cercano y tecla de esconderse/salir. Devuelve true si estás
+# escondido (entonces no te mueves ni haces nada más).
+func _update_hiding() -> bool:
+	var near: Node2D = null
+	if not escondido and is_on_floor() and stance != Stance.SLIDE:
+		for spot in get_tree().get_nodes_in_group("hide_spots"):
+			if spot.covers(global_position):
+				near = spot
+				break
+	if near != _near_spot:
+		if _near_spot and is_instance_valid(_near_spot):
+			_near_spot.show_prompt(false)
+		_near_spot = near
+	if _near_spot:
+		_near_spot.show_prompt(true, "%s · Esconderse" % Settings.key_for("hide"))
+	if Input.is_action_just_pressed("hide") and not GameManager.input_blocked:
+		if escondido:
+			request_unhide.rpc_id(1)
+		elif _near_spot:
+			request_hide.rpc_id(1, _near_spot.get_path())
+	if escondido:
+		velocity = Vector2.ZERO
+		net_position = global_position
+	return escondido
+
+
+@rpc("any_peer", "call_local", "reliable")
+func request_hide(spot_path: NodePath) -> void:
+	if not multiplayer.is_server() or _dead or escondido:
+		return
+	if _sender() != name.to_int():
+		return
+	var spot := get_node_or_null(spot_path)
+	if spot == null or not spot.has_method("covers") or not spot.covers(global_position) or not spot.is_free():
+		return
+	spot.occupant = name.to_int()
+	_set_hidden.rpc(true, spot_path)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func request_unhide() -> void:
+	if not multiplayer.is_server() or not escondido:
+		return
+	if _sender() != name.to_int():
+		return
+	if _hide_spot and is_instance_valid(_hide_spot):
+		_hide_spot.occupant = 0
+	_set_hidden.rpc(false, _hide_spot.get_path() if _hide_spot else NodePath())
+
+
+# Quién llamó al RPC (en las llamadas locales Godot puede devolver 0)
+func _sender() -> int:
+	var id: int = multiplayer.get_remote_sender_id()
+	return multiplayer.get_unique_id() if id == 0 else id
+
+
+# Lo manda el servidor a todos
+@rpc("any_peer", "call_local", "reliable")
+func _set_hidden(on: bool, spot_path: NodePath) -> void:
+	if _sender() != 1 or _dead:
+		return
+	escondido = on
+	var spot := get_node_or_null(spot_path) if not spot_path.is_empty() else null
+	if spot and spot.has_method("rustle"):
+		spot.rustle()
+	_play_sfx(sfx_pickup, step_range_walk * 0.5, -12.0)
+	if on:
+		_hide_spot = spot
+		collision_layer = HIDDEN_LAYER
+		if is_multiplayer_authority():
+			rope_anchor = Vector2.ZERO
+			_cancel_charge()
+			velocity = Vector2.ZERO
+			if spot:
+				global_position = spot.global_position + Vector2(0.0, -11.0)
+				net_position = global_position
+	else:
+		_hide_spot = null
+		collision_layer = 2
+	_apply_hidden_visual()
+
+
+func _apply_hidden_visual() -> void:
+	if _dead:
+		return
+	if is_multiplayer_authority():
+		# Tú te ves en transparente; la linterna se apaga (te delataría)
+		visual.modulate.a = 0.35 if escondido else 1.0
+		hand_pivot.visible = not escondido
+		if flashlight and Time.get_ticks_msec() >= _emp_until_msec:
+			flashlight.enabled = not escondido
+	else:
+		visual.visible = not escondido
+		hand_pivot.visible = not escondido
+	$Polvo.emitting = not escondido
+
+
+# Menú abierto en el lobby: el personaje se queda quieto (sin leer controles)
+func _idle_physics(delta: float) -> void:
+	if not is_on_floor():
+		velocity.y = minf(velocity.y + gravity * fall_gravity_mult * delta, max_fall_speed)
+	velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+	move_and_slide()
+	net_position = global_position
 
 
 # Gestiona enganche, escalada y desenganche. Devuelve true si hay soga puesta.
@@ -954,6 +1072,8 @@ func hit(shooter_id: int) -> void:
 	# Muerte de un golpe. No hay reaparición: se vuelve en la siguiente ronda.
 	# (Los puntos los reparte RoundManager al acabar la ronda, no las kills.)
 	_dead = true
+	if _hide_spot and is_instance_valid(_hide_spot):
+		_hide_spot.occupant = 0
 	_drop_current_weapon(Vector2(randf_range(-80.0, 80.0), -200.0))
 	_drop_current_item(Vector2(randf_range(-80.0, 80.0), -200.0))
 	death_fx_rpc.rpc(shooter_id)
@@ -994,6 +1114,9 @@ func death_fx_rpc(shooter_id: int) -> void:
 # Muerto hasta la siguiente ronda: sin cuerpo, sin luz, sin colisión, sin control
 func _set_dead_local() -> void:
 	_dead = true
+	escondido = false
+	if _near_spot and is_instance_valid(_near_spot):
+		_near_spot.show_prompt(false)
 	visual.visible = false
 	hand_pivot.visible = false
 	aura.enabled = false
@@ -1214,7 +1337,7 @@ func emp(duration: float) -> void:
 	flashlight.enabled = false
 	aura.enabled = false
 	await get_tree().create_timer(duration + 0.05).timeout
-	if Time.get_ticks_msec() >= _emp_until_msec:
+	if Time.get_ticks_msec() >= _emp_until_msec and not escondido and not _dead:
 		flashlight.enabled = true
 		aura.enabled = true
 

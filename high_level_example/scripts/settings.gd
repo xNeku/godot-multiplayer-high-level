@@ -15,6 +15,17 @@ var fullscreen: bool = false
 var window_size_index: int = 1
 var color_index: int = 0
 var tv_filter: bool = true
+var last_ip: String = ""
+# Último dispositivo usado (para mostrar "E" o "RB" en los avisos)
+var using_pad: bool = false
+
+const PROMPT_KEYS := {
+	"interact": ["E", "RB"],
+	"hide": ["Q", "Y"],
+	"throw": ["G", "B"],
+	"rope": ["K", "LT"],
+	"shoot": ["J", "RT"],
+}
 
 
 func _ready() -> void:
@@ -25,6 +36,7 @@ func _ready() -> void:
 		window_size_index = clampi(int(cfg.get_value("opciones", "ventana", 1)), 0, WINDOW_SIZES.size() - 1)
 		color_index = clampi(int(cfg.get_value("jugador", "color", 0)), 0, PLAYER_COLORS.size() - 1)
 		tv_filter = bool(cfg.get_value("opciones", "filtro_tv", true))
+		last_ip = str(cfg.get_value("red", "ultima_ip", ""))
 	apply()
 
 
@@ -36,6 +48,7 @@ func save() -> void:
 	cfg.set_value("opciones", "ventana", window_size_index)
 	cfg.set_value("jugador", "color", color_index)
 	cfg.set_value("opciones", "filtro_tv", tv_filter)
+	cfg.set_value("red", "ultima_ip", last_ip)
 	cfg.save(PATH)
 
 
@@ -50,3 +63,16 @@ func apply() -> void:
 		DisplayServer.window_set_size(size)
 		var screen: Vector2i = DisplayServer.screen_get_size()
 		DisplayServer.window_set_position(Vector2i(Vector2(screen - size) * 0.5))
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf(event.axis_value) > 0.5):
+		using_pad = true
+	elif event is InputEventKey or event is InputEventMouseButton:
+		using_pad = false
+
+
+# Texto de la tecla o botón de una acción según lo que se esté usando
+func key_for(action: String) -> String:
+	var k: Array = PROMPT_KEYS.get(action, ["?", "?"])
+	return k[1] if using_pad else k[0]

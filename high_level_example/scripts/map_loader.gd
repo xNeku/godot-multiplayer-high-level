@@ -26,6 +26,7 @@ const TILE_SHADER: Shader = preload("res://high_level_example/shaders/tiles.gdsh
 const LIGHT_PULSE: Script = preload("res://high_level_example/scripts/light_pulse.gd")
 const LIGHT_FLICKER: Script = preload("res://high_level_example/scripts/light_flicker.gd")
 const DOOR_SCENE: PackedScene = preload("res://high_level_example/scenes/Puerta.tscn")
+const HIDE_SCENE: PackedScene = preload("res://high_level_example/scenes/Escondite.tscn")
 const SPAWNER_SCENE: PackedScene = preload("res://high_level_example/scenes/Spawner.tscn")
 const SOFT_TEX: Texture2D = preload("res://high_level_example/assets/fx/punto_suave.png")
 const GLOW_FOLLOW: Script = preload("res://high_level_example/scripts/glow_follow.gd")
@@ -49,6 +50,8 @@ const BOX_BIG := Vector2i(2, 2)
 const BOX_SMALL := Vector2i(2, 1)
 const BASE_SIZE := Vector2i(2, 1)
 const DOOR_DEFAULT := Vector2i(2, 5)
+# Escondites (ancho, alto en bloques)
+const HIDE_SIZES := {"armario": Vector2i(2, 4), "rejilla": Vector2i(2, 2), "arbusto": Vector2i(3, 2)}
 const DOOR_PX := Vector2(30.0, 59.0) # tamaño de la escena Puerta.tscn sin escalar
 
 static var _pool_cache: Dictionary = {}
@@ -185,6 +188,7 @@ static func build(text: String) -> Node2D:
 	lights.set_meta("glows", glows)
 	var bases := _node(root, "Armas")
 	var spawns := _node(root, "SpawnPoints")
+	var hides := _node(root, "Escondites")
 	var pool := _item_pool()
 	var idx := 0
 	for e in m["entities"]:
@@ -215,6 +219,17 @@ static func build(text: String) -> Node2D:
 				doors.add_child(door)
 				if bool(e.get("open", false)):
 					door.call_deferred("_set_open", true)
+			"hide":
+				var kind: String = str(e.get("kind", "armario"))
+				if not HIDE_SIZES.has(kind):
+					kind = "armario"
+				var hs: Vector2i = HIDE_SIZES[kind]
+				var spot: Node2D = HIDE_SCENE.instantiate()
+				spot.name = "Escondite%d" % idx
+				spot.kind = kind
+				# Origen del escondite: centro de su base
+				spot.position = Vector2((ex + hs.x * 0.5) * bp, (ey + hs.y) * bp)
+				hides.add_child(spot)
 			"weapon_base":
 				_add_base(bases, "Base%d" % idx, ex, ey, bp, str(e.get("item", "")), pool, idx)
 			_:

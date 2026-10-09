@@ -266,7 +266,7 @@ func _explode() -> void:
 	var q := PhysicsShapeQueryParameters2D.new()
 	q.shape = shape
 	q.transform = Transform2D(0.0, global_position)
-	q.collision_mask = 2
+	q.collision_mask = 2 | 32 # jugadores y escondidos (a esos sí les llega la explosión)
 	for r in space.intersect_shape(q, 32):
 		var body: Node2D = r.collider
 		if not body.has_method("hit"):

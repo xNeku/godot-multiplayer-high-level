@@ -10,6 +10,8 @@ var selected_map_path: String = ""
 # Mapa JSON elegido (el texto entero: así viaja por red a los clientes). Tiene prioridad.
 var selected_map_json: String = ""
 # true mientras se está en el lobby (jugadores con pistola de juguete, sin rondas)
+# Menú abierto (lobby con mando): el jugador local no lee los controles
+var input_blocked: bool = false
 var in_lobby: bool = false
 
 

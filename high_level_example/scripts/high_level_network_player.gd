@@ -230,12 +230,9 @@ var _flip_facing: int = 1
 var _fx_flipping: bool = false
 var _dir: int = 0
 var _dead: bool = false
-# Cosmético elegido en el lobby (índice de Settings.PLAYER_COLORS). Se replica.
-var color_index: int = 0:
-	set(v):
-		color_index = v
-		if is_node_ready():
-			visual.set_tint(Settings.PLAYER_COLORS[clampi(v, 0, Settings.PLAYER_COLORS.size() - 1)])
+# Color del jugador (índice de Settings.PLAYER_COLORS). Lo decide el servidor (únicos)
+# y se replica; el mapache tiñe el pecho con él.
+var color_index: int = 0
 var _jump_start_y: float = 0.0
 
 
@@ -298,7 +295,6 @@ func _ready() -> void:
 
 	if is_mine:
 		color_index = Settings.color_index
-	visual.set_tint(Settings.PLAYER_COLORS[clampi(color_index, 0, Settings.PLAYER_COLORS.size() - 1)])
 	var start_weapon: WeaponData = lobby_weapon if GameManager.in_lobby else default_weapon
 	if start_weapon:
 		equip_weapon(start_weapon, -1)
@@ -838,7 +834,8 @@ func update_aiming(delta: float) -> void:
 	var center := Vector2(0.0, _visual_base_y)
 	var low: Vector2 = _hand_base + Vector2(0.0, _col.position.y - _col_base_y)
 	hand_pivot.position = center + (low - center).rotated(visual.rotation)
-	visual.set_facing(facing)
+	# Cuerpo: solo lleva hacia dónde mira (se replica) y el giro del backflip
+	visual.scale = Vector2(facing, 1.0)
 	hand_pivot.scale.y = -1 if facing < 0 else 1
 
 
@@ -913,23 +910,23 @@ func request_shoot(pos: Vector2, rot: float) -> void:
 	var wd := current_weapon_data
 	for _i in wd.bullet_count:
 		var bullet = wd.bullet_scene.instantiate()
-		# Antes de añadirla: así viaja en el spawn y el cliente tirador la oculta
-		if "shooter_id" in bullet: bullet.shooter_id = shooter
-		_shots_fired += 1
-		if "tracer" in bullet:
-			bullet.tracer = wd.tracer_every > 0 and _shots_fired % wd.tracer_every == 0
-			bullet.impact_size = wd.impact_size
-			bullet.impact_trail = wd.impact_trail
-		get_parent().add_child(bullet, true)
-		bullet.global_position = pos
-
 		var final_angle: float = rot + deg_to_rad(randf_range(-wd.spread, wd.spread))
+		# Todo antes de añadirla: así viaja en el spawn (los clientes la simulan solos)
+		bullet.position = get_parent().to_local(pos)
 		bullet.rotation = final_angle
-
 		if bullet.has_method("launch"):
+			bullet.shooter_id = shooter
+			get_parent().add_child(bullet, true)
 			bullet.launch(Vector2.RIGHT.rotated(final_angle) * wd.bullet_speed, shooter, wd.projectile_gravity)
-		if "speed" in bullet: bullet.speed = wd.bullet_speed
-		if "direction" in bullet: bullet.direction = Vector2.RIGHT.rotated(final_angle)
+			continue
+		_shots_fired += 1
+		bullet.shooter_id = shooter
+		bullet.speed = wd.bullet_speed
+		bullet.direction = Vector2.RIGHT.rotated(final_angle)
+		bullet.tracer = wd.tracer_every > 0 and _shots_fired % wd.tracer_every == 0
+		bullet.impact_size = wd.impact_size
+		bullet.impact_trail = wd.impact_trail
+		get_parent().add_child(bullet, true)
 
 
 # Sonido (con alcance según el arma) y, si no lleva silenciador, fogonazo de luz.
@@ -1099,7 +1096,7 @@ func death_fx_rpc(shooter_id: int) -> void:
 	var corpse := CORPSE_SCENE.instantiate()
 	get_tree().current_scene.add_child(corpse)
 	corpse.global_position = global_position
-	corpse.setup(visual, dir * corpse_force, get_node_or_null("Mapache"))
+	corpse.setup($Mapache, dir * corpse_force)
 	_burst_fx(dir)
 	_play_sfx(sfx_death, step_range_run + 200.0, 0.0)
 

@@ -1,6 +1,8 @@
 extends Area2D
-# Proyectil. SOLO el servidor lo mueve y detecta impactos (raycast, sin túnel).
-# Los clientes lo ven por el MultiplayerSynchronizer (posición y rotación).
+# Proyectil. El servidor lo mueve y decide los impactos (raycast, sin túnel).
+# A los clientes solo les llega al aparecer (posición, giro, velocidad): la trayectoria
+# es recta, así que cada cliente la simula solo y no hay que mandarla cada frame.
+# Cuando el servidor la borra, el spawner la borra en todos.
 
 # Se rellenan desde el jugador al disparar
 var speed: float = 2000.0
@@ -24,7 +26,7 @@ var _age: float = 0.0
 
 
 func _ready() -> void:
-	set_physics_process(multiplayer.is_server())
+	direction = Vector2.RIGHT.rotated(rotation)
 	# Estela corta y oscura: una bala real no brilla. Las trazadoras sí.
 	var streak := get_node_or_null("Estela") as Line2D
 	if streak:
@@ -42,6 +44,9 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if not multiplayer.is_server():
+		_client_move(delta)
+		return
 	_age += delta
 	if _age >= lifetime:
 		queue_free()
@@ -92,3 +97,18 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 	else:
 		queue_free()
+
+
+# Copia local en un cliente: avanza recto y se para (oculta) al tocar pared; el
+# servidor la borrará enseguida.
+func _client_move(delta: float) -> void:
+	if not visible:
+		return
+	var target: Vector2 = global_position + direction * speed * delta
+	var q := PhysicsRayQueryParameters2D.create(global_position, target, 1)
+	var hit := get_world_2d().direct_space_state.intersect_ray(q)
+	if hit.is_empty():
+		global_position = target
+	else:
+		global_position = hit.position
+		visible = false

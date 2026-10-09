@@ -182,7 +182,7 @@ Notas objetos:
 | `shake_frequency` | 28 | Rapidez del temblor | Nuevo |
 | `hit_stop_time` | 0.07 | Congelado al matar o morir | |
 | `corpse_force` | 380 | Fuerza con la que sale volando el cadáver | |
-| `life_time` (cadáver) | 4.0 | Cuánto dura el cadáver (`scripts/corpse.gd`) | |
+| Cadáver | – | Animación `die` del mapache y se queda en el suelo (`corpse`) hasta la siguiente ronda (`scripts/corpse.gd`) | |
 | `entry_time` (kill feed) | 4.0 | Cuánto dura cada línea (`scripts/kill_feed.gd`) | |
 | Explosiones | 18 cerca → 4 lejos | La sienten **todos** los jugadores del mapa; baja con la distancia (`scripts/explosion_fx.gd`). PEM: 6 → 1,5 | |
 | Aplastamiento al aterrizar | 0.28 | `land_squash` en `scripts/player_visual.gd`, según velocidad de caída | Nuevo |
@@ -253,6 +253,8 @@ Notas red (latencia, tirones, cosas que no cuadran entre jugadores):
 -
 
 ## 8. Animación del personaje
+**Ahora la hace `scripts/raccoon_visual.gd` (mapache con AnimatedSprite2D). Lo de abajo era del muñeco por piezas, ya eliminado.**
+
 `scripts/player_visual.gd`. Los sprites son temporales; el formato (piezas Chest/Face/Feet/Hands) se mantiene.
 
 | Parámetro | Valor | Qué hace | Notas |

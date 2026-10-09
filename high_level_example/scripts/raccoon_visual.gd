@@ -2,15 +2,8 @@ extends AnimatedSprite2D
 # Animaciones del mapache (sprites provisionales, de frente). Decide qué animación
 # toca a partir de lo que ya se sincroniza del jugador (posición, postura y giro del
 # cuerpo), así que funciona igual para el jugador local y para los remotos.
-# El cuerpo por piezas (nodo Cuerpo) sigue existiendo para la lógica (giro del
-# backflip, sincronización, escondites, muerte); aquí solo se ocultan sus dibujos.
-
-# Desactívalo para volver al muñeco por piezas
-@export var usar_mapache: bool = true:
-	set(v):
-		usar_mapache = v
-		if is_node_ready():
-			_apply_toggle()
+# El nodo Cuerpo (sin dibujo) lleva hacia dónde mira, el giro del backflip y la
+# visibilidad (muerte, escondido); este sprite lo copia.
 
 @export_group("Umbrales")
 # Velocidad horizontal (px/s) a partir de la que anda y corre (sprint)
@@ -50,7 +43,6 @@ var _peak_fall: float = 0.0
 var _shot_t: float = -1.0
 @onready var tint: AnimatedSprite2D = $Tinte
 var _arm: Sprite2D
-var _old_hand: CanvasItem
 
 
 func _ready() -> void:
@@ -58,19 +50,7 @@ func _ready() -> void:
 	_body = _player.get_node("Cuerpo")
 	_hand = _player.get_node("HandPivot")
 	_arm = _hand.get_node_or_null("Brazo")
-	_old_hand = _hand.get_node_or_null("ManoArma")
 	_last_pos = _player.global_position
-	_apply_toggle()
-
-
-func _apply_toggle() -> void:
-	visible = usar_mapache
-	for piece in _body.get_children():
-		(piece as CanvasItem).visible = not usar_mapache
-	if _arm:
-		_arm.visible = usar_mapache
-	if _old_hand:
-		_old_hand.visible = not usar_mapache
 
 
 # Lo llama el jugador al disparar (en todos los peers): retroceso del cuerpo y del brazo
@@ -79,7 +59,7 @@ func on_shot() -> void:
 
 
 func _process(delta: float) -> void:
-	if not usar_mapache or delta <= 0.0:
+	if delta <= 0.0:
 		return
 	# Mismo estado de visibilidad que el cuerpo (muerto, escondido, transparente)
 	visible = _body.visible

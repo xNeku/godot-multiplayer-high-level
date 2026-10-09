@@ -9,7 +9,7 @@ Se edita directamente en el repo (`git pull` / `git push`), o desde GitHub.
 - En el juego, en vivo: **F1** (o el botón ⚙ arriba al centro). Sliders para jugador y arma actual. **Guardar** lo deja en tu `user://ajustes.cfg` (solo tu máquina). Restablecer vuelve a los valores por defecto.
 - Fijo, para todos: en el inspector de Godot (el script / `.tres` indicado) y commit. Cuando un valor probado en el panel guste, hay que pasarlo aquí y a su archivo.
 
-Valores = los actuales en el repo (rama `escala-y-mapas`: escala nueva, cámara zoom 0,85 ≈ 19 personajes de alto; alcances de sonido ×1,75). Unidades: px, segundos, grados, px/s.
+Valores = los actuales en el repo (rama `bots`; cámara zoom 0,85 ≈ 19 personajes de alto). Unidades: px, segundos, grados, px/s.
 
 ---
 
@@ -180,14 +180,14 @@ Notas objetos:
 | `shake_decay` | 40 | Velocidad a la que se apaga la sacudida | |
 | `shake_roll_deg` | 1.2 | Giro de cámara con la sacudida máxima | Nuevo: la sacudida usa ruido suave + giro |
 | `shake_frequency` | 28 | Rapidez del temblor | Nuevo |
-| `hit_stop_time` | 0.07 | Congelado al matar o morir | |
+| `hit_stop_time` | 0.07 | Congelado al matar o morir | En el host con gente conectada no se hace (frenaría el servidor para todos) |
 | `corpse_force` | 380 | Fuerza con la que sale volando el cadáver | |
 | Cadáver | – | Animación `die` del mapache y se queda en el suelo (`corpse`) hasta la siguiente ronda (`scripts/corpse.gd`) | |
 | `entry_time` (kill feed) | 4.0 | Cuánto dura cada línea (`scripts/kill_feed.gd`) | |
 | Explosiones | 18 cerca → 4 lejos | La sienten **todos** los jugadores del mapa; baja con la distancia (`scripts/explosion_fx.gd`). PEM: 6 → 1,5 | |
-| Aplastamiento al aterrizar | 0.28 | `land_squash` en `scripts/player_visual.gd`, según velocidad de caída | Nuevo |
+| Aterrizaje fuerte | 330 | `hard_land_speed` en `scripts/raccoon_visual.gd`: a partir de esa velocidad de caída, animación de aterrizaje fuerte | |
 | Polvo en el aire | 28 partículas | Nodo `Polvo` del jugador: motas que solo se ven donde da la luz | Nuevo |
-| Polvo al aterrizar | – | Partículas en `_land_fx` (cantidad según velocidad de caída) | |
+| Polvo al aterrizar | – | `Fx.land_dust` (cantidad según velocidad de caída) | |
 
 Notas juice:
 -
@@ -248,28 +248,25 @@ Notas sonido (qué falta, qué suena mal, qué no se oye a la distancia justa):
 | `remote_snap_distance` | 120 | Si la copia remota se desvía más, salta directa | |
 | Disparo propio | – | Sonido, fogonazo y trazador al instante; la bala real llega del servidor | |
 | Autoridad de disparo | – | El cliente solo manda posición y ángulo; velocidad, dispersión y nº de balas salen del arma que tiene el servidor | Evita trampas y duplicados |
+| Envío del jugador | 60/s (`replication_interval` 0,016) | Posición siempre; postura, giro, mano y soga solo cuando cambian | El color no viaja: todos tienen la tabla de colores |
+| Balas | – | Se crean en el servidor y cada cliente las simula solo (no se envía su posición) | |
 
 Notas red (latencia, tirones, cosas que no cuadran entre jugadores):
 -
 
 ## 8. Animación del personaje
-**Ahora la hace `scripts/raccoon_visual.gd` (mapache con AnimatedSprite2D). Lo de abajo era del muñeco por piezas, ya eliminado.**
-
-`scripts/player_visual.gd`. Los sprites son temporales; el formato (piezas Chest/Face/Feet/Hands) se mantiene.
+`scripts/raccoon_visual.gd` (mapache, `AnimatedSprite2D`). Deduce la animación del movimiento, así que se ve igual
+en todos los peers sin enviar nada. Hojas y tiempos de frame en `assets/players/raccoon/LEEME_SPRITES.txt`.
 
 | Parámetro | Valor | Qué hace | Notas |
 |---|---|---|---|
-| `base_scale` | 0.6 | Tamaño del personaje | |
-| `step_length` | 26 | Largo del paso en la animación | |
-| `foot_swing` | 6 | Balanceo de los pies | |
-| `foot_lift` | 4 | Altura del pie al andar | |
-| `hand_swing` | 5 | Balanceo de la mano libre | |
-| `walk_bob` | 1.5 | Rebote del torso al andar | |
-| `air_foot_lift` | 4 | Pies recogidos en el aire | |
-| `air_hand_lift` | 5 | Mano libre en el aire | |
-| `air_stretch` | 0.12 | Estiramiento del cuerpo en el aire | |
-| `breath_speed` | 2.2 | Velocidad de respiración en reposo | |
-| `breath_amount` | 0.025 | Amplitud de respiración | |
+| `walk_threshold` | 12 | Velocidad a partir de la que anda | |
+| `run_threshold` | 175 | Velocidad a partir de la que corre | |
+| `air_threshold` | 45 | Velocidad vertical para contar como "en el aire" | |
+| `land_time` | 0.09 | Duración del aterrizaje normal | |
+| `hard_land_speed` | 330 | Caída a partir de la que aterriza fuerte | |
+| `shoulder` / `shoulder_left` | (5,2) / (-4,2) | Dónde sale el brazo (y el arma) | Falta ajustar por arma |
+| `crouch_frame_time`, `slide_frame_time` | 0.12 / 0.11 | Tiempos de agacharse y slide | |
 
 Notas animación:
 -

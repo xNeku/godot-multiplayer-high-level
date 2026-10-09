@@ -1,4 +1,5 @@
 extends Label
+# Marcador pequeño de la partida (se actualiza cuando el servidor reparte puntos).
 
 
 func _ready() -> void:

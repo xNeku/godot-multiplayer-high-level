@@ -1,4 +1,6 @@
 extends MultiplayerSpawner
+# Crea los jugadores (personas y bots) en el servidor; el MultiplayerSpawner los replica.
+# En partida espera un poco a que los clientes carguen la escena de la ronda.
 
 @export var network_player: PackedScene
 

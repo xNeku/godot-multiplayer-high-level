@@ -1,4 +1,4 @@
-# Diseño: escala, mapas y rondas
+# Diseño: escala, mapas, rondas, bots e interfaz
 
 ## Escala (todo se mide en "personajes")
 - Personaje: hitbox **14 × 22 px** (capsule). Celda de mapa: **11 px** (medio personaje alto).
@@ -60,16 +60,16 @@ Las bombillas tienen pantalla, halo y sombras suaves. Los mapas de escena antigu
 - Lo hace `MapLoader.carve()` sobre la rejilla del mapa y reconstruye los cuerpos. Los mapas de escena antiguos no se rompen.
 
 ## Bots y colores (implementado)
-- **Colores únicos:** el servidor reparte los colores (`GameManager.colors`). Si pides uno cogido te da el siguiente libre; en el lobby los cogidos salen tachados (×) y no se pueden pulsar.
+- **Colores únicos:** el servidor reparte los colores (`GameManager.colors`). Si pides uno cogido te da el siguiente libre; en el lobby los cogidos salen apagados con una X y no se pueden pulsar.
 - **Bots:** en el lobby, el host tiene "Bots − / +" (hasta 8 jugadores en total). Los bots viven en el servidor (su autoridad es el host), cuentan como jugadores para las rondas y los puntos, y los clientes los ven como a cualquiera.
 - **Entrada abstracta:** el jugador lee `input` (`scripts/player_input.gd`): las personas usan teclado/mando; los bots, teclas virtuales que pulsa su cerebro. Mismo código de movimiento, disparo y red para los dos.
-- **Cerebro** (`scripts/bot_brain.gd`): sin arma va a por la más cercana; si ve a alguien (cono de visión de 300 px y línea de visión, cerca nota a cualquiera) se encara, sube el arma como una persona y dispara tras un tiempo de reacción; si no, patrulla o va a donde lo vio. Lanza el objeto que lleve si hay alguien cerca. Dificultad en exports (`reaction_time`, `aim_tolerance_deg`, `vision_range`...).
-- **Navegación** (`scripts/bot_nav.gd`): grafo de casillas donde se puede estar de pie con aristas de andar, saltar y bajar por plataforma, sacado de la rejilla del mapa JSON y rehecho tras explosiones. Los tramos que no le salen los evita un rato. En mapas de escena (Pruebas) va en línea recta saltando.
+- **Cerebro** (`scripts/bot_brain.gd`, solo en el servidor): sin arma va a por la más cercana; si ve a alguien (cono de visión de 300 px y línea de visión, cerca nota a cualquiera) se encara, sube el arma como una persona y dispara tras un tiempo de reacción; si no, patrulla o va a donde lo vio. Lanza el objeto que lleve si hay alguien cerca. Dificultad en exports (`reaction_time`, `aim_tolerance_deg`, `vision_range`...).
+- **Navegación** (`scripts/bot_nav.gd`): grafo de casillas donde se puede estar de pie con aristas de andar, saltar y bajar por plataforma, sacado de la rejilla del mapa JSON y rehecho tras explosiones. Los tramos que no le salen los evita un rato (`BotNav.edge_id`). En mapas de escena (Pruebas) va en línea recta saltando.
 - **Spawns:** ya no se repiten: todos los peers calculan el mismo reparto (misma lista de jugadores y ronda).
 
 ## Escondites (implementado: `scenes/Escondite.tscn`, `scripts/hide_spot.gd`)
 - Tipos: **armario** (2×4 bloques), **rejilla** de ventilación (2×2) y **arbusto** (3×2). Dibujo provisional hecho a código.
-- Te acercas y aparece encima un aviso sutil "**Q** · Esconderse" (**Y** con mando). La misma tecla te saca (sin aviso).
+- Te acercas y aparece encima un aviso sutil "**Q: ESCONDERSE**" (**Y** con mando). La misma tecla te saca (sin aviso).
 - Dentro: no te mueves, no disparas, tu linterna se apaga; los demás no te ven y **las balas no te dan**, pero **las explosiones sí** (capa de física 6 "Escondidos").
 - Uno por escondite (lo decide el servidor). Al entrar o salir el escondite se menea y suena: delata a quien mire.
 - En el JSON: `{"type": "hide", "kind": "armario" | "rejilla" | "arbusto", "x", "y"}` (esquina superior izquierda, en bloques). Hay que añadirlo a FlashMapMaker.
@@ -94,15 +94,31 @@ Decidido:
 - Sin límite de tiempo.
 - Cuando queda uno vivo la ronda no acaba al instante: hay **3 s** de margen. Si el último muere dentro de ese margen, o mueren dos a la vez, nadie suma.
 - Las kills ya no dan puntos: solo se puntúa ganando la ronda.
-- La muerte es definitiva hasta la siguiente ronda (no hay reaparición). Con un solo jugador (pruebas) la ronda nunca acaba.
+- La muerte es definitiva hasta la siguiente ronda (no hay reaparición). Si juegas solo (sin bots) y mueres, a los 2 s empieza otra ronda ("Has muerto. Otra vez...").
 - Cada ronda recarga la escena de juego y el servidor manda el JSON del mapa nuevo. La primera ronda se elige en el lobby ("Aleatorio" o un mapa); las siguientes son aleatorias sin repetir hasta agotar la lista.
-- Parámetros en `round_manager.gd`: `POINTS_TO_WIN` (5), `END_GRACE` (3 s), `BETWEEN_TIME` (3 s), `PENALTY_MIN_PLAYERS` (4).
+- Parámetros en `round_manager.gd`: `POINTS_TO_WIN` (5), `END_GRACE` (3 s), `BETWEEN_TIME` (3 s), `RETRY_TIME` (2 s), `PENALTY_MIN_PLAYERS` (4).
+- Puntos: `GameManager.scores` (id del jugador → puntos), los reparte el servidor. Al llegar a 5 sale la pantalla de ganador (`GameOverUI`) 6 s y todos vuelven al lobby.
 - Sin hacer: votación de saltar la repetición (la repetición aún no existe), pausa de recuento cada 10 rondas, entrar a mitad de partida.
 
 Ver `ROADMAP.md` para el orden de trabajo.
 
 ## Lobby (implementado: `scenes/Lobby.tscn`, `scripts/lobby.gd`)
 - Al crear o unirse se entra al lobby (mapa `lobby/lobby.json`, sin oscuridad). Los jugadores se mueven y llevan la **pistola de juguete** (empuja, no mata).
-- Color elegido (8 colores, se guarda en `user://opciones.cfg`) y replicado; pecho y cara quedan para cuando haya arte.
+- Color elegido (8 colores, se guarda en `user://opciones.cfg`), único por jugador (lo reparte el servidor); pecho y cara quedan para cuando haya arte.
+- El host tiene el panel de mapa (aleatorio, oficiales, custom con `*`, importar JSON) y "BOTS − / +".
+- Start / Esc abre el menú: el personaje se queda quieto y los botones se navegan con mando.
 - **Listo** lo gestiona el servidor. Con todos listos y todos ya spawneados: cuenta atrás de 3 s y `RoundManager.start_match`. Si alguien cancela, se aborta.
 - Durante una partida no se puede entrar (se rechaza la conexión). Al terminar la partida, todos vuelven al lobby.
+
+## Interfaz (implementado)
+- **Flujo:** `TitleMenu.tscn` (escena principal) → JUGAR → `Menu.tscn` (crear / unirse / opciones) → `Lobby.tscn` → partida.
+  OPCIONES del título abre `Menu.tscn` directamente en opciones. Al perder la conexión se vuelve al título.
+- **Logo:** `scripts/title_logo.gd`, nodo reutilizable (título y menú JUGAR). Letras generadas por `assets/ui/menu/gen_title.py.txt`
+  (relieve, inclinación, arañazos en la R) en tres estados: encendida, brasa y apagada. La ola y la separación se ajustan en el inspector.
+- **Estilo:** `assets/ui/tema_flash.tres` (se regenera con `assets/ui/gen_tema.gd.txt`). Botones planos gris → verde al enfocar,
+  paneles oscuros con borde verde, desplegables, interruptores y sliders en pixel art. Variaciones: `LabelMini`, `LabelTitulo`, `LabelAviso`.
+  Lo usan el título, el menú, el lobby, el HUD, la pantalla de ganador, el aviso de escondite y las etiquetas de armas.
+  El panel de ajustes (F1) tiene su estilo propio a propósito.
+- **Fuentes:** `font_menu.fnt` (14 px) y `font_mini.fnt` (7 px, la misma letra a la mitad). Solo dibujan mayúsculas:
+  las minúsculas y vocales con tilde apuntan a su mayúscula, así que cualquier texto sale en mayúsculas. Hay Ñ propia.
+  Sin `¡ ¿`. Para tamaños grandes, múltiplos de 14 (28, 56): la fuente escala solo por enteros para no emborronarse.

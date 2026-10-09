@@ -1,4 +1,6 @@
 extends Node2D
+# Escena de partida: carga el mapa de la ronda (JSON o escena), pone la oscuridad
+# y enseña la pantalla de ganador al acabar.
 
 @onready var darkness = $CanvasModulate
 @onready var game_over_ui = $GameOverUi # Referencia a nuestra nueva UI

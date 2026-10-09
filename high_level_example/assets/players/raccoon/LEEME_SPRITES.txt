@@ -152,3 +152,13 @@ Notas para quien lo implemente
 - Todavia no hay animacion de coger/soltar arma.
 - El brazo suelto esta en raccoon_arm_sheet.png (ver "Brazo delantero"), pero para que
   quede bien hace falta el mapache de perfil con el cuerpo sin brazo delantero.
+
+En el juego (como se usan)
+--------------------------
+- mapache_frames.tres y mapache_tinte_frames.tres: SpriteFrames con todas las hojas
+  (las *_tint_* son la capa del pecho, que se tine con el color del jugador).
+- Nodo "Mapache" (AnimatedSprite2D) dentro de scenes/high_level_network_player.tscn,
+  con el script scripts/raccoon_visual.gd, que elige la animacion segun el movimiento.
+- Cadaver: scenes/Cadaver.tscn (scripts/corpse.gd) reutiliza los mismos SpriteFrames.
+- Al cambiar una hoja por la definitiva: mismo nombre, mismo tamano de frame y mismo
+  numero de frames, y no hay que tocar codigo.

@@ -1,37 +1,41 @@
 # Roadmap
 
-Lo que hay que hacer, en orden. Neku prueba el game feel y hace mapas mientras se construye lo de arriba.
-El sistema de rondas necesita mapas para tener sentido, así que va en paralelo con ellos.
+Lo que hay que hacer, en orden. Neku prueba el game feel, dibuja y hace mapas mientras se construye lo de arriba.
+Rama de trabajo actual: `bots` (main no se toca hasta que se decida mergear).
 
 ## Hecho
-- Netcode, movimiento pulido, juice, panel de ajustes (F1), escala, `MapLoader` de mapas JSON (FlashMapMaker),
-  sprint / agacharse / slide / backflip (pendiente de balancear), sistema de rondas, menú principal y lobby.
-- Limpieza de código muerto y assets sin uso (oct 2026).
+- **Base:** netcode (servidor decide impactos; cada uno mueve su jugador), movimiento pulido, juice, panel de ajustes (F1), escala, filtro de tele antigua.
+- **Mapas:** `MapLoader` de JSON (FlashMapMaker), terreno destructible, mapas `fabrica`, `torres` y `puerto` (8 jugadores, escondites, bombillas intermitentes).
+- **Juego:** rondas (último vivo +1, −1 al primero en morir con 4+, 3 s de margen, reintento si juegas solo), soga con balanceo, escondites, 9 armas y 9 objetos, retroceso que empuja.
+- **Personaje:** mapache con animaciones (provisionales) y color de pecho por jugador.
+- **Lobby:** pistola de juguete, colores únicos repartidos por el servidor, Listo y cuenta atrás, menú con mando.
+- **Bots:** cerebro en el servidor, navegación por la rejilla del mapa, cogen armas, pelean y lanzan objetos. Entrada abstracta (`PlayerInput`) compartida con las personas.
+- **Interfaz:** título FlashRacs, menú JUGAR y OPCIONES con el mismo fondo y logo, tema común (`assets/ui/tema_flash.tres`), fuente pixel con minúsculas, tildes y Ñ, HUD y pantalla de ganador.
+- **Limpieza (oct 2026):** código muerto fuera, helpers comunes, menos trabajo por frame, puntos con id numérico, el color ya no viaja por red, el terreno solo se reconstruye si cambia.
 
 ## Ahora
-1. ~~Sistema de rondas~~ (hecho; falta probarlo con gente y el −1 con 4+ jugadores).
-2. **Pulido de game feel** (Neku prueba y apunta en `GAMEFEEL.md`).
-3. **Mapas** (FlashMapMaker). Hacen falta unos 10-12 para que no se repitan. Hechos: `fabrica`, `torres`, `puerto` (grandes, 8 jugadores, con escondites).
+1. **Probar con gente** las rondas completas (marcador, −1 con 4+, pantalla de ganador) y apuntar en `GAMEFEEL.md`.
+2. **Arte:** sprites del mapache de perfil, armas y tiles (Neku). El código ya espera los mismos nombres y tamaños de frame.
+3. **Mapas:** hacen falta unos 10-12 para que no se repitan. Hechos: `fabrica`, `torres`, `puerto`.
+4. **Posición del arma por arma** (cada sprite en la mano necesita su punto de agarre).
 
 ## Alpha jugable
-4. **Menú principal** ✅: crear partida, unirse, opciones (volumen, pantalla completa, resolución; controles solo en lectura, falta reasignarlos).
-5. **Lobby** ✅: se entra y se mueve el bicho, con pistola de juguete (knockback, no mata), se eligen cosméticos
-   (color ✅; pecho y cara cuando haya arte) y se pulsa Listo; cuando todos están listos, cuenta atrás y empieza ✅. Pendiente: navegación con mando en la interfaz.
-6. **Votación de repetición** al final de cada ronda (la repetición en sí, más tarde).
+5. **Reasignar controles** en Opciones (ahora solo se muestran).
+6. **Cosméticos del lobby:** pecho y cara cuando haya arte (el color ya está).
+7. **Votación de repetición** al final de cada ronda (la repetición en sí, más tarde).
 
 ## Pendiente técnico conocido
-- Bots: mejorar subidas por escaleras estrechas (a veces repiten saltos), que usen soga y escondites, y dificultad elegible.
-- ~~Navegación por mando en menú y lobby~~ (hecho).
-- Reasignar controles en Opciones (ahora solo se muestran).
+- Bots: a veces repiten saltos en escaleras estrechas (`torres`), no usan soga ni escondites, falta dificultad elegible desde el lobby.
+- El aviso de esconderse no cambia de tecla si cambias de teclado a mando estando al lado del escondite.
 - Entrar a mitad de partida (ahora se rechaza) y pausa de recuento cada 10 rondas.
-- El aviso del HUD dice "E · Coger" fijo aunque se juegue con mando.
+- `request_shoot` se fía de la posición que manda el cliente (vale entre amigos; para público habría que validarla).
+- Animación de coger/soltar del mapache.
+- FlashMapMaker: añadir el tipo `hide` (escondites) al editor.
 
 ## Después
-7. **Soga** (primera versión en la rama `soga`, siempre disponible para probar; falta que sea objeto que se coge y balancearla): se consigue en un sitio del mapa y se queda toda la ronda. Colgarse, balancearse, subir y bajar despacio.
-8. ~~Escondites~~ (hecho: armario, rejilla, arbusto).
-9. ~~Explosiones que rompen terreno~~ (hecho en mapas JSON).
-10. **Eventos de luz**: zonas que se iluminan, te iluminas si no te mueves, etc.
-11. ~~Shader de película antigua~~ (hecho: filtro de tele antigua con interferencia ocasional, se puede quitar en Opciones).
+- **Soga como objeto** que se coge en el mapa (ahora siempre disponible).
+- **Eventos de luz:** zonas que se iluminan, te iluminas si no te mueves, etc.
+- Bots que se escondan y usen la soga.
 
 ## Más tarde
 - Sprites y sonidos definitivos, Steam, repeticiones y kill cam, entrar a mitad de partida, ajustes de partida.

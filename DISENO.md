@@ -34,6 +34,19 @@ Hecho por script y comprobado (todas las bases y spawns alcanzables desde cualqu
 - Luz: solo 6 bombillas intermitentes (2 s cada 40 s, desfasadas): nave, sótano, despacho central, pasillo, caseta de la azotea y torre. El resto del mapa a oscuras.
 - Escaleras: rellano de plataforma a 4 bloques + trampilla atravesable en el forjado. 8 spawns repartidos por zonas.
 
+## Mapa "torres" (`maps/torres.json`, 160 × ~45)
+Dos torres simétricas de 3 plantas (10 bloques de alto cada una, escaleras de rellanos a 3 y 6 bloques + trampilla) unidas
+por un **puente-plataforma** entre azoteas. Troneras y balcón mirando al centro para dispararse de torre a torre.
+Debajo del puente, escalones flotantes hasta una isla central con **Bazooka** y, encima, **Escopeta**; Desert Eagle en una
+trinchera en el centro del suelo. Francotiradores en la 2ª planta de cada torre (normal a la izquierda, silenciosa a la derecha).
+Escondites: armario en cada 1ª planta, rejilla en cada planta baja, arbustos fuera. 4 bombillas intermitentes.
+
+## Mapa "puerto" (`maps/puerto.json`, 170 × ~41)
+Almacén de dos plantas altas (oeste), patio de contenedores escalonados, grúa con brazo sobre el mar (sniper silenciosa y
+translocador), mar con salida por plataforma (PEM en el fondo) y barco: cubierta (Desert Eagle), bodega bajo escotilla
+(Bazooka), puente de mando (Betty, armario) y mástil con cofa (Sniper). 6 escondites, 4 bombillas intermitentes.
+`fabrica` también tiene ahora 6 escondites (armarios en despachos, rejillas en sótano y 2ª planta, arbustos fuera).
+
 ## Aspecto de los mapas JSON (provisional hasta tener tiles dibujados)
 `shaders/tiles.gdshader`: muros de ladrillo, losas de hormigón (piezas anchas), plataformas de tablón con escuadras,
 cajas de madera, pared de ladrillo al fondo en los interiores (casillas con techo y suelo cerca) y cielo con estrellas fuera.

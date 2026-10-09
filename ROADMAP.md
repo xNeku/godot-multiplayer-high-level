@@ -11,7 +11,7 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
 ## Ahora
 1. ~~Sistema de rondas~~ (hecho; falta probarlo con gente y el −1 con 4+ jugadores).
 2. **Pulido de game feel** (Neku prueba y apunta en `GAMEFEEL.md`).
-3. **Mapas** (FlashMapMaker). Hacen falta unos 10-12 para que no se repitan. Hecho: `fabrica` (grande, 8 jugadores).
+3. **Mapas** (FlashMapMaker). Hacen falta unos 10-12 para que no se repitan. Hechos: `fabrica`, `torres`, `puerto` (grandes, 8 jugadores, con escondites).
 
 ## Alpha jugable
 4. **Menú principal** ✅: crear partida, unirse, opciones (volumen, pantalla completa, resolución; controles solo en lectura, falta reasignarlos).
@@ -27,7 +27,7 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
 
 ## Después
 7. **Soga** (primera versión en la rama `soga`, siempre disponible para probar; falta que sea objeto que se coge y balancearla): se consigue en un sitio del mapa y se queda toda la ronda. Colgarse, balancearse, subir y bajar despacio.
-8. **Escondites**: armario, trampilla de aire, arbustos. Dentro no se te ve, pero las explosiones te matan.
+8. ~~Escondites~~ (hecho: armario, rejilla, arbusto).
 9. **Explosiones que rompen terreno.**
 10. **Eventos de luz**: zonas que se iluminan, te iluminas si no te mueves, etc.
 11. ~~Shader de película antigua~~ (hecho: filtro de tele antigua con interferencia ocasional, se puede quitar en Opciones).

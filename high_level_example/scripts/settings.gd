@@ -14,6 +14,7 @@ var master_volume: float = 1.0
 var fullscreen: bool = false
 var window_size_index: int = 1
 var color_index: int = 0
+var tv_filter: bool = true
 
 
 func _ready() -> void:
@@ -23,6 +24,7 @@ func _ready() -> void:
 		fullscreen = bool(cfg.get_value("opciones", "pantalla_completa", false))
 		window_size_index = clampi(int(cfg.get_value("opciones", "ventana", 1)), 0, WINDOW_SIZES.size() - 1)
 		color_index = clampi(int(cfg.get_value("jugador", "color", 0)), 0, PLAYER_COLORS.size() - 1)
+		tv_filter = bool(cfg.get_value("opciones", "filtro_tv", true))
 	apply()
 
 
@@ -33,6 +35,7 @@ func save() -> void:
 	cfg.set_value("opciones", "pantalla_completa", fullscreen)
 	cfg.set_value("opciones", "ventana", window_size_index)
 	cfg.set_value("jugador", "color", color_index)
+	cfg.set_value("opciones", "filtro_tv", tv_filter)
 	cfg.save(PATH)
 
 

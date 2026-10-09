@@ -302,7 +302,7 @@ func _explode_fx() -> void:
 func _emp_fx(center: Vector2) -> void:
 	_state = State.GONE
 	sprite.visible = false
-	fx.play(emp_radius, Color(0.3, 0.7, 1.0))
+	fx.play(emp_radius, Color(0.3, 0.7, 1.0), 6.0, 1.5)
 	for n in get_tree().get_nodes_in_group("emp_affected"):
 		if n.has_method("emp") and n.global_position.distance_to(center) <= emp_radius:
 			n.emp(emp_duration)

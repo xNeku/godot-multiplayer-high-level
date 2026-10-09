@@ -19,6 +19,11 @@ extends Node2D
 @export var air_hand_lift: float = 5.0
 @export var air_stretch: float = 0.12
 
+@export_group("Aterrizaje")
+# Aplastamiento al tocar suelo según la velocidad de caída (0 = nada)
+@export var land_squash: float = 0.28
+@export var land_squash_recover: float = 7.0
+
 @export_group("Reposo")
 @export var breath_speed: float = 2.2
 @export var breath_amount: float = 0.025
@@ -37,6 +42,9 @@ var _phase := 0.0
 var _walk := 0.0
 var _air := 0.0
 var _time := 0.0
+var _squash := 0.0
+var _peak_fall := 0.0
+var _was_air := false
 
 
 func _ready() -> void:
@@ -88,6 +96,15 @@ func _process(delta: float) -> void:
 	_walk = move_toward(_walk, 1.0 if moving else 0.0, delta * 9.0)
 	_air = move_toward(_air, 1.0 if airborne else 0.0, delta * 12.0)
 
+	# Aterrizaje: cuanto más rápido caías, más se aplasta (y recupera con rebote)
+	if airborne:
+		_peak_fall = maxf(_peak_fall, _vel.y)
+	elif _was_air:
+		_squash = clampf(_peak_fall / 450.0, 0.0, 1.0) * land_squash
+		_peak_fall = 0.0
+	_was_air = airborne
+	_squash = move_toward(_squash, 0.0, land_squash_recover * _squash * delta + 0.2 * delta)
+
 	var s: float = sin(_phase)
 	var c: float = cos(_phase)
 
@@ -108,8 +125,10 @@ func _process(delta: float) -> void:
 	var breath: float = sin(_time * breath_speed) * breath_amount * (1.0 - _walk)
 	var stretch: float = clampf(-_vel.y / 900.0, -1.0, 1.0) * air_stretch * _air
 	torso.position = _rest[torso] + Vector2(0.0, bob)
-	torso.scale = Vector2(1.0 - stretch * 0.5, 1.0 + breath + stretch)
+	torso.scale = Vector2(1.0 - stretch * 0.5 + _squash * 0.7, 1.0 + breath + stretch - _squash)
+	torso.position.y += _squash * 10.0
 	# La cabeza llega un poco tarde, da sensación de peso
 	var head_bob: float = -absf(sin(_phase - 0.5)) * walk_bob * _walk
 	head.position = _rest[head] + Vector2(0.0, head_bob + sin(_time * breath_speed - 0.4) * 0.6 * (1.0 - _walk))
-	head.scale = Vector2(1.0 - stretch * 0.4, 1.0 + stretch * 0.8)
+	head.scale = Vector2(1.0 - stretch * 0.4 + _squash * 0.4, 1.0 + stretch * 0.8 - _squash * 0.5)
+	head.position.y += _squash * 16.0

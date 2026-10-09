@@ -30,7 +30,7 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
 8. **Escondites**: armario, trampilla de aire, arbustos. Dentro no se te ve, pero las explosiones te matan.
 9. **Explosiones que rompen terreno.**
 10. **Eventos de luz**: zonas que se iluminan, te iluminas si no te mueves, etc.
-11. **Shader de película antigua** (ruido, interferencias).
+11. ~~Shader de película antigua~~ (hecho: filtro de tele antigua con interferencia ocasional, se puede quitar en Opciones).
 
 ## Más tarde
 - Sprites y sonidos definitivos, Steam, repeticiones y kill cam, entrar a mitad de partida, ajustes de partida.

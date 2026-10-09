@@ -41,6 +41,8 @@ func _ready() -> void:
 	resolution.select(Settings.window_size_index)
 	volume.value_changed.connect(func(v): Settings.master_volume = v; Settings.apply(); Settings.save())
 	fullscreen.toggled.connect(func(on): Settings.fullscreen = on; Settings.apply(); Settings.save())
+	%FiltroTV.button_pressed = Settings.tv_filter
+	%FiltroTV.toggled.connect(func(on): Settings.tv_filter = on; PostFX.set_enabled(on); Settings.save())
 	resolution.item_selected.connect(func(i): Settings.window_size_index = i; Settings.apply(); Settings.save())
 	controls_label.text = _controls_text()
 	UiJuice.apply(self)

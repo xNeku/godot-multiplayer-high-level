@@ -9,10 +9,26 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export_group("Movimiento")
 @export var walk_speed: float = 120.0
 @export var run_speed: float = 230.0
-@export var jump_velocity: float = -440.0
+# Salto: ~52 px (2,4 personajes) en ~0,3 s hasta el pico. Referencia: Celeste
+# escalado x2 (su personaje mide 11 px, el nuestro 22). Ver GAMEFEEL.md.
+@export var jump_velocity: float = -380.0
 @export var friction: float = 1400.0
 @export var acceleration: float = 1400.0
-@export var gravity: float = 2000.0
+@export var gravity: float = 1450.0
+# En el pico del salto (|vel. vertical| < umbral) y con el salto mantenido la
+# gravedad baja: da un instante de "flote" para apuntar y corregir.
+@export var apex_threshold: float = 60.0
+@export_range(0.1, 1.0) var apex_gravity_mult: float = 0.5
+# Velocidad máxima de caída (y mayor si mantienes abajo)
+@export var max_fall_speed: float = 380.0
+@export var fast_fall_speed: float = 500.0
+# En el aire se acelera y frena menos que en el suelo (conserva la inercia)
+@export_range(0.1, 1.0) var air_control: float = 0.65
+# Si vas más rápido que tu velocidad máxima (slide, backflip, soga, empujón) y sigues
+# en esa dirección, frenas con esto en vez de en seco: conserva el impulso.
+@export var over_speed_decel: float = 600.0
+# Impulso horizontal extra al saltar en movimiento
+@export var jump_h_boost: float = 40.0
 # Margen para saltar justo después de salir de un borde
 @export var coyote_time: float = 0.1
 # Si pulsas salto un poco antes de tocar suelo, salta al aterrizar
@@ -65,6 +81,10 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export var shake_per_shot: float = 2.0
 @export var shake_on_death: float = 14.0
 @export var shake_decay: float = 40.0
+# Giro máximo de la cámara (grados) con la sacudida más fuerte (18)
+@export var shake_roll_deg: float = 1.2
+# Rapidez del temblor (ruido suave en vez de saltos aleatorios)
+@export var shake_frequency: float = 28.0
 # Pausa breve (hit-stop) al matar o morir
 @export var hit_stop_time: float = 0.07
 @export var corpse_force: float = 380.0
@@ -153,6 +173,8 @@ var net_position: Vector2 = Vector2.ZERO
 
 
 var _shake: float = 0.0
+var _shake_t: float = 0.0
+var _shake_noise := FastNoiseLite.new()
 var _fx_last_pos: Vector2 = Vector2.ZERO
 var _fx_vel: Vector2 = Vector2.ZERO
 var _fx_airborne: bool = false
@@ -304,9 +326,13 @@ func _process(delta: float) -> void:
 	if is_multiplayer_authority():
 		if _shake > 0.0:
 			_shake = maxf(0.0, _shake - shake_decay * delta)
-			camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake
-		elif camera.offset != Vector2.ZERO:
+			_shake_t += delta * shake_frequency
+			var n := Vector2(_shake_noise.get_noise_2d(_shake_t, 0.0), _shake_noise.get_noise_2d(0.0, _shake_t))
+			camera.offset = n * 2.0 * _shake
+			camera.rotation = deg_to_rad(shake_roll_deg) * _shake_noise.get_noise_2d(_shake_t, 50.0) * 2.0 * (_shake / 18.0)
+		elif camera.offset != Vector2.ZERO or camera.rotation != 0.0:
 			camera.offset = Vector2.ZERO
+			camera.rotation = 0.0
 	elif net_position != Vector2.ZERO:
 		# Copias remotas: sin física, solo se acercan a la posición recibida.
 		if global_position.distance_to(net_position) > remote_snap_distance:
@@ -386,7 +412,12 @@ func _physics_process(delta: float) -> void:
 		_coyote_left = coyote_time
 	else:
 		_coyote_left = maxf(0.0, _coyote_left - delta)
-		velocity.y += gravity * (fall_gravity_mult if velocity.y > 0.0 else 1.0) * delta
+		var g: float = gravity * (fall_gravity_mult if velocity.y > 0.0 else 1.0)
+		if absf(velocity.y) < apex_threshold and Input.is_action_pressed("ui_up"):
+			g *= apex_gravity_mult
+		velocity.y += g * delta
+		var cap: float = fast_fall_speed if Input.is_action_pressed("ui_down") else max_fall_speed
+		velocity.y = minf(velocity.y, cap)
 	_was_on_floor = on_floor
 
 	# Plataformas atravesables: se recuperan al acabar el tiempo de caída
@@ -426,6 +457,8 @@ func _physics_process(delta: float) -> void:
 		_jump_buffer_left = 0.0
 	elif _jump_buffer_left > 0.0 and _coyote_left > 0.0:
 		velocity.y = jump_velocity
+		if dir != 0 and stance != Stance.SLIDE:
+			velocity.x += dir * jump_h_boost
 		_jump_buffer_left = 0.0
 		_coyote_left = 0.0
 		_since_jump = 0.0
@@ -452,10 +485,13 @@ func _physics_process(delta: float) -> void:
 			speed = crouch_speed
 		elif _is_sprinting(dir):
 			speed = run_speed
-		if dir != 0:
-			velocity.x = move_toward(velocity.x, dir * speed, acceleration * delta)
+		var ctrl: float = 1.0 if on_floor else air_control
+		if dir != 0 and absf(velocity.x) > speed and signf(velocity.x) == dir:
+			velocity.x = move_toward(velocity.x, dir * speed, over_speed_decel * ctrl * delta)
+		elif dir != 0:
+			velocity.x = move_toward(velocity.x, dir * speed, acceleration * ctrl * delta)
 		else:
-			velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+			velocity.x = move_toward(velocity.x, 0.0, friction * ctrl * delta)
 
 	_prev_fall_speed = velocity.y
 	move_and_slide()

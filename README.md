@@ -5,7 +5,7 @@ se encuentran armas y objetos por el mapa y gana quien llegue primero a 5 puntos
 Godot 4.5 (se edita con 4.7.2). ENet, UDP **42069**. Sin juego en local.
 
 ## Estado
-- **Menú principal:** crear partida, unirse por IP, opciones (volumen, pantalla completa, resolución).
+- **Menú principal:** crear partida, unirse por IP, opciones (volumen, pantalla completa, resolución, filtro de tele antigua).
 - **Lobby:** te mueves con tu bicho, pistola de juguete (empuja, no mata), eliges color, Listo → cuenta atrás → partida.
 - **Rondas:** sin nada en la mano al empezar, 3 s de margen cuando queda uno, mapa distinto cada ronda, al acabar vuelves al lobby.
 - **Movimiento:** correr, sprint, agacharse, slide, backflip, salto con plataformas atravesables.

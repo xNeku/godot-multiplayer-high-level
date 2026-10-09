@@ -22,13 +22,35 @@ Valores = los actuales en el repo (rama `escala-y-mapas`: escala nueva, cámara 
 | `run_speed` | 230 | Velocidad corriendo | |
 | `acceleration` | 1400 | Qué rápido llega a la velocidad objetivo | |
 | `friction` | 1400 | Qué rápido frena al soltar | |
-| `jump_velocity` | -440 | Impulso del salto (negativo = arriba). Altura ≈ 48-52 px = 2,2-2,4 personajes | |
-| `gravity` | 2000 | Gravedad al subir | |
+| `jump_velocity` | -380 | Impulso del salto (negativo = arriba). Antes -440 | |
+| `gravity` | 1450 | Gravedad al subir. Antes 2000 | |
 | `fall_gravity_mult` | 1.3 | Gravedad extra al caer (menos flotante) | |
+| `apex_threshold` | 60 | Por debajo de esta velocidad vertical se considera "pico del salto" | Nuevo |
+| `apex_gravity_mult` | 0.5 | Gravedad en el pico con el salto mantenido (instante de flote para apuntar) | Nuevo |
+| `max_fall_speed` | 380 | Velocidad máxima de caída (antes sin límite) | Nuevo |
+| `fast_fall_speed` | 500 | Máxima manteniendo abajo | Nuevo |
+| `air_control` | 0.65 | Aceleración y frenado en el aire respecto al suelo | Nuevo |
+| `over_speed_decel` | 600 | Frenado si vas por encima de tu velocidad en la misma dirección (conserva impulso de slide, backflip, soga, empujones) | Nuevo |
+| `jump_h_boost` | 40 | Empujón horizontal al saltar en movimiento | Nuevo |
 | `jump_cut` | 0.45 | Al soltar salto subiendo, velocidad vertical × esto. Menor = salto corto más corto | |
 | `coyote_time` | 0.1 | Margen para saltar tras salir de un borde | |
 | `jump_buffer_time` | 0.12 | Salto pulsado justo antes de aterrizar se ejecuta al tocar suelo | |
 | `drop_through_time` | 0.25 | Duración de caer a través de una plataforma (abajo + salto) | |
+
+**Ajuste del 9-oct-2026 (referencia Celeste escalada).** Celeste tiene publicado el código de su jugador
+(personaje de 11 px; gravedad 900, caída máx. 160, salto 105, control aéreo 0,65, gravedad a la mitad en el pico
+con el salto mantenido, coyote 0,1 s). Nuestro personaje mide 22 px, así que distancias y velocidades ×2 con los
+mismos tiempos. Medido en headless (lobby):
+
+| Medida | Antes | Ahora | Celeste escalado |
+|---|---|---|---|
+| Salto mantenido | 48 px, pico 0,22 s, aire ~0,41 s | 54 px (2,5 personajes), pico 0,32 s, aire 0,60 s | ~50 px, pico ~0,3 s, aire ~0,6 s |
+| Salto corto (toque) | – | 30 px, aire 0,37 s | |
+| Andar: llega a tope / frena | 0,09 s / 0,09 s | 0,10 s / 0,10 s (4 px) | 0,09 s |
+| Caída de 171 px | sin tope | 0,57 s, tope 380 px/s | tope 320 |
+
+Si lo notas flotante: sube `gravity` y `jump_velocity` a la vez (mantén la altura), o baja `apex_threshold`.
+Si lo notas pesado en el aire: sube `air_control`.
 
 Notas movimiento:
 -
@@ -153,15 +175,25 @@ Notas objetos:
 | `shake_per_shot` | 2.0 | Sacudida de cámara al disparar (se suma según retroceso del arma) | |
 | `shake_on_death` | 14 | Sacudida al morir | |
 | `shake_decay` | 40 | Velocidad a la que se apaga la sacudida | |
+| `shake_roll_deg` | 1.2 | Giro de cámara con la sacudida máxima | Nuevo: la sacudida usa ruido suave + giro |
+| `shake_frequency` | 28 | Rapidez del temblor | Nuevo |
 | `hit_stop_time` | 0.07 | Congelado al matar o morir | |
 | `corpse_force` | 380 | Fuerza con la que sale volando el cadáver | |
 | `life_time` (cadáver) | 4.0 | Cuánto dura el cadáver (`scripts/corpse.gd`) | |
 | `entry_time` (kill feed) | 4.0 | Cuánto dura cada línea (`scripts/kill_feed.gd`) | |
-| Explosiones | máx. 18 | Sacudida según cercanía (`scripts/explosion_fx.gd`) | |
+| Explosiones | 18 cerca → 4 lejos | La sienten **todos** los jugadores del mapa; baja con la distancia (`scripts/explosion_fx.gd`). PEM: 6 → 1,5 | |
+| Aplastamiento al aterrizar | 0.28 | `land_squash` en `scripts/player_visual.gd`, según velocidad de caída | Nuevo |
+| Polvo en el aire | 28 partículas | Nodo `Polvo` del jugador: motas que solo se ven donde da la luz | Nuevo |
 | Polvo al aterrizar | – | Partículas en `_land_fx` (cantidad según velocidad de caída) | |
 
 Notas juice:
 -
+
+## 5b. Filtro de tele antigua (`scenes/PostFX.tscn`, `shaders/tv_antigua.gdshader`)
+Autoload por encima de todo (juego y HUD). Se quita en Opciones → "Filtro de tele antigua".
+Parámetros en el material de `PostFX.tscn` (inspector): brillo alrededor de luces (`bloom_*`), aberración 0,6 px,
+grano 0,045, líneas 0,06, viñeta 0,45, desaturación 0,12, parpadeo 0,012, tinte cálido.
+Interferencia: franja que baja en 1,4 s cada 12-30 s (`post_fx.gd`), desplaza filas 2 px y aclara 0,09.
 
 ## 6. Sonido
 Todos los sonidos son **placeholders generados**. En un juego de sigilo el sonido es clave, así que aquí van las distancias.

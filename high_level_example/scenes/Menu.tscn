@@ -135,13 +135,13 @@ value = 1.0
 [node name="Pantalla" type="CheckButton" parent="Centro/PanelOpciones/Margen/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
+focus_mode = 2
 text = "Pantalla completa"
 
 [node name="FiltroTV" type="CheckButton" parent="Centro/PanelOpciones/Margen/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
+focus_mode = 2
 text = "Filtro de tele antigua"
 
 [node name="LabelRes" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
@@ -151,7 +151,7 @@ text = "Resolución de ventana"
 [node name="Resolucion" type="OptionButton" parent="Centro/PanelOpciones/Margen/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
+focus_mode = 2
 
 [node name="LabelControles" type="Label" parent="Centro/PanelOpciones/Margen/Caja"]
 layout_mode = 2

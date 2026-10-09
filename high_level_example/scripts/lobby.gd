@@ -22,6 +22,7 @@ const COUNTDOWN_SECONDS: int = 3
 @onready var import_button: Button = %ImportButton
 @onready var leave_button: Button = %SalirButton
 @onready var hint_label: Label = %Pista
+@onready var veil: ColorRect = %Velo
 
 # Solo servidor: quién está listo
 var _ready_state: Dictionary = {}
@@ -32,6 +33,8 @@ var _ready_view: Dictionary = {}
 var _entries: Array = []
 var _import_dialog: FileDialog
 var _refresh_left: float = 0.0
+# Menú con mando/teclado (Start / Esc): bloquea al personaje y da foco a los botones
+var _menu_open: bool = false
 
 
 func _ready() -> void:
@@ -60,7 +63,7 @@ func _ready() -> void:
 		_rebuild_map_list()
 		multiplayer.peer_disconnected.connect(_on_peer_gone)
 	countdown_label.text = ""
-	hint_label.text = "E / botón de coger: Listo   ·   G / botón de lanzar: cambiar color"
+	_set_menu(false)
 
 
 func _process(delta: float) -> void:
@@ -72,10 +75,57 @@ func _process(delta: float) -> void:
 	if _refresh_left <= 0.0:
 		_refresh_left = 0.25
 		_refresh_players()
+		_update_hint()
+	if Input.is_action_just_pressed("menu"):
+		_set_menu(not _menu_open)
+	if _menu_open:
+		return
 	if Input.is_action_just_pressed("interact"):
 		_toggle_ready()
 	if Input.is_action_just_pressed("throw"):
 		_set_color((Settings.color_index + 1) % Settings.PLAYER_COLORS.size())
+
+
+func _input(event: InputEvent) -> void:
+	if _menu_open:
+		if UiJuice.pad_accept(get_viewport(), event):
+			return
+		if UiJuice.is_cancel(event) and not event.is_action_pressed("menu"):
+			get_viewport().set_input_as_handled()
+			_set_menu(false)
+
+
+func _exit_tree() -> void:
+	GameManager.input_blocked = false
+
+
+func _menu_controls() -> Array:
+	var out: Array = [ready_button]
+	out.append_array(colors_box.get_children())
+	if host_panel.visible:
+		out.append(map_selector)
+	out.append(leave_button)
+	return out
+
+
+func _set_menu(on: bool) -> void:
+	_menu_open = on
+	GameManager.input_blocked = on
+	veil.visible = on
+	for c in _menu_controls():
+		(c as Control).focus_mode = Control.FOCUS_ALL if on else Control.FOCUS_NONE
+	if on:
+		ready_button.grab_focus()
+	else:
+		get_viewport().gui_release_focus()
+	_update_hint()
+
+
+func _update_hint() -> void:
+	if _menu_open:
+		hint_label.text = "%s: volver" % ("B" if Settings.using_pad else "Esc")
+	else:
+		hint_label.text = "%s: Listo   ·   %s: color   ·   %s: menú" % [Settings.key_for("interact"), Settings.key_for("throw"), "Start" if Settings.using_pad else "Esc"]
 
 
 # --- LISTO Y CUENTA ATRÁS ---
@@ -185,6 +235,9 @@ func _build_color_buttons() -> void:
 		sb.border_color = Color(0, 0, 0, 0.6)
 		for st in ["normal", "hover", "pressed"]:
 			b.add_theme_stylebox_override(st, sb)
+		var sf: StyleBoxFlat = sb.duplicate()
+		sf.border_color = Color(1, 1, 1, 0.95)
+		b.add_theme_stylebox_override("focus", sf)
 		b.pressed.connect(_set_color.bind(i))
 		colors_box.add_child(b)
 		UiJuice.attach(b)

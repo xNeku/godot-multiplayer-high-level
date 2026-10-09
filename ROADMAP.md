@@ -20,7 +20,7 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
 6. **Votación de repetición** al final de cada ronda (la repetición en sí, más tarde).
 
 ## Pendiente técnico conocido
-- Navegación por mando en menú y lobby (ahora solo ratón; E / G hacen Listo y cambiar color).
+- ~~Navegación por mando en menú y lobby~~ (hecho).
 - Reasignar controles en Opciones (ahora solo se muestran).
 - Entrar a mitad de partida (ahora se rechaza) y pausa de recuento cada 10 rondas.
 - El aviso del HUD dice "E · Coger" fijo aunque se juegue con mando.

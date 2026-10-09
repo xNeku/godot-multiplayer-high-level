@@ -50,10 +50,41 @@ func _ready() -> void:
 	HighLevelNetworkHandler.connected_to_server.connect(_go_to_lobby, CONNECT_ONE_SHOT)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 
+	# Mando: la última IP queda puesta (con mando no se puede escribir) y el foco
+	# empieza en "Crear partida" si hay un mando conectado.
+	ip_input.text = Settings.last_ip
+	if not Input.get_connected_joypads().is_empty():
+		%HostButton.grab_focus()
+
+
+func _input(event: InputEvent) -> void:
+	if UiJuice.pad_accept(get_viewport(), event):
+		return
+	# Al tocar el mando sin nada enfocado, se enfoca el primer botón del panel visible
+	var pad: bool = event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf(event.axis_value) > 0.5)
+	if pad and get_viewport().gui_get_focus_owner() == null:
+		_focus_first()
+		get_viewport().set_input_as_handled()
+	elif UiJuice.is_cancel(event) and options_panel.visible:
+		_show_options(false)
+		get_viewport().set_input_as_handled()
+
+
+func _focus_first() -> void:
+	if options_panel.visible:
+		volume.grab_focus()
+	else:
+		%HostButton.grab_focus()
+
 
 func _show_options(on: bool) -> void:
 	options_panel.visible = on
 	main_panel.visible = not on
+	if get_viewport().gui_get_focus_owner() != null or Settings.using_pad:
+		if on:
+			volume.grab_focus()
+		else:
+			%OpcionesButton.grab_focus()
 
 
 func _on_host_pressed() -> void:
@@ -64,6 +95,8 @@ func _on_host_pressed() -> void:
 
 func _on_join_pressed() -> void:
 	message.text = "Conectando..."
+	Settings.last_ip = ip_input.text.strip_edges()
+	Settings.save()
 	if HighLevelNetworkHandler.start_client(ip_input.text.strip_edges()) != OK:
 		message.text = "IP no válida."
 

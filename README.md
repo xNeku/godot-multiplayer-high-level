@@ -27,6 +27,11 @@ Godot 4.5 (se edita con 4.7.2). ENet, UDP **42069**. Sin juego en local.
 | Soga (mantener) | K | LT |
 | Esconderse / salir | Q | Y |
 | Panel de ajustes (balance) | F1 | – |
+| Menú del lobby | Esc | Start |
+
+Con mando, el menú principal y las opciones se navegan con la cruceta/stick, A acepta y B vuelve.
+La IP de la última partida queda guardada (con mando no se puede escribir). En el lobby, Start abre el menú
+(Listo, color, mapa, salir) y deja quieto al personaje mientras está abierto.
 
 ## Probar en red
 1. Una instancia: **Crear partida**. Otra: IP del host (vacío = localhost) y **Unirse**.

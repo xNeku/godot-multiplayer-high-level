@@ -92,7 +92,7 @@ func _show_options(on: bool) -> void:
 	if not on and _options_only:
 		_back_to_title()
 		return
-	%Cabecera.text = "OPCIONES" if on else "JUGAR"
+	%Cabecera.text = "- OPCIONES -" if on else "- JUGAR -"
 	options_panel.visible = on
 	main_panel.visible = not on
 	if get_viewport().gui_get_focus_owner() != null or Settings.using_pad:

@@ -5,7 +5,7 @@ import sys, math
 G = {
 'F': ["#######","#######","##.....","##.....","######.","######.","##.....","##.....","##....."],
 'L': ["##.....","##.....","##.....","##.....","##.....","##.....","##.....","#######","#######"],
-'A': ["#######","#######","##...##","##...##","#######","#######","##...##","##...##","##...##"],
+'A': [".#####.","#######","##...##","##...##","#######","#######","##...##","##...##","##...##"],
 'S': [".######","#######","##.....","######.",".######",".....##",".....##","#######","######."],
 'H': ["##...##","##...##","##...##","#######","#######","##...##","##...##","##...##","##...##"],
 'R': ["######.","#######","##...##","##...##","#######","######.","##..##.","##...##","##...##"],
@@ -16,7 +16,7 @@ SHEAR = 6        # 1 px a la derecha cada SHEAR filas (de abajo arriba)
 PAD = 3
 # Arañazos: letra -> lista de (x0,y0,x1,y1) en px del cuerpo (antes de inclinar)
 CLAWS = {
-
+ 'R': [(30, 0, 8, 26), (38, 4, 14, 34), (42, 14, 22, 38)],
 }
 EXT = (2, 4)     # relieve: copia oscura desplazada (abajo-derecha)
 PAL = {
@@ -44,7 +44,7 @@ def make(ch, state, tail=False):
                 for x in range(M):
                     X, Y = mx * M + x, my * M + y
                     # arañazos
-                    cut = any(seg_dist(X, Y, *cl) < 1.25 for cl in CLAWS.get(ch, []))
+                    cut = any(seg_dist(X, Y, *cl) < 1.6 for cl in CLAWS.get(ch, []))
                     if cut:
                         body[(X, Y)] = 'out'
                         continue
@@ -58,28 +58,6 @@ def make(ch, state, tail=False):
                     elif left and x == 0: shade = 'hi'
                     elif down and y >= M - 2: shade = 'dark'
                     body[(X, Y)] = shade
-    if ch == 'A':
-        # Orejas de mapache: triángulos apoyados en las esquinas de la A (sin hueco),
-        # con el interior oscuro solo arriba para que no parezcan una diéresis.
-        RX, RY = 8.5, 12.0
-        for cx, lean in ((9, -1), (bw - 10, 1)):
-            for h in range(int(RY) + 1):
-                for w in range(-10, 11):
-                    # elipse redondeada, un poco inclinada hacia fuera
-                    xx = w - lean * h * 0.25
-                    e = (xx / RX) ** 2 + (h / RY) ** 2
-                    if e > 1.0:
-                        continue
-                    X, Y = cx + w, -1 - h
-                    if (X, Y) in body:
-                        continue
-                    ei = (xx / (RX - 3.2)) ** 2 + ((h - 1) / (RY - 3.5)) ** 2
-                    if ei <= 1.0 and h >= 2:
-                        body[(X, Y)] = 'dark'        # interior de la oreja
-                    elif e > 0.72:
-                        body[(X, Y)] = 'top'         # borde claro (como el pelo blanco)
-                    else:
-                        body[(X, Y)] = 'hi' if xx < 0 else 'body'
     if ch == 'S' and tail:
         # Última S: anillos de cola de mapache
         for (X, Y), sh in list(body.items()):

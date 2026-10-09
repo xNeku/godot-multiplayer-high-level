@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://b1f217vubxffw"]
+[gd_scene load_steps=6 format=3 uid="uid://b1f217vubxffw"]
 
 [ext_resource type="Script" path="res://high_level_example/scripts/menu.gd" id="1_leprn"]
 [ext_resource type="Theme" path="res://high_level_example/assets/ui/tema_flash.tres" id="2_tema"]
 [ext_resource type="Texture2D" path="res://high_level_example/assets/ui/menu/bg.png" id="3_bg"]
+[ext_resource type="Script" path="res://high_level_example/scripts/title_logo.gd" id="4_logo"]
 
 [sub_resource type="StyleBoxEmpty" id="SinCaja"]
 
@@ -26,40 +27,20 @@ grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("3_bg")
 
-[node name="Sombra" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0, 0.01, 0, 0.45)
+[node name="Logo" type="Node2D" parent="."]
+script = ExtResource("4_logo")
 
 [node name="Cabecera" type="Label" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 30.0
-offset_bottom = 66.0
+offset_top = 132.0
+offset_bottom = 150.0
 grow_horizontal = 2
-theme_type_variation = &"LabelTitulo"
-text = "JUGAR"
+theme_override_colors/font_color = Color(0.2, 0.55, 0.3, 1)
+text = "- JUGAR -"
 horizontal_alignment = 1
-
-[node name="Raya" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -90.0
-offset_top = 70.0
-offset_right = 90.0
-offset_bottom = 71.0
-grow_horizontal = 2
-mouse_filter = 2
-color = Color(0.14, 0.34, 0.2, 1)
 
 [node name="PanelPrincipal" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -68,9 +49,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -100.0
-offset_top = 96.0
+offset_top = 176.0
 offset_right = 100.0
-offset_bottom = 300.0
+offset_bottom = 340.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("SinCaja")
 
@@ -82,41 +63,33 @@ theme_override_constants/separation = 6
 unique_name_in_owner = true
 layout_mode = 2
 text = "CREAR PARTIDA"
-alignment = 0
-
-[node name="EtiquetaIp" type="Label" parent="PanelPrincipal/Caja"]
-layout_mode = 2
-theme_type_variation = &"LabelMini"
-theme_override_colors/font_color = Color(0.45, 0.5, 0.47, 1)
-text = "IP DEL HOST (VACIO = ESTE ORDENADOR)"
 
 [node name="IpInput" type="LineEdit" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
-placeholder_text = "127.0.0.1"
+placeholder_text = "IP DEL HOST"
+alignment = 1
 
 [node name="JoinButton" type="Button" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "UNIRSE"
-alignment = 0
 
 [node name="OpcionesButton" type="Button" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "OPCIONES"
-alignment = 0
 
 [node name="SalirButton" type="Button" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "VOLVER"
-alignment = 0
 
 [node name="Mensaje" type="Label" parent="PanelPrincipal/Caja"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"LabelAviso"
+horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="PanelOpciones" type="PanelContainer" parent="."]
@@ -127,10 +100,11 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -250.0
-offset_top = 86.0
+offset_top = 158.0
 offset_right = 250.0
-offset_bottom = 330.0
+offset_bottom = 352.0
 grow_horizontal = 2
+theme_override_styles/panel = SubResource("SinCaja")
 
 [node name="Caja" type="VBoxContainer" parent="PanelOpciones"]
 layout_mode = 2
@@ -148,6 +122,7 @@ theme_override_constants/separation = 5
 
 [node name="LabelVolumen" type="Label" parent="PanelOpciones/Caja/Columnas/Ajustes"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.55, 0.3, 1)
 text = "VOLUMEN"
 
 [node name="Volumen" type="HSlider" parent="PanelOpciones/Caja/Columnas/Ajustes"]
@@ -172,6 +147,7 @@ text = "FILTRO TELE VIEJA"
 
 [node name="LabelRes" type="Label" parent="PanelOpciones/Caja/Columnas/Ajustes"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.55, 0.3, 1)
 text = "VENTANA"
 
 [node name="Resolucion" type="OptionButton" parent="PanelOpciones/Caja/Columnas/Ajustes"]
@@ -192,6 +168,7 @@ theme_override_constants/separation = 5
 
 [node name="LabelControles" type="Label" parent="PanelOpciones/Caja/Columnas/ColControles"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.55, 0.3, 1)
 text = "CONTROLES"
 
 [node name="Controles" type="Label" parent="PanelOpciones/Caja/Columnas/ColControles"]

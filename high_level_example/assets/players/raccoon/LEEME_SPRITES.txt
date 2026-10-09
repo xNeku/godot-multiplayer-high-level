@@ -1,0 +1,100 @@
+MAPACHE - SPRITES PROVISIONALES (pixel art)
+===========================================
+
+Que es esto
+-----------
+Sprites del mapache (personaje candidato) para ir probando animaciones en el juego.
+Son PROVISIONALES: el sprite original es de frente (generado con IA y pasado a la
+cuadricula real de pixel art), no de perfil. Cuando haya version de perfil se
+rehacen todas las animaciones manteniendo los mismos nombres, tamanos de frame y
+numero de frames, asi que el codigo que las use no deberia cambiar.
+
+Reglas de todas las hojas
+-------------------------
+- Cada PNG es un spritesheet de UNA SOLA FILA, frames del mismo tamano pegados de
+  izquierda a derecha, sin margen ni separacion entre ellos.
+- Fondo transparente. 6 colores en total, sin antialiasing.
+- Filtro de textura: Nearest (si se ve borroso, ponerlo en el nodo o en el import).
+- Estan dibujados mirando "de frente", asi que sirven igual hacia izquierda o
+  derecha con flip_h. La excepcion es slide (ver abajo), que esta pensado
+  para ir hacia la DERECHA; hacia la izquierda, flip_h.
+- Alineacion: con el Sprite en centered = true y offset (0,0), los pies (o el cuerpo
+  tumbado en slide) caen en la misma linea del suelo en las hojas de 19x27 y en las
+  de 33x33, asi que se puede cambiar de una animacion a otra sin que el sprite
+  salte. En el aire (apogeo del salto y backflip) el sprite no toca el suelo, claro.
+
+Tabla de hojas
+--------------
+archivo                        frames  tam. frame  ms/frame  ~fps  bucle
+raccoon_idle_sheet.png            4     19x27        350      2.9   si
+raccoon_walk_sheet.png            4     19x27        170      5.9   si
+raccoon_run_sheet.png             4     19x27         90     11.1   si
+raccoon_jump_sheet.png            4     19x27        130      7.7   no
+raccoon_backflip_sheet.png        4     33x33         90     11.1   no
+raccoon_crouch_sheet.png          4     19x27        120      8.3   ver abajo
+raccoon_slide_sheet.png           4     33x33        110      9.1   ver abajo
+raccoon_base_19x25.png            -     19x25          -        -     -   (sprite quieto, sin margen superior)
+
+Tamano de cada hoja: 76x27 las de 19x27 (4 x 19) y 132x33 las de 33x33 (4 x 33).
+
+Detalle de cada animacion
+-------------------------
+idle      Respira (la cabeza baja 1 px) y mueve la punta de la cola. Bucle.
+walk      Alterna una pata levantada y sube/baja el cuerpo. Bucle.
+run       Igual que walk pero con fase de vuelo y patas mas altas. Bucle. Se activa
+          con el sprint (doble toque de direccion).
+jump      0 = agachado para el impulso (tambien vale para el aterrizaje),
+          1 = despegue (estirado), 2 = apogeo (patas recogidas), 3 = cayendo.
+          Normalmente: 1 al saltar, 2 en lo alto, 3 mientras cae.
+backflip  Doble salto. Pose de "bola" girada 0, 90, 180 y 270 grados en sentido
+          antihorario (como un backflip hacia la derecha). Una sola vez, no bucle.
+          OJO: el diseno del juego quiere que las piernas apunten hacia donde
+          apunta el arma en cada momento. Lo mejor es usar SOLO el frame 0 (la
+          pose de bola) y rotar el sprite por codigo segun el angulo del arma; los
+          otros 3 frames son solo un respaldo si se quiere algo mas "de pixel art".
+crouch    Shift para agacharse. Frames 0-2 = bajar (cada uno mas agachado),
+          frame 3 = agachado con la respiracion mas baja. Reproducir 0->2 una vez y
+          mantener alternando 2<->3 mientras se mantiene Shift; para levantarse,
+          reproducir 2->0 al reves.
+slide     Shift mientras corre. Frames 0-1 = entrada (inclinado hacia atras),
+          frames 2-3 = tumbado deslizando (cabeza a la izquierda, pies a la derecha).
+          Reproducir 0->1 una vez y mantener alternando 2<->3 mientras dure el
+          deslizamiento. Hacia la izquierda, flip_h. El disparo va mas bajo
+          mientras se desliza (eso lo gestiona el codigo, no el sprite).
+
+Como cargarlas en Godot 4
+-------------------------
+Opcion editor: AnimatedSprite2D -> SpriteFrames -> "Add frames from sprite sheet",
+columnas = 4, filas = 1, y marcar todos los frames.
+
+Opcion codigo (una funcion y listo):
+
+    static func add_anim(sf: SpriteFrames, anim: StringName, sheet: Texture2D,
+            n: int, fw: int, fh: int, fps: float, loop: bool) -> void:
+        sf.add_animation(anim)
+        sf.set_animation_speed(anim, fps)
+        sf.set_animation_loop(anim, loop)
+        for i in n:
+            var at := AtlasTexture.new()
+            at.atlas = sheet
+            at.region = Rect2(i * fw, 0, fw, fh)
+            sf.add_frame(anim, at)
+
+    # ejemplos
+    # add_anim(sf, &"idle",     preload("res://high_level_example/assets/players/raccoon/raccoon_idle_sheet.png"),     4, 19, 27, 2.9, true)
+    # add_anim(sf, &"walk",     preload("res://high_level_example/assets/players/raccoon/raccoon_walk_sheet.png"),     4, 19, 27, 5.9, true)
+    # add_anim(sf, &"run",      preload("res://high_level_example/assets/players/raccoon/raccoon_run_sheet.png"),      4, 19, 27, 11.1, true)
+    # add_anim(sf, &"jump",     preload("res://high_level_example/assets/players/raccoon/raccoon_jump_sheet.png"),     4, 19, 27, 7.7, false)
+    # add_anim(sf, &"backflip", preload("res://high_level_example/assets/players/raccoon/raccoon_backflip_sheet.png"), 4, 33, 33, 11.1, false)
+    # add_anim(sf, &"crouch",   preload("res://high_level_example/assets/players/raccoon/raccoon_crouch_sheet.png"),   4, 19, 27, 8.3, false)
+    # add_anim(sf, &"slide",    preload("res://high_level_example/assets/players/raccoon/raccoon_slide_sheet.png"),    4, 33, 33, 9.1, false)
+
+Notas para quien lo implemente
+------------------------------
+- Los .png.import los genera Godot al abrir el proyecto; no estan subidos.
+- Las animaciones estan hechas para encajar con las mecanicas planeadas: sprint con
+  doble toque, Shift = agacharse, Shift corriendo = deslizarse, doble salto = backflip.
+  Que animacion se reproduce en cada estado lo decide el codigo del jugador.
+- No hay animaciones de disparar, morir ni coger/soltar arma todavia.
+- El sprite NO tiene brazos separados del cuerpo. Para que el arma se vea sujeta
+  hara falta el mapache de perfil con los brazos aparte.

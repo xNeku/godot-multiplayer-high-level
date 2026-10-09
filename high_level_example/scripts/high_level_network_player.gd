@@ -63,17 +63,18 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export_range(0.0, 1.0) var backflip_air_control: float = 0.25
 
 @export_group("Soga")
-# Mantén el botón de soga: se engancha al techo o pared en diagonal hacia delante-arriba
-# (con el botón de salto mantenido, casi recto hacia arriba). Suéltalo para soltarte.
+# Mantén el botón de soga: sale hacia donde apuntas (igual que el arma: recto, y sube
+# mientras mantienes salto) y se engancha a suelo, paredes, techos y plataformas.
+# Suéltalo para soltarte: sales disparado con la velocidad del balanceo.
 @export var rope_range: float = 170.0
-@export var rope_angle_deg: float = 50.0
-@export var rope_angle_up_deg: float = 80.0
 # Arriba / abajo: acorta o alarga la soga
 @export var rope_climb_speed: float = 70.0
 @export var rope_min_length: float = 24.0
 # Empuje lateral al balancearse en el aire y velocidad máxima del balanceo
 @export var rope_swing_accel: float = 420.0
-@export var rope_max_speed: float = 380.0
+@export var rope_max_speed: float = 520.0
+# Al soltarte, la velocidad se multiplica por esto (premia soltar en el buen momento)
+@export var rope_release_boost: float = 1.1
 # Espera tras fallar el enganche (no hay nada a tiro)
 @export var rope_miss_cooldown: float = 0.3
 
@@ -470,8 +471,14 @@ func _physics_process(delta: float) -> void:
 		velocity.y *= jump_cut
 
 	if roped and not on_floor:
-		# Balanceo: empuje lateral; la soga ya frena lo que se aleje del anclaje
-		velocity.x += dir * rope_swing_accel * delta
+		# Balanceo: empuje en la dirección del arco (tangente a la soga). La gravedad
+		# hace el péndulo; empujar a favor del movimiento acumula velocidad.
+		if dir != 0:
+			var n: Vector2 = (global_position - rope_anchor).normalized()
+			var tangent := Vector2(-n.y, n.x)
+			if tangent.x * dir < 0.0:
+				tangent = -tangent
+			velocity += tangent * rope_swing_accel * delta
 		velocity = velocity.limit_length(rope_max_speed)
 	elif stance == Stance.SLIDE:
 		if on_floor:
@@ -486,7 +493,8 @@ func _physics_process(delta: float) -> void:
 		elif _is_sprinting(dir):
 			speed = run_speed
 		var ctrl: float = 1.0 if on_floor else air_control
-		if dir != 0 and absf(velocity.x) > speed and signf(velocity.x) == dir:
+		if absf(velocity.x) > speed and ((dir == 0 and not on_floor) or signf(velocity.x) == dir):
+			# Por encima de tu velocidad normal (slide, soga, empujón...) frenas suave
 			velocity.x = move_toward(velocity.x, dir * speed, over_speed_decel * ctrl * delta)
 		elif dir != 0:
 			velocity.x = move_toward(velocity.x, dir * speed, acceleration * ctrl * delta)
@@ -522,19 +530,28 @@ func _update_rope(delta: float) -> bool:
 		return rope_anchor != Vector2.ZERO
 	if not Input.is_action_pressed("rope") or _rope_blocked():
 		rope_anchor = Vector2.ZERO
+		if not is_on_floor():
+			velocity *= rope_release_boost
 		return false
+	var old_len: float = _rope_len
 	if Input.is_action_pressed("ui_up"):
 		_rope_len = maxf(rope_min_length, _rope_len - rope_climb_speed * delta)
 	elif Input.is_action_pressed("ui_down"):
 		_rope_len = minf(rope_range, _rope_len + rope_climb_speed * delta)
+	# Conservación del momento angular: al acortar la soga balanceándote, vas más rápido
+	# (y al alargarla, más lento). Es lo que hace un columpio cuando "bombeas".
+	if _rope_len != old_len and not is_on_floor():
+		var n: Vector2 = (global_position - rope_anchor).normalized()
+		var radial: Vector2 = n * velocity.dot(n)
+		velocity = radial + (velocity - radial) * (old_len / _rope_len)
 	return true
 
 
 func _try_attach() -> void:
-	var up: bool = Input.is_action_pressed("ui_up")
-	var ang: float = deg_to_rad(rope_angle_up_deg if up else rope_angle_deg)
-	var dir := Vector2(facing * cos(ang), -sin(ang))
-	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + dir * rope_range, 1)
+	var dir := Vector2.RIGHT.rotated(aim_angle)
+	# Capa 1 (suelo/paredes) + capa 4 (plataformas atravesables)
+	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + dir * rope_range, 1 | 8)
+	query.hit_from_inside = false
 	var result := get_world_2d().direct_space_state.intersect_ray(query)
 	if result.is_empty():
 		_rope_ready_at = Time.get_ticks_msec() + int(rope_miss_cooldown * 1000.0)

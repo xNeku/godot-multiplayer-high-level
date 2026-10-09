@@ -100,7 +100,7 @@ shape = SubResource("Rect_3")
 [node name="Plataformas" type="Node2D" parent="."]
 
 [node name="Plataforma1" type="StaticBody2D" parent="Plataformas"]
-position = Vector2(630, 424)
+position = Vector2(630, 460)
 collision_layer = 8
 collision_mask = 0
 
@@ -116,7 +116,7 @@ one_way_collision = true
 shape = SubResource("Rect_4")
 
 [node name="Plataforma2" type="StaticBody2D" parent="Plataformas"]
-position = Vector2(790, 344)
+position = Vector2(790, 416)
 collision_layer = 8
 collision_mask = 0
 
@@ -132,7 +132,7 @@ one_way_collision = true
 shape = SubResource("Rect_5")
 
 [node name="PlataformaB" type="StaticBody2D" parent="Plataformas"]
-position = Vector2(1620, 424)
+position = Vector2(1620, 460)
 collision_layer = 8
 collision_mask = 0
 
@@ -148,7 +148,7 @@ one_way_collision = true
 shape = SubResource("Rect_6")
 
 [node name="PlataformaC" type="StaticBody2D" parent="Plataformas"]
-position = Vector2(1760, 344)
+position = Vector2(1760, 416)
 collision_layer = 8
 collision_mask = 0
 
@@ -169,10 +169,10 @@ shape = SubResource("Rect_7")
 position = Vector2(1500, 487)
 
 [node name="MunecoB" parent="Munecos" instance=ExtResource("3_fijo")]
-position = Vector2(1660, 407)
+position = Vector2(1660, 443)
 
 [node name="MunecoC" parent="Munecos" instance=ExtResource("3_fijo")]
-position = Vector2(1800, 327)
+position = Vector2(1800, 399)
 
 [node name="MunecoCaminante" parent="Munecos" instance=ExtResource("4_walker")]
 position = Vector2(-150, 487)
@@ -201,7 +201,7 @@ position = Vector2(1000, 476)
 position = Vector2(1100, 476)
 
 [node name="PlataformaArmas" type="StaticBody2D" parent="Plataformas"]
-position = Vector2(1150, 344)
+position = Vector2(1150, 372)
 collision_layer = 8
 collision_mask = 0
 
@@ -219,27 +219,27 @@ shape = SubResource("Rect_P")
 [node name="Armas" type="Node2D" parent="."]
 
 [node name="SpawnerSniper" parent="Armas" instance=ExtResource("6_spawner")]
-position = Vector2(940, 340)
+position = Vector2(940, 368)
 weapon = ExtResource("7_sniper")
 
 [node name="SpawnerSniperSilenciosa" parent="Armas" instance=ExtResource("6_spawner")]
-position = Vector2(1010, 340)
+position = Vector2(1010, 368)
 weapon = ExtResource("8_snipersilenciosa")
 
 [node name="SpawnerDesertEagle" parent="Armas" instance=ExtResource("6_spawner")]
-position = Vector2(1080, 340)
+position = Vector2(1080, 368)
 weapon = ExtResource("9_deserteagle")
 
 [node name="SpawnerMp7" parent="Armas" instance=ExtResource("6_spawner")]
-position = Vector2(1150, 340)
+position = Vector2(1150, 368)
 weapon = ExtResource("10_mp7")
 
 [node name="SpawnerUsp" parent="Armas" instance=ExtResource("6_spawner")]
-position = Vector2(1220, 340)
+position = Vector2(1220, 368)
 weapon = ExtResource("11_usp")
 
 [node name="PlataformaObjetos" type="StaticBody2D" parent="Plataformas"]
-position = Vector2(320, 344)
+position = Vector2(320, 460)
 collision_layer = 8
 collision_mask = 0
 
@@ -257,43 +257,43 @@ shape = SubResource("Rect_O")
 [node name="Objetos" type="Node2D" parent="."]
 
 [node name="SpawnerGranada" parent="Objetos" instance=ExtResource("6_spawner")]
-position = Vector2(140, 340)
+position = Vector2(140, 456)
 item = ExtResource("20_obj")
 
 [node name="SpawnerSemtex" parent="Objetos" instance=ExtResource("6_spawner")]
-position = Vector2(185, 340)
+position = Vector2(185, 456)
 item = ExtResource("21_obj")
 
 [node name="SpawnerTomahawk" parent="Objetos" instance=ExtResource("6_spawner")]
-position = Vector2(230, 340)
+position = Vector2(230, 456)
 item = ExtResource("22_obj")
 
 [node name="SpawnerClaymore" parent="Objetos" instance=ExtResource("6_spawner")]
-position = Vector2(275, 340)
+position = Vector2(275, 456)
 item = ExtResource("23_obj")
 
 [node name="SpawnerHumo" parent="Objetos" instance=ExtResource("6_spawner")]
-position = Vector2(320, 340)
+position = Vector2(320, 456)
 item = ExtResource("24_obj")
 
 [node name="SpawnerTranslocator" parent="Objetos" instance=ExtResource("6_spawner")]
-position = Vector2(365, 340)
+position = Vector2(365, 456)
 item = ExtResource("25_obj")
 
 [node name="SpawnerBetty" parent="Objetos" instance=ExtResource("6_spawner")]
-position = Vector2(410, 340)
+position = Vector2(410, 456)
 item = ExtResource("30_betty")
 
 [node name="SpawnerPem" parent="Objetos" instance=ExtResource("6_spawner")]
-position = Vector2(455, 340)
+position = Vector2(455, 456)
 item = ExtResource("31_pem")
 
 [node name="SpawnerHilo" parent="Objetos" instance=ExtResource("6_spawner")]
-position = Vector2(500, 340)
+position = Vector2(500, 456)
 item = ExtResource("32_hilo")
 
 [node name="SpawnerBazooka" parent="Armas" instance=ExtResource("6_spawner")]
-position = Vector2(1290, 340)
+position = Vector2(1290, 368)
 weapon = ExtResource("33_bazooka")
 
 [node name="MuroPuerta" type="StaticBody2D" parent="."]

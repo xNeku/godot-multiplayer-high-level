@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Godot Multiplayer"
-run/main_scene="uid://b1f217vubxffw"
+run/main_scene="res://high_level_example/scenes/TitleMenu.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 

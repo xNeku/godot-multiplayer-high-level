@@ -5,7 +5,7 @@ extends Node
 signal connected_to_server()
 
 const PORT: int = 42069 # Puerto (hay que abrirlo en la VPN / router)
-const MENU_SCENE: String = "res://high_level_example/scenes/Menu.tscn"
+const MENU_SCENE: String = "res://high_level_example/scenes/TitleMenu.tscn"
 
 
 func _ready() -> void:

@@ -26,7 +26,7 @@ El sistema de rondas necesita mapas para tener sentido, así que va en paralelo 
 - El aviso del HUD dice "E · Coger" fijo aunque se juegue con mando.
 
 ## Después
-7. **Soga**: se consigue en un sitio del mapa y se queda toda la ronda. Colgarse, balancearse, subir y bajar despacio.
+7. **Soga** (primera versión en la rama `soga`, siempre disponible para probar; falta que sea objeto que se coge y balancearla): se consigue en un sitio del mapa y se queda toda la ronda. Colgarse, balancearse, subir y bajar despacio.
 8. **Escondites**: armario, trampilla de aire, arbustos. Dentro no se te ve, pero las explosiones te matan.
 9. **Explosiones que rompen terreno.**
 10. **Eventos de luz**: zonas que se iluminan, te iluminas si no te mueves, etc.

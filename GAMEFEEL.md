@@ -60,6 +60,25 @@ Notas sprint/slide/backflip:
 - En slide el arma baja con el cuerpo. Te quedas tumbado hasta que vuelves a pulsar dirección (con la velocidad ya baja) o saltas.
 - En backflip el arma va pegada al cuerpo y gira con él.
 
+### 1c. Soga (rama `soga`, siempre disponible por ahora)
+`scripts/high_level_network_player.gd` (grupo *Soga*). Botón: **K** (teclado) / **LT** (mando), **mantener**.
+- Pulsas: sale en diagonal hacia delante-arriba (`rope_angle_deg`); con salto mantenido sale casi recta hacia arriba (`rope_angle_up_deg`). Si engancha suelo/techo/pared (capa 1) quedas colgado; si no hay nada a tiro, espera `rope_miss_cooldown`.
+- Colgado: A/D balancea (`rope_swing_accel`), arriba acorta y abajo alarga (`rope_climb_speed`). El salto queda desactivado mientras hay soga.
+- Soltar el botón te suelta conservando la velocidad. Si algo se interpone entre tú y el anclaje, también se suelta.
+- La soga es rígida (no se estira) y no rodea esquinas.
+| Parámetro | Valor | Qué hace | Notas |
+|---|---|---|---|
+| `rope_range` | 170 | Alcance del enganche (px) | |
+| `rope_angle_deg` / `rope_angle_up_deg` | 50 / 80 | Ángulo del lanzamiento | |
+| `rope_climb_speed` | 70 | Subir / bajar por la soga | |
+| `rope_min_length` | 24 | Largo mínimo | |
+| `rope_swing_accel` | 420 | Empuje lateral en el aire | |
+| `rope_max_speed` | 380 | Velocidad máxima balanceando | |
+| `rope_miss_cooldown` | 0.3 | Espera tras fallar | |
+
+Notas de prueba de la soga:
+-
+
 ## 2. Puntería y retroceso del jugador
 `scripts/high_level_network_player.gd` (grupo *Puntería*)
 

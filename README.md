@@ -24,6 +24,7 @@ Godot 4.5 (se edita con 4.7.2). ENet, UDP **42069**. Sin juego en local.
 | Disparar | clic izquierdo | gatillo |
 | Coger / soltar / Listo | E | RB |
 | Lanzar objeto | G | B |
+| Soga (mantener) | K | LT |
 | Panel de ajustes (balance) | F1 | – |
 
 ## Probar en red

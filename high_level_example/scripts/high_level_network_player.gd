@@ -46,6 +46,21 @@ const PLATFORM_LAYER: int = 4 # capa "Plataformas" (project.godot)
 @export var backflip_time: float = 0.5
 @export_range(0.0, 1.0) var backflip_air_control: float = 0.25
 
+@export_group("Soga")
+# Mantén el botón de soga: se engancha al techo o pared en diagonal hacia delante-arriba
+# (con el botón de salto mantenido, casi recto hacia arriba). Suéltalo para soltarte.
+@export var rope_range: float = 170.0
+@export var rope_angle_deg: float = 50.0
+@export var rope_angle_up_deg: float = 80.0
+# Arriba / abajo: acorta o alarga la soga
+@export var rope_climb_speed: float = 70.0
+@export var rope_min_length: float = 24.0
+# Empuje lateral al balancearse en el aire y velocidad máxima del balanceo
+@export var rope_swing_accel: float = 420.0
+@export var rope_max_speed: float = 380.0
+# Espera tras fallar el enganche (no hay nada a tiro)
+@export var rope_miss_cooldown: float = 0.3
+
 @export_group("Juice")
 @export var shake_per_shot: float = 2.0
 @export var shake_on_death: float = 14.0
@@ -123,6 +138,7 @@ var _drop_until_msec: int = 0
 @onready var muzzle_flash: PointLight2D = $HandPivot/Muzzle/Fogonazo
 @onready var shot_audio: AudioStreamPlayer2D = $HandPivot/Muzzle/SonidoDisparo
 @onready var throw_arc: Line2D = $ArcoLanzamiento
+@onready var rope_line: Line2D = $Soga
 
 const CORPSE_SCENE: PackedScene = preload("res://high_level_example/scenes/Cadaver.tscn")
 const TRACER_SCENE: PackedScene = preload("res://high_level_example/scenes/Trazador.tscn")
@@ -165,6 +181,10 @@ var _kb_sprint_dir: int = 0
 var _tap_dir: int = 0
 var _tap_time: float = -10.0
 var _since_jump: float = 99.0
+# Punto donde está enganchada la soga (ZERO = sin soga). Se replica para dibujarla a todos.
+var rope_anchor: Vector2 = Vector2.ZERO
+var _rope_len: float = 0.0
+var _rope_ready_at: int = 0
 var _flip_t: float = -1.0 # <0 = sin backflip; si no, segundos transcurridos
 var _flip_facing: int = 1
 var _fx_flipping: bool = false
@@ -290,6 +310,9 @@ func _process(delta: float) -> void:
 		else:
 			global_position = global_position.lerp(net_position, 1.0 - exp(-remote_smoothing * delta))
 	_movement_sfx(delta)
+	rope_line.visible = rope_anchor != Vector2.ZERO
+	if rope_line.visible:
+		rope_line.points = PackedVector2Array([global_position, rope_anchor])
 
 
 # Pasos, salto y aterrizaje deducidos del movimiento, así suenan igual para todos
@@ -369,7 +392,8 @@ func _physics_process(delta: float) -> void:
 	var crouch_held: bool = Input.is_action_pressed("crouch")
 	_update_stance(on_floor, dir, crouch_held, Input.is_action_just_pressed("crouch"))
 
-	var jump_pressed: bool = Input.is_action_just_pressed("ui_up")
+	var roped: bool = _update_rope(delta)
+	var jump_pressed: bool = Input.is_action_just_pressed("ui_up") and not roped
 	if jump_pressed:
 		_jump_buffer_left = jump_buffer_time
 	else:
@@ -400,10 +424,14 @@ func _physics_process(delta: float) -> void:
 		if stance == Stance.SLIDE:
 			stance = Stance.CROUCH # saltar desde el slide: mantiene el impulso
 	# Soltar el salto en la subida lo acorta (no en el backflip)
-	if Input.is_action_just_released("ui_up") and velocity.y < 0.0 and _flip_t < 0.0:
+	if Input.is_action_just_released("ui_up") and velocity.y < 0.0 and _flip_t < 0.0 and not roped:
 		velocity.y *= jump_cut
 
-	if stance == Stance.SLIDE:
+	if roped and not on_floor:
+		# Balanceo: empuje lateral; la soga ya frena lo que se aleje del anclaje
+		velocity.x += dir * rope_swing_accel * delta
+		velocity = velocity.limit_length(rope_max_speed)
+	elif stance == Stance.SLIDE:
 		if on_floor:
 			velocity.x = move_toward(velocity.x, 0.0, slide_friction * delta)
 	elif _flip_t >= 0.0:
@@ -422,6 +450,8 @@ func _physics_process(delta: float) -> void:
 
 	_prev_fall_speed = velocity.y
 	move_and_slide()
+	if roped:
+		_apply_rope_constraint()
 	net_position = global_position
 
 	_update_flip(delta)
@@ -436,6 +466,60 @@ func _physics_process(delta: float) -> void:
 		request_interact.rpc_id(1)
 	_update_weapon_arc()
 	_update_throw(delta)
+
+
+# Gestiona enganche, escalada y desenganche. Devuelve true si hay soga puesta.
+func _update_rope(delta: float) -> bool:
+	if rope_anchor == Vector2.ZERO:
+		if Input.is_action_just_pressed("rope") and Time.get_ticks_msec() >= _rope_ready_at \
+				and stance != Stance.SLIDE and _flip_t < 0.0:
+			_try_attach()
+		return rope_anchor != Vector2.ZERO
+	if not Input.is_action_pressed("rope") or _rope_blocked():
+		rope_anchor = Vector2.ZERO
+		return false
+	if Input.is_action_pressed("ui_up"):
+		_rope_len = maxf(rope_min_length, _rope_len - rope_climb_speed * delta)
+	elif Input.is_action_pressed("ui_down"):
+		_rope_len = minf(rope_range, _rope_len + rope_climb_speed * delta)
+	return true
+
+
+func _try_attach() -> void:
+	var up: bool = Input.is_action_pressed("ui_up")
+	var ang: float = deg_to_rad(rope_angle_up_deg if up else rope_angle_deg)
+	var dir := Vector2(facing * cos(ang), -sin(ang))
+	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + dir * rope_range, 1)
+	var hit := get_world_2d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		_rope_ready_at = Time.get_ticks_msec() + int(rope_miss_cooldown * 1000.0)
+		return
+	rope_anchor = hit.position
+	_rope_len = maxf(global_position.distance_to(rope_anchor), rope_min_length)
+
+
+# Algo se ha puesto en medio de la soga (esquina): se suelta
+func _rope_blocked() -> bool:
+	var to_anchor: Vector2 = rope_anchor - global_position
+	if to_anchor.length() < 4.0:
+		return false
+	var end: Vector2 = rope_anchor - to_anchor.normalized() * 3.0
+	var query := PhysicsRayQueryParameters2D.create(global_position, end, 1)
+	return not get_world_2d().direct_space_state.intersect_ray(query).is_empty()
+
+
+# La soga no se estira: si te pasas de largo, te devuelve al círculo y quita la
+# velocidad que te alejaba (así sale el péndulo).
+func _apply_rope_constraint() -> void:
+	var off: Vector2 = global_position - rope_anchor
+	var dist: float = off.length()
+	if dist <= _rope_len or dist < 0.01:
+		return
+	var n: Vector2 = off / dist
+	move_and_collide(-n * (dist - _rope_len))
+	var away: float = velocity.dot(n)
+	if away > 0.0:
+		velocity -= n * away
 
 
 func _read_dir() -> int:
@@ -807,6 +891,8 @@ func _set_dead_local() -> void:
 	if flashlight:
 		flashlight.enabled = false
 	collision_layer = 0
+	rope_anchor = Vector2.ZERO
+	rope_line.visible = false
 	_col.set_deferred("disabled", true)
 	velocity = Vector2.ZERO
 	if is_multiplayer_authority():
